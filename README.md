@@ -23,7 +23,7 @@ Requires a 64-bit Raspberry Pi OS with [Docker and the compose plugin](https://d
 
 ```bash
 git clone https://github.com/leuteritz/Drip.git
-cd drip
+cd Drip
 
 # Create your environment file (see below; can stay empty for dry-run mode)
 cp backend/.env.example backend/.env
