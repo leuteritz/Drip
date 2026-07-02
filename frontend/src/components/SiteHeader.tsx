@@ -71,14 +71,9 @@ export default function SiteHeader({
     <header className="hero-gradient relative shrink-0 overflow-hidden px-6 pb-14 pt-5 text-cream md:px-10 md:pb-16">
       {/* App bar: brand (left) + jump-nav (right) */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-cream/15 pb-4">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cream/20 text-xl">
-            <DropFillIcon />
-          </span>
-          <span className="font-display text-2xl font-bold">Drip</span>
-          <span className="ml-0.5 text-[11px] font-bold uppercase tracking-[0.16em] text-cream/70 max-sm:hidden">
-            Bitcoin&nbsp;DCA
-          </span>
+        <div className="flex flex-col items-start gap-0.5">
+          <DropFillIcon className="text-5xl leading-none" />
+          <span className="font-display text-2xl font-bold leading-none">Drip</span>
         </div>
         <nav className="flex gap-1.5">
           {NAV.map(({ id, label, Icon }) => {
@@ -103,7 +98,7 @@ export default function SiteHeader({
       </div>
 
       {/* Hero body: reservoir · signals · market + plan */}
-      <div className="flex flex-wrap items-stretch gap-x-8 gap-y-8">
+      <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-8">
         <Reservoir
           performance={performance}
           status={status}
@@ -247,7 +242,7 @@ function SignalCluster({ indicators }: { indicators: Indicators }) {
   const rsiLabel = indicators.rsi < 30 ? "Oversold" : indicators.rsi > 70 ? "Overbought" : "Neutral";
 
   return (
-    <div className="flex flex-wrap items-end gap-x-8 gap-y-6">
+    <div className="flex flex-wrap items-center gap-x-8 gap-y-6">
       {/* Fear & Greed arc */}
       <div className="text-center">
         <FearGreedArc value={indicators.fear_greed} />
