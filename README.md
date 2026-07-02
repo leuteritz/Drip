@@ -35,6 +35,14 @@ docker compose up -d --build
 
 The dashboard is now available at `http://<pi-address>:8080`.
 
+If port 8080 is already taken on your Pi, pick another one via the root `.env`
+(this file is separate from `backend/.env`):
+
+```bash
+echo "DRIP_PORT=8081" > .env
+docker compose up -d
+```
+
 Two containers run behind the scenes: `drip-frontend` (nginx, serves the UI and
 proxies API calls) and `drip-backend` (FastAPI, scheduler and trading logic). The
 SQLite database lives in the `drip-data` volume and survives updates.
@@ -84,6 +92,13 @@ still works fully in dry-run mode - market data comes from public endpoints.
 | `COINBASE_API_KEY` | for live trading | Key name from your CDP key file, e.g. `organizations/xxx/apiKeys/yyy`. Create one at https://portal.cdp.coinbase.com/access/api with the Trade permission. |
 | `COINBASE_API_SECRET` | for live trading | The EC private key from the same file, on one line with line breaks written as `\n`. |
 | `DISCORD_WEBHOOK_URL` | optional | Webhook for buy notifications. Leave empty to disable. |
+
+One more variable lives in the **root** `.env` (read by Docker Compose, not by the
+backend):
+
+| Variable | Required | Description |
+|---|---|---|
+| `DRIP_PORT` | optional | Host port for the web dashboard. Defaults to 8080. |
 
 Example:
 

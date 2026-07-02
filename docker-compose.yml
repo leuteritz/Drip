@@ -14,7 +14,8 @@ services:
     build: ./frontend
     container_name: drip-frontend
     ports:
-      - "8080:80"
+      # Host port is configurable via DRIP_PORT in the root .env (default 8080)
+      - "${DRIP_PORT:-8080}:80"
     depends_on:
       - backend
     restart: unless-stopped
