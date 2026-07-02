@@ -11,9 +11,15 @@ import {
 import type { ComparisonPoint } from "../api/client";
 import { fmtEur } from "../api/client";
 
-export default function ComparisonChart({ data }: { data: ComparisonPoint[] }) {
+export default function ComparisonChart({
+  data,
+  height = 300,
+}: {
+  data: ComparisonPoint[];
+  height?: number | string;
+}) {
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
         <CartesianGrid stroke="#d5c7bc" strokeDasharray="3 5" vertical={false} opacity={0.6} />
         <XAxis

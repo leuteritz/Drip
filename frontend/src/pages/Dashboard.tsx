@@ -1,13 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import FlaskIcon from "~icons/ph/flask";
-import KeyIcon from "~icons/ph/key";
-import LightningIcon from "~icons/ph/lightning-fill";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import PlayIcon from "~icons/ph/play-fill";
-import ClockIcon from "~icons/ph/clock";
-import DropSlashIcon from "~icons/ph/drop-slash";
+import SlidersIcon from "~icons/ph/sliders-horizontal";
 import TrendUpIcon from "~icons/ph/trend-up";
 import TrendDownIcon from "~icons/ph/trend-down";
-import ChartLineIcon from "~icons/ph/chart-line-up";
 import {
   api,
   fmtBtc,
@@ -15,19 +10,18 @@ import {
   fmtPct,
   WEEKDAYS,
   type BotSettings,
-  type BotStatus,
   type Candle,
+  type ComparisonPoint,
   type Indicators,
   type Performance,
   type Purchase,
   type RunResult,
 } from "../api/client";
 import { ScoreDrops } from "../components/drops";
+import ComparisonChart from "../components/ComparisonChart";
 import PriceChart from "../components/PriceChart";
-import SimulationModal from "../components/SimulationModal";
-import TabHeader, { type Page } from "../components/TabHeader";
+import { HeaderPill } from "../components/SiteHeader";
 import { Card, CardTitle, Spinner, Toggle } from "../components/ui";
-import type { ReactNode } from "react";
 
 const RANGES = [
   { label: "30d", days: 30 },
@@ -35,57 +29,60 @@ const RANGES = [
   { label: "1y", days: 365 },
 ];
 
-export default function Dashboard({
-  active,
-  onNavigate,
+type ChartView = "price" | "strategy";
+
+export default function Overview({
+  settings,
+  indicators,
+  purchases,
+  onPurchasesChanged,
 }: {
-  active: Page;
-  onNavigate: (p: Page) => void;
+  settings: BotSettings | null;
+  indicators: Indicators | null;
+  purchases: Purchase[];
+  onPurchasesChanged: () => void;
 }) {
-  const [status, setStatus] = useState<BotStatus | null>(null);
-  const [settings, setSettings] = useState<BotSettings | null>(null);
-  const [indicators, setIndicators] = useState<Indicators | null>(null);
-  const [candles, setCandles] = useState<Candle[]>([]);
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [performance, setPerformance] = useState<Performance | null>(null);
+  const [candles, setCandles] = useState<Candle[]>([]);
+  const [comparison, setComparison] = useState<ComparisonPoint[]>([]);
+  const [compLoaded, setCompLoaded] = useState(false);
   const [rangeDays, setRangeDays] = useState(90);
   const [includeDryRun, setIncludeDryRun] = useState(true);
+  const [chartView, setChartView] = useState<ChartView>("price");
   const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
-  const [showSim, setShowSim] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPerf = useCallback(async (dry: boolean) => {
-    setPerformance(await api.getPerformance(dry));
+  const loadPerf = useCallback((dry: boolean) => {
+    api.getPerformance(dry).then(setPerformance).catch((e) => setError(String(e)));
+  }, []);
+
+  const loadComparison = useCallback((dry: boolean) => {
+    api
+      .getComparison(dry)
+      .then((c) => {
+        setComparison(c);
+        setCompLoaded(true);
+      })
+      .catch((e) => setError(String(e)));
   }, []);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const [st, set, purch] = await Promise.all([
-          api.getStatus(),
-          api.getSettings(),
-          api.getPurchases(),
-        ]);
-        setStatus(st);
-        setSettings(set);
-        setPurchases(purch);
-        await loadPerf(true);
-        // Indicators last - the first call may fetch 350 days of candles
-        setIndicators(await api.getIndicators());
-      } catch (e) {
-        setError(String(e));
-      }
-    })();
+    loadPerf(true);
   }, [loadPerf]);
 
   useEffect(() => {
     api.getCandles(rangeDays).then(setCandles).catch((e) => setError(String(e)));
   }, [rangeDays]);
 
-  const toggleDryRunStats = async (v: boolean) => {
+  // The strategy series is only fetched once the user opens that view.
+  useEffect(() => {
+    if (chartView === "strategy") loadComparison(includeDryRun);
+  }, [chartView, includeDryRun, loadComparison]);
+
+  const toggleDryRunStats = (v: boolean) => {
     setIncludeDryRun(v);
-    await loadPerf(v);
+    loadPerf(v);
   };
 
   const runAnalysis = async () => {
@@ -94,8 +91,9 @@ export default function Dashboard({
     try {
       const result = await api.runNow(true); // manual runs are always dry runs
       setRunResult(result);
-      setPurchases(await api.getPurchases());
-      await loadPerf(includeDryRun);
+      onPurchasesChanged();
+      loadPerf(includeDryRun);
+      if (chartView === "strategy") loadComparison(includeDryRun);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -104,41 +102,12 @@ export default function Dashboard({
   };
 
   const profitable = (performance?.profit_eur ?? 0) >= 0;
-
-  const statusPills = status && (
-    <>
-      {status.paused && status.paused_until ? (
-        <HeaderPill>
-          <DropSlashIcon /> Off until {formatDate(status.paused_until)}
-        </HeaderPill>
-      ) : status.next_run ? (
-        <HeaderPill>
-          <ClockIcon /> Next {formatDateTime(status.next_run)}
-        </HeaderPill>
-      ) : null}
-      <HeaderPill>
-        {status.dry_run ? (
-          <>
-            <FlaskIcon /> Dry run
-          </>
-        ) : (
-          <>
-            <LightningIcon /> Live
-          </>
-        )}
-      </HeaderPill>
-      {!status.has_credentials && (
-        <HeaderPill>
-          <KeyIcon /> No API keys
-        </HeaderPill>
-      )}
-    </>
-  );
+  const strategySeries = comparison.slice(-rangeDays);
 
   return (
-    <div className="flex h-full flex-col">
-      <TabHeader active={active} onNavigate={onNavigate} right={statusPills}>
-        {/* Hero: the reservoir */}
+    <section id="overview" className="scroll-mt-20">
+      {/* Reservoir hero on the gradient */}
+      <div className="hero-gradient relative overflow-hidden px-6 pt-6 pb-14 md:px-10 md:pb-16">
         <div className="flex flex-wrap items-end justify-between gap-4 text-cream">
           <div className="min-w-0">
             <div className="text-xs font-bold uppercase tracking-[0.22em] text-cream/85">
@@ -193,155 +162,218 @@ export default function Dashboard({
             )}
           </div>
         </div>
-      </TabHeader>
 
-      {/* Body: fixed height, never scrolls */}
-      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4 md:gap-4 md:p-6">
-        {error ? (
+        {/* Rolling waterline */}
+        <svg
+          viewBox="0 0 1080 46"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 -bottom-px h-[54px] w-full"
+        >
+          <g className="animate-wave">
+            <path
+              d="M-120 32 q30 -11 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
+              fill="rgba(241,255,250,.55)"
+            />
+          </g>
+          <g className="animate-wave-fast">
+            <path
+              d="M-120 28 q30 -14 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
+              fill="#f1fffa"
+            />
+          </g>
+        </svg>
+      </div>
+
+      {/* Body: tiles + chart/read-out */}
+      <div className="flex flex-col gap-4 px-4 py-5 md:px-6 md:py-6">
+        {error && (
           <Card className="border-rose/50">
             <div className="font-bold text-rose">{error}</div>
             <div className="mt-2 text-sm text-ink-soft">
               Is the backend running? <code className="text-ink">uvicorn app.main:app</code>
             </div>
           </Card>
-        ) : (
-          <>
-            {/* Stat tiles */}
-            <div className="grid shrink-0 grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-              <MiniStat
-                label="BTC price"
-                value={performance ? fmtEur(performance.current_price, 0) : "-"}
-                sub="Coinbase (live)"
-              />
-              <MiniStat
-                label="Invested"
-                value={performance ? fmtEur(performance.invested_eur) : "-"}
-                sub={performance ? `${performance.purchase_count} buys` : undefined}
-              />
-              <MiniStat
-                label="Bitcoin stack"
-                value={performance ? fmtBtc(performance.btc_total) : "-"}
-                sub="BTC"
-              />
-              <MiniStat
-                label="350-day avg"
-                value={indicators ? fmtEur(indicators.ma_350, 0) : "-"}
-                sub={indicators ? `price ${fmtPct(indicators.ma_distance_pct)}` : undefined}
-                tone={indicators && indicators.ma_distance_pct < 0 ? "up" : undefined}
-              />
-            </div>
+        )}
 
-            {/* Chart + read-out */}
-            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
-              <Card className="flex min-h-0 flex-col md:col-span-2">
-                <div className="mb-2 flex items-center justify-between">
-                  <CardTitle>Bitcoin price and buys</CardTitle>
-                  <div className="flex gap-1">
-                    {RANGES.map((r) => (
-                      <button
-                        key={r.days}
-                        onClick={() => setRangeDays(r.days)}
-                        className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-                          rangeDays === r.days
-                            ? "bg-ink text-cream"
-                            : "bg-sand-soft text-ink-soft hover:text-ink"
-                        }`}
-                      >
-                        {r.label}
-                      </button>
-                    ))}
+        {/* Stat tiles */}
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          <MiniStat
+            label="BTC price"
+            value={performance ? fmtEur(performance.current_price, 0) : "-"}
+            sub="Coinbase (live)"
+          />
+          <MiniStat
+            label="Invested"
+            value={performance ? fmtEur(performance.invested_eur) : "-"}
+            sub={performance ? `${performance.purchase_count} buys` : undefined}
+          />
+          <MiniStat
+            label="Bitcoin stack"
+            value={performance ? fmtBtc(performance.btc_total) : "-"}
+            sub="BTC"
+          />
+          <MiniStat
+            label="350-day avg"
+            value={indicators ? fmtEur(indicators.ma_350, 0) : "-"}
+            sub={indicators ? `price ${fmtPct(indicators.ma_distance_pct)}` : undefined}
+            tone={indicators && indicators.ma_distance_pct < 0 ? "up" : undefined}
+          />
+        </div>
+
+        {/* Chart + read-out */}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
+          <Card className="flex min-h-[360px] flex-col md:col-span-2">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <CardTitle>
+                {chartView === "price"
+                  ? "Bitcoin price and buys"
+                  : "My strategy vs. the market"}
+              </CardTitle>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex gap-1">
+                  <ViewPill
+                    on={chartView === "price"}
+                    onClick={() => setChartView("price")}
+                  >
+                    Price &amp; buys
+                  </ViewPill>
+                  <ViewPill
+                    on={chartView === "strategy"}
+                    onClick={() => setChartView("strategy")}
+                  >
+                    My strategy
+                  </ViewPill>
+                </div>
+                <div className="flex gap-1">
+                  {RANGES.map((r) => (
+                    <button
+                      key={r.days}
+                      onClick={() => setRangeDays(r.days)}
+                      className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                        rangeDays === r.days
+                          ? "bg-ink text-cream"
+                          : "bg-sand-soft text-ink-soft hover:text-ink"
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="min-h-0 flex-1">
+              {chartView === "price" ? (
+                candles.length ? (
+                  <PriceChart candles={candles} purchases={purchases} height="100%" />
+                ) : (
+                  <Spinner />
+                )
+              ) : !compLoaded ? (
+                <Spinner />
+              ) : strategySeries.length > 1 ? (
+                <ComparisonChart data={strategySeries} height="100%" />
+              ) : (
+                <p className="flex h-full items-center justify-center px-6 text-center text-sm text-ink-soft">
+                  Not enough buys yet to chart your strategy. Run a test buy or import your
+                  history.
+                </p>
+              )}
+            </div>
+          </Card>
+
+          <Card className="flex min-h-0 flex-col gap-3 overflow-hidden">
+            <div>
+              <CardTitle>What Drip sees</CardTitle>
+              {indicators ? (
+                <div className="space-y-3">
+                  <IndicatorBar
+                    label={`RSI ${Math.round(indicators.rsi)}`}
+                    pct={indicators.rsi}
+                    note={
+                      indicators.rsi < 30
+                        ? "Oversold"
+                        : indicators.rsi > 70
+                          ? "Overbought"
+                          : "Neutral"
+                    }
+                  />
+                  <IndicatorBar
+                    label={`F&G ${indicators.fear_greed}`}
+                    pct={indicators.fear_greed}
+                    note={indicators.fng_classification}
+                  />
+                  <div className="flex items-center gap-2 pt-1">
+                    <ScoreDrops multiplier={indicators.multiplier} size="text-base" />
+                    <span className="text-xs text-ink-soft">
+                      score {indicators.score}/{indicators.score_max}
+                    </span>
                   </div>
                 </div>
-                <div className="min-h-0 flex-1">
-                  {candles.length ? (
-                    <PriceChart candles={candles} purchases={purchases} height="100%" />
-                  ) : (
-                    <Spinner />
-                  )}
-                </div>
-              </Card>
-
-              <Card className="flex min-h-0 flex-col gap-3 overflow-hidden">
-                <div>
-                  <CardTitle>What Drip sees</CardTitle>
-                  {indicators ? (
-                    <div className="space-y-3">
-                      <IndicatorBar
-                        label={`RSI ${Math.round(indicators.rsi)}`}
-                        pct={indicators.rsi}
-                        note={
-                          indicators.rsi < 30
-                            ? "Oversold"
-                            : indicators.rsi > 70
-                              ? "Overbought"
-                              : "Neutral"
-                        }
-                      />
-                      <IndicatorBar
-                        label={`F&G ${indicators.fear_greed}`}
-                        pct={indicators.fear_greed}
-                        note={indicators.fng_classification}
-                      />
-                      <div className="flex items-center gap-2 pt-1">
-                        <ScoreDrops multiplier={indicators.multiplier} size="text-base" />
-                        <span className="text-xs text-ink-soft">
-                          score {indicators.score}/{indicators.score_max}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <Spinner />
-                  )}
-                </div>
-
-                <div className="mt-auto border-t border-sand-soft pt-3">
-                  <CardTitle>Your plan</CardTitle>
-                  {settings ? (
-                    <div className="font-display text-lg font-semibold text-ink">
-                      {WEEKDAYS[settings.schedule_weekday]}s, {settings.schedule_time}
-                    </div>
-                  ) : (
-                    <div className="h-6" />
-                  )}
-                  {settings && (
-                    <div className="text-xs text-ink-soft">
-                      base <b className="text-ink">{fmtEur(settings.base_amount_eur)}</b>
-                      {indicators && (
-                        <>
-                          {" "}
-                          &rarr; next &asymp;{" "}
-                          <b className="text-teal">
-                            {fmtEur(settings.base_amount_eur * indicators.multiplier)}
-                          </b>
-                        </>
-                      )}
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setShowSim(true)}
-                    className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full bg-teal px-4 py-2 text-sm font-bold text-cream transition hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
-                  >
-                    <ChartLineIcon /> Simulate backtest
-                  </button>
-                </div>
-              </Card>
+              ) : (
+                <Spinner />
+              )}
             </div>
-          </>
-        )}
-      </div>
 
-      {showSim && settings && (
-        <SimulationModal settings={settings} onClose={() => setShowSim(false)} />
-      )}
-    </div>
+            <div className="mt-auto border-t border-sand-soft pt-3">
+              <CardTitle>Your plan</CardTitle>
+              {settings ? (
+                <div className="font-display text-lg font-semibold text-ink">
+                  {WEEKDAYS[settings.schedule_weekday]}s, {settings.schedule_time}
+                </div>
+              ) : (
+                <div className="h-6" />
+              )}
+              {settings && (
+                <div className="text-xs text-ink-soft">
+                  base <b className="text-ink">{fmtEur(settings.base_amount_eur)}</b>
+                  {indicators && (
+                    <>
+                      {" "}
+                      &rarr; next &asymp;{" "}
+                      <b className="text-teal">
+                        {fmtEur(settings.base_amount_eur * indicators.multiplier)}
+                      </b>
+                    </>
+                  )}
+                </div>
+              )}
+              <button
+                onClick={() =>
+                  document
+                    .getElementById("settings")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+                className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full bg-teal px-4 py-2 text-sm font-bold text-cream transition hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+              >
+                <SlidersIcon /> Adjust plan
+              </button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </section>
   );
 }
 
-function HeaderPill({ children }: { children: ReactNode }) {
+function ViewPill({
+  on,
+  onClick,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-cream/20 px-3 py-1.5 text-xs font-bold text-cream">
+    <button
+      onClick={onClick}
+      className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+        on ? "bg-teal text-cream" : "bg-sand-soft text-ink-soft hover:text-ink"
+      }`}
+    >
       {children}
-    </span>
+    </button>
   );
 }
 
@@ -398,19 +430,4 @@ function MiniStat({
       {sub && <span className="text-xs text-ink-soft">{sub}</span>}
     </Card>
   );
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-  });
-}
-
-function formatDateTime(iso: string): string {
-  const d = new Date(iso);
-  return `${WEEKDAYS[(d.getDay() + 6) % 7].slice(0, 3)} ${d.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
 }

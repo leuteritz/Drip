@@ -27,6 +27,28 @@ export function CardTitle({ children }: { children: ReactNode }) {
   );
 }
 
+/** Section divider used to introduce each block of the single-page app. */
+export function SectionHeading({
+  icon,
+  title,
+  subtitle,
+  actions,
+}: {
+  icon: ReactNode;
+  title: string;
+  subtitle?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <span className="text-lg text-teal">{icon}</span>
+      <h2 className="font-display text-2xl font-bold text-ink">{title}</h2>
+      {subtitle && <span className="text-sm text-ink-soft">{subtitle}</span>}
+      {actions && <div className="ml-auto flex flex-wrap gap-2">{actions}</div>}
+    </div>
+  );
+}
+
 export function Badge({
   children,
   tone = "neutral",
