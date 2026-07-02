@@ -107,38 +107,64 @@ export default function Overview({
   return (
     <section id="overview" className="scroll-mt-20">
       {/* Reservoir hero on the gradient */}
-      <div className="hero-gradient relative overflow-hidden px-6 pt-6 pb-20 md:px-10 md:pb-24">
-        <div className="flex flex-wrap items-end justify-between gap-4 text-cream">
-          <div className="min-w-0">
-            <div className="text-xs font-bold uppercase tracking-[0.22em] text-cream/85">
-              Your reservoir
-            </div>
-            {performance ? (
-              <>
-                <div className="mt-1 font-display text-5xl font-bold leading-none md:text-6xl">
-                  {fmtEur(performance.value_eur)}
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-base font-bold">
-                  <span className="inline-flex items-center gap-1.5">
-                    {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
-                    {profitable ? "+" : ""}
-                    {fmtEur(performance.profit_eur)} ({fmtPct(performance.profit_pct)})
-                  </span>
-                </div>
-              </>
-            ) : (
-              <div className="mt-2 h-16 w-40 animate-pulse rounded-xl bg-cream/20" />
-            )}
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              {indicators && (
-                <HeaderPill>
-                  x{indicators.multiplier} &middot; {indicators.signal}
-                </HeaderPill>
+      <div className="hero-gradient relative overflow-hidden px-6 pt-6 pb-14 md:px-10 md:pb-16">
+        <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-6 text-cream">
+          {/* Reservoir + the four key metrics, side by side */}
+          <div className="flex flex-wrap items-end gap-x-10 gap-y-5">
+            <div className="min-w-0">
+              <div className="text-xs font-bold uppercase tracking-[0.22em] text-cream/85">
+                Your reservoir
+              </div>
+              {performance ? (
+                <>
+                  <div className="mt-1 font-display text-5xl font-bold leading-none md:text-6xl">
+                    {fmtEur(performance.value_eur)}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-base font-bold">
+                    <span className="inline-flex items-center gap-1.5">
+                      {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
+                      {profitable ? "+" : ""}
+                      {fmtEur(performance.profit_eur)} ({fmtPct(performance.profit_pct)})
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="mt-2 h-16 w-40 animate-pulse rounded-xl bg-cream/20" />
               )}
-              <label className="flex items-center gap-2 text-xs font-medium text-cream/85">
-                Include dry runs
-                <Toggle checked={includeDryRun} onChange={toggleDryRunStats} />
-              </label>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                {indicators && (
+                  <HeaderPill>
+                    x{indicators.multiplier} &middot; {indicators.signal}
+                  </HeaderPill>
+                )}
+                <label className="flex items-center gap-2 text-xs font-medium text-cream/85">
+                  Include dry runs
+                  <Toggle checked={includeDryRun} onChange={toggleDryRunStats} />
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+              <HeroStat
+                label="BTC price"
+                value={performance ? fmtEur(performance.current_price, 0) : "—"}
+                sub="Coinbase (live)"
+              />
+              <HeroStat
+                label="Invested"
+                value={performance ? fmtEur(performance.invested_eur) : "—"}
+                sub={performance ? `${performance.purchase_count} buys` : undefined}
+              />
+              <HeroStat
+                label="Bitcoin stack"
+                value={performance ? fmtBtc(performance.btc_total) : "—"}
+                sub="BTC"
+              />
+              <HeroStat
+                label="350-day avg"
+                value={indicators ? fmtEur(indicators.ma_350, 0) : "—"}
+                sub={indicators ? `price ${fmtPct(indicators.ma_distance_pct)}` : undefined}
+              />
             </div>
           </div>
 
@@ -158,30 +184,6 @@ export default function Overview({
               </div>
             )}
           </div>
-        </div>
-
-        {/* The four key metrics, sitting large on the gradient */}
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <HeroStat
-            label="BTC price"
-            value={performance ? fmtEur(performance.current_price, 0) : "—"}
-            sub="Coinbase (live)"
-          />
-          <HeroStat
-            label="Invested"
-            value={performance ? fmtEur(performance.invested_eur) : "—"}
-            sub={performance ? `${performance.purchase_count} buys` : undefined}
-          />
-          <HeroStat
-            label="Bitcoin stack"
-            value={performance ? fmtBtc(performance.btc_total) : "—"}
-            sub="BTC"
-          />
-          <HeroStat
-            label="350-day avg"
-            value={indicators ? fmtEur(indicators.ma_350, 0) : "—"}
-            sub={indicators ? `price ${fmtPct(indicators.ma_distance_pct)}` : undefined}
-          />
         </div>
 
         {/* Rolling waterline */}
@@ -402,7 +404,7 @@ function IndicatorBar({
   );
 }
 
-// A key metric shown large on the gradient hero — translucent "glass" tile.
+// A key metric shown as a plain text column on the gradient hero (no background).
 function HeroStat({
   label,
   value,
@@ -413,11 +415,11 @@ function HeroStat({
   sub?: string;
 }) {
   return (
-    <div className="flex flex-col justify-center gap-0.5 rounded-2xl border border-cream/15 bg-cream/10 px-4 py-3 text-cream">
+    <div className="flex flex-col gap-0.5 text-cream">
       <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-cream/70">
         {label}
       </span>
-      <span className="font-display text-2xl font-semibold leading-tight md:text-3xl">
+      <span className="font-display text-xl font-semibold leading-tight md:text-2xl">
         {value}
       </span>
       {sub && <span className="text-xs font-medium text-cream/70">{sub}</span>}
