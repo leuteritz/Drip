@@ -108,8 +108,8 @@ export default function History({
 
   return (
     <div className="flex h-full flex-col">
-      <TabHeader active={active} onNavigate={onNavigate} right={clearButton} compact>
-        <div className="mt-4 text-cream">
+      <TabHeader active={active} onNavigate={onNavigate} right={clearButton}>
+        <div className="text-cream">
           <div className="font-display text-3xl font-bold leading-none md:text-4xl">
             Buy history
           </div>

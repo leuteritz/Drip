@@ -112,8 +112,8 @@ export default function Settings({
 
   return (
     <div className="flex h-full flex-col">
-      <TabHeader active={active} onNavigate={onNavigate} right={savingPills} compact>
-        <div className="mt-4 text-cream">
+      <TabHeader active={active} onNavigate={onNavigate} right={savingPills}>
+        <div className="text-cream">
           <div className="font-display text-3xl font-bold leading-none md:text-4xl">
             Settings
           </div>

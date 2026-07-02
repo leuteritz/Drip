@@ -21,20 +21,14 @@ export default function TabHeader({
   onNavigate,
   right,
   children,
-  compact = false,
 }: {
   active: Page;
   onNavigate: (p: Page) => void;
   right?: ReactNode;
   children?: ReactNode;
-  compact?: boolean;
 }) {
   return (
-    <header
-      className={`hero-gradient relative shrink-0 overflow-hidden px-6 md:px-10 ${
-        compact ? "pt-6 pb-12 md:pt-7 md:pb-14" : "pt-6 pb-14 md:pt-8 md:pb-16"
-      }`}
-    >
+    <header className="hero-gradient relative shrink-0 overflow-hidden px-6 pt-6 pb-14 md:px-10 md:pt-8 md:pb-16">
       {/* Top row: brand + nav on the left, status/actions on the right */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-5">
@@ -68,7 +62,11 @@ export default function TabHeader({
         {right && <div className="flex flex-wrap items-center gap-2">{right}</div>}
       </div>
 
-      {children}
+      {/* Fixed-height hero region so every tab's header is the same height as
+          Overview's; shorter titles bottom-align to the waterline. */}
+      <div className="mt-5 flex min-h-[140px] flex-col justify-end md:min-h-[164px]">
+        {children}
+      </div>
 
       {/* Rolling waterline */}
       <svg

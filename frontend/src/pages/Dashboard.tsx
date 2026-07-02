@@ -139,7 +139,7 @@ export default function Dashboard({
     <div className="flex h-full flex-col">
       <TabHeader active={active} onNavigate={onNavigate} right={statusPills}>
         {/* Hero: the reservoir */}
-        <div className="mt-5 flex flex-wrap items-end justify-between gap-4 text-cream">
+        <div className="flex flex-wrap items-end justify-between gap-4 text-cream">
           <div className="min-w-0">
             <div className="text-xs font-bold uppercase tracking-[0.22em] text-cream/85">
               Your reservoir
