@@ -158,6 +158,9 @@ export const api = {
     request<{ deleted: number }>(`/api/purchases/${id}`, { method: "DELETE" }),
   clearTestRuns: () =>
     request<{ deleted: number }>("/api/purchases/test-runs", { method: "DELETE" }),
+  deleteAllPurchases: () =>
+    request<{ deleted: number }>("/api/purchases", { method: "DELETE" }),
+  exportUrl: "/api/purchases/export",
   importPurchases: async (file: File, includeErrors: boolean): Promise<ImportResult> => {
     const fd = new FormData();
     fd.append("file", file);

@@ -43,11 +43,11 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex h-full justify-center bg-cream p-3 md:p-5">
-      {/* The framed app canvas is the single scroll container. */}
+    <div className="h-full bg-cream">
+      {/* Full-bleed single scroll container (no frame). */}
       <div
         ref={scrollRef}
-        className="relative flex h-full w-full flex-col overflow-y-auto rounded-[22px] border-2 border-sand bg-cream shadow-puff"
+        className="relative flex h-full w-full flex-col overflow-y-auto bg-cream"
       >
         <SiteHeader
           status={status}

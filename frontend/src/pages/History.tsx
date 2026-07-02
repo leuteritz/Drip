@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
+import DownloadSimpleIcon from "~icons/ph/download-simple";
 import ListDashesIcon from "~icons/ph/list-dashes";
 import TrashIcon from "~icons/ph/trash";
 import UploadSimpleIcon from "~icons/ph/upload-simple";
+import WarningIcon from "~icons/ph/warning-fill";
 import { api, fmtBtc, fmtEur, type Purchase } from "../api/client";
 import { ScoreDrops } from "../components/drops";
 import ImportModal from "../components/ImportModal";
@@ -21,6 +23,7 @@ export default function HistorySection({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [confirmWipe, setConfirmWipe] = useState(false);
 
   const deleteOne = async (p: Purchase) => {
     if (!window.confirm("Delete this entry from the history?")) return;
@@ -40,6 +43,19 @@ export default function HistorySection({
     setBusy(true);
     try {
       await api.clearTestRuns();
+      onChanged();
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteAll = async () => {
+    setConfirmWipe(false);
+    setBusy(true);
+    try {
+      await api.deleteAllPurchases();
       onChanged();
     } catch (e) {
       setError(String(e));
@@ -101,6 +117,15 @@ export default function HistorySection({
             >
               <UploadSimpleIcon /> Import CSV
             </button>
+            <a
+              href={api.exportUrl}
+              download
+              className={`flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft ${
+                purchases.length === 0 ? "pointer-events-none opacity-40" : ""
+              }`}
+            >
+              <DownloadSimpleIcon /> Export CSV
+            </a>
             {hasTestRuns && (
               <button
                 onClick={clearTestRuns}
@@ -108,6 +133,15 @@ export default function HistorySection({
                 className="flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-rose transition hover:bg-rose-soft disabled:opacity-40"
               >
                 <TrashIcon /> Clear test runs
+              </button>
+            )}
+            {purchases.length > 0 && (
+              <button
+                onClick={() => setConfirmWipe(true)}
+                disabled={busy}
+                className="flex items-center gap-2 rounded-full bg-rose-soft px-4 py-2 text-sm font-bold text-rose transition hover:bg-rose hover:text-cream disabled:opacity-40"
+              >
+                <TrashIcon /> Delete all
               </button>
             )}
           </>
@@ -221,6 +255,34 @@ export default function HistorySection({
             onChanged();
           }}
         />
+      )}
+
+      {confirmWipe && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
+          <Card className="max-w-md border-rose/60">
+            <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
+              <WarningIcon /> Delete the entire history?
+            </h3>
+            <p className="text-sm text-ink">
+              This permanently removes <b>all {purchases.length} entries</b> — real buys and test
+              runs alike. Export a CSV first if you want a backup. This cannot be undone.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmWipe(false)}
+                className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteAll}
+                className="rounded-full bg-rose px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
+              >
+                Delete everything
+              </button>
+            </div>
+          </Card>
+        </div>
       )}
     </section>
   );
