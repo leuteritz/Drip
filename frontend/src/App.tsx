@@ -4,7 +4,9 @@ import {
   type BotSettings,
   type BotStatus,
   type Indicators,
+  type Performance,
   type Purchase,
+  type RunResult,
 } from "./api/client";
 import SiteHeader from "./components/SiteHeader";
 import SimulationModal from "./components/SimulationModal";
@@ -18,6 +20,10 @@ export default function App() {
   const [status, setStatus] = useState<BotStatus | null>(null);
   const [indicators, setIndicators] = useState<Indicators | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [performance, setPerformance] = useState<Performance | null>(null);
+  const [includeDryRun, setIncludeDryRun] = useState(true);
+  const [running, setRunning] = useState(false);
+  const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showSim, setShowSim] = useState(false);
 
   const reloadPurchases = useCallback(() => {
@@ -26,6 +32,33 @@ export default function App() {
   const reloadStatus = useCallback(() => {
     api.getStatus().then(setStatus).catch(() => {});
   }, []);
+  const loadPerformance = useCallback((dry: boolean) => {
+    api.getPerformance(dry).then(setPerformance).catch(() => {});
+  }, []);
+
+  const onToggleDryRun = useCallback(
+    (v: boolean) => {
+      setIncludeDryRun(v);
+      loadPerformance(v);
+    },
+    [loadPerformance],
+  );
+
+  // Manual "test a buy" is always a dry run; refresh purchases + reservoir after.
+  const testBuy = useCallback(async () => {
+    setRunning(true);
+    setRunResult(null);
+    try {
+      const result = await api.runNow(true);
+      setRunResult(result);
+      reloadPurchases();
+      loadPerformance(includeDryRun);
+    } catch {
+      // Errors surface in the dashboard body; keep the header quiet.
+    } finally {
+      setRunning(false);
+    }
+  }, [includeDryRun, loadPerformance, reloadPurchases]);
 
   useEffect(() => {
     (async () => {
@@ -37,10 +70,11 @@ export default function App() {
       if (st) setStatus(st);
       if (set) setSettings(set);
       setPurchases(purch);
+      loadPerformance(true);
       // Indicators last: the first call may fetch 350 days of candles.
       api.getIndicators().then(setIndicators).catch(() => {});
     })();
-  }, []);
+  }, [loadPerformance]);
 
   return (
     <div className="h-full bg-cream">
@@ -51,16 +85,21 @@ export default function App() {
       >
         <SiteHeader
           status={status}
-          onSimulate={() => setShowSim(true)}
+          settings={settings}
+          indicators={indicators}
+          performance={performance}
           scrollRef={scrollRef}
+          onSimulate={() => setShowSim(true)}
+          onTestBuy={testBuy}
+          running={running}
+          runResult={runResult}
         />
 
         <main className="flex flex-col">
           <Overview
-            settings={settings}
-            indicators={indicators}
             purchases={purchases}
-            onPurchasesChanged={reloadPurchases}
+            includeDryRun={includeDryRun}
+            onToggleDryRun={onToggleDryRun}
           />
           <SettingsSection
             settings={settings}
