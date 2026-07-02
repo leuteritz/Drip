@@ -258,7 +258,7 @@ export default function Overview({
         )}
 
         {/* Chart */}
-        <Card className="flex min-h-[440px] flex-col">
+        <Card className="flex flex-col">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <CardTitle>
               {chartView === "price"
@@ -294,7 +294,7 @@ export default function Overview({
               </div>
             </div>
           </div>
-          <div className="min-h-0 flex-1">
+          <div className="h-[380px] md:h-[440px]">
             {chartView === "price" ? (
               candles.length ? (
                 <PriceChart candles={candles} purchases={purchases} height="100%" />
