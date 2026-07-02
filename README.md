@@ -22,8 +22,8 @@ built to run on a Raspberry Pi.
 Requires a 64-bit Raspberry Pi OS with [Docker and the compose plugin](https://docs.docker.com/engine/install/debian/) installed.
 
 ```bash
-git clone https://github.com/<your-user>/drip.git
-cd drip
+git clone https://github.com/leuteritz/Drip.git
+cd Drip
 
 # Create your environment file (see below; can stay empty for dry-run mode)
 cp backend/.env.example backend/.env
