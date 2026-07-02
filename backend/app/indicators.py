@@ -1,11 +1,11 @@
-"""Technische Indikatoren - portiert aus legacy/helper.py"""
+"""Technical indicators."""
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 def calculate_rsi_wilder(prices: list[float], period: int = 14) -> float:
-    """RSI nach Wilder's Original-Methode"""
+    """RSI following Wilder's original smoothing method."""
     if len(prices) < period + 1:
         return 50.0
 
@@ -34,7 +34,7 @@ def moving_average(prices: list[float]) -> float:
 
 
 def get_fear_and_greed() -> dict:
-    """Fear & Greed Index (alternative.me). Fallback: neutral 50."""
+    """Crypto Fear & Greed index (alternative.me). Falls back to neutral 50."""
     try:
         import requests
 
@@ -46,5 +46,5 @@ def get_fear_and_greed() -> dict:
             "classification": str(entry["value_classification"]),
         }
     except Exception as exc:
-        logger.warning("Fear & Greed nicht abrufbar: %s", exc)
-        return {"value": 50, "classification": "Neutral (Fallback)"}
+        logger.warning("Fear & Greed unavailable: %s", exc)
+        return {"value": 50, "classification": "Neutral (fallback)"}

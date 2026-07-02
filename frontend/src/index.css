@@ -1,29 +1,98 @@
 @import "tailwindcss";
+@import "@fontsource/fraunces/600.css";
+@import "@fontsource/fraunces/700.css";
+@import "@fontsource-variable/outfit";
 
 @theme {
-  --color-btc: #f7931a;
-  --color-btc-dark: #c76f00;
-  --color-surface: #131722;
-  --color-surface-2: #1c2230;
-  --color-bg: #0b0e14;
-  --color-line: #232a3b;
-  --color-up: #22c55e;
-  --color-down: #ef4444;
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Fixed 5-color palette */
+  --color-cream: #f1fffa; /* mint cream - page background */
+  --color-water: #93b7be; /* light blue - identity, charts, drops */
+  --color-sand: #d5c7bc; /* dust grey - borders, quiet surfaces */
+  --color-rose: #785964; /* smoky rose - loss, warnings, live mode */
+  --color-ink: #454545; /* gunmetal - text, solid buttons */
+
+  /* Derived tints/shades of the palette (no foreign hues) */
+  --color-teal: #45818c; /* deepened water - profit, links, focus */
+  --color-water-soft: #d7e6e9; /* water tint - fills, hover */
+  --color-sand-soft: #ece4dd; /* sand tint - table stripes */
+  --color-rose-soft: #e6d9dd; /* rose tint - danger backgrounds */
+  --color-paper: #fbfffd; /* near-white card surface */
+  --color-ink-soft: #6f6f6f; /* muted text */
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-sans: "Outfit Variable", "Outfit", system-ui, sans-serif;
+
+  --radius-card: 1.25rem;
+
+  --shadow-puff: 0 2px 0 0 rgba(69, 69, 69, 0.06), 0 12px 32px -12px rgba(120, 89, 100, 0.18);
 }
 
 body {
-  background: var(--color-bg);
-  color: #e2e8f0;
+  background: var(--color-cream);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: rgba(247, 147, 26, 0.35);
+  background: rgba(147, 183, 190, 0.45);
 }
 
-/* dezente Scrollbars im Dark Theme */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #2c3549 transparent;
+  scrollbar-color: var(--color-sand) transparent;
+}
+
+/* The signature drip: a drop swells, falls, and the reservoir ripples */
+@keyframes drip-fall {
+  0%,
+  55% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(2px) scale(1.08, 1.15);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(26px) scale(0.55);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes ripple {
+  0%,
+  78% {
+    transform: scaleX(1);
+    opacity: 0.5;
+  }
+  86% {
+    transform: scaleX(1.35);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0.5;
+  }
+}
+
+.animate-drip {
+  animation: drip-fall 3.2s ease-in infinite;
+  transform-origin: center top;
+}
+
+.animate-ripple {
+  animation: ripple 3.2s ease-out infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-drip,
+  .animate-ripple {
+    animation: none;
+  }
 }

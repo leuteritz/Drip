@@ -1,74 +1,80 @@
 import { useState } from "react";
+import ChartLineUpIcon from "~icons/ph/chart-line-up";
+import DropFillIcon from "~icons/ph/drop-fill";
+import ListDashesIcon from "~icons/ph/list-dashes";
+import SlidersIcon from "~icons/ph/sliders-horizontal";
 import Dashboard from "./pages/Dashboard";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 
-type Page = "dashboard" | "settings" | "history";
+type Page = "overview" | "settings" | "history";
 
-const NAV: { id: Page; label: string; icon: string }[] = [
-  { id: "dashboard", label: "Dashboard", icon: "📊" },
-  { id: "settings", label: "Konfiguration", icon: "⚙️" },
-  { id: "history", label: "Historie", icon: "📜" },
+const NAV = [
+  { id: "overview" as Page, label: "Overview", Icon: ChartLineUpIcon },
+  { id: "settings" as Page, label: "Settings", Icon: SlidersIcon },
+  { id: "history" as Page, label: "History", Icon: ListDashesIcon },
 ];
 
 export default function App() {
-  const [page, setPage] = useState<Page>("dashboard");
+  const [page, setPage] = useState<Page>("overview");
 
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 flex w-56 flex-col border-r border-line bg-surface max-md:hidden">
-        <div className="flex items-center gap-2 px-5 py-6">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-btc text-xl font-bold text-black">
-            ₿
+      <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r-2 border-sand bg-paper max-md:hidden">
+        <div className="flex items-center gap-3 px-6 py-7">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-water-soft text-2xl text-teal">
+            <DropFillIcon />
           </span>
           <div>
-            <div className="text-sm font-bold leading-tight">Smart-DCA</div>
-            <div className="text-xs text-slate-500">Bitcoin Bot</div>
+            <div className="font-display text-2xl font-bold leading-none">Drip</div>
+            <div className="mt-1 text-xs text-ink-soft">stack sats on a slow drip</div>
           </div>
         </div>
-        <nav className="flex flex-col gap-1 px-3">
-          {NAV.map((item) => (
+        <nav className="flex flex-col gap-1.5 px-4">
+          {NAV.map(({ id, label, Icon }) => (
             <button
-              key={item.id}
-              onClick={() => setPage(item.id)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                page === item.id
-                  ? "bg-btc/15 text-btc"
-                  : "text-slate-400 hover:bg-surface-2 hover:text-slate-200"
+              key={id}
+              onClick={() => setPage(id)}
+              className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-bold transition ${
+                page === id
+                  ? "bg-ink text-cream"
+                  : "text-ink-soft hover:bg-sand-soft hover:text-ink"
               }`}
             >
-              <span>{item.icon}</span>
-              {item.label}
+              <Icon className="text-lg" />
+              {label}
             </button>
           ))}
         </nav>
-        <div className="mt-auto px-5 py-4 text-xs text-slate-600">
-          läuft auf deinem Raspberry Pi 🍓
+        <div className="mt-auto px-6 py-5 text-xs text-ink-soft">
+          quietly running on your Raspberry Pi
         </div>
       </aside>
 
-      {/* Mobile Top-Nav */}
-      <div className="fixed inset-x-0 top-0 z-40 flex items-center gap-2 border-b border-line bg-surface px-4 py-3 md:hidden">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-btc font-bold text-black">
-          ₿
+      {/* Mobile top bar */}
+      <div className="fixed inset-x-0 top-0 z-40 flex items-center gap-2 border-b-2 border-sand bg-paper px-4 py-3 md:hidden">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-water-soft text-xl text-teal">
+          <DropFillIcon />
         </span>
-        {NAV.map((item) => (
+        <span className="mr-2 font-display text-lg font-bold">Drip</span>
+        {NAV.map(({ id, Icon }) => (
           <button
-            key={item.id}
-            onClick={() => setPage(item.id)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-              page === item.id ? "bg-btc/15 text-btc" : "text-slate-400"
+            key={id}
+            onClick={() => setPage(id)}
+            aria-label={id}
+            className={`rounded-xl px-3 py-2 text-lg ${
+              page === id ? "bg-ink text-cream" : "text-ink-soft"
             }`}
           >
-            {item.icon}
+            <Icon />
           </button>
         ))}
       </div>
 
       {/* Content */}
-      <main className="flex-1 p-6 max-md:pt-20 md:ml-56 lg:p-8">
-        {page === "dashboard" && <Dashboard />}
+      <main className="flex-1 p-6 max-md:pt-20 md:ml-60 lg:p-10">
+        {page === "overview" && <Dashboard />}
         {page === "settings" && <Settings />}
         {page === "history" && <History />}
       </main>

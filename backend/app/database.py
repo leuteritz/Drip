@@ -1,5 +1,5 @@
-"""SQLite-Engine und Session-Handling"""
-from sqlmodel import Session, SQLModel, create_engine, select
+"""SQLite engine and session handling."""
+from sqlmodel import Session, SQLModel, create_engine
 
 from .config import DATA_DIR
 from .models import BotSettings
@@ -13,7 +13,7 @@ engine = create_engine(
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
-    # Default-Settings anlegen, falls noch keine existieren
+    # Create default settings on first start
     with Session(engine) as session:
         if session.get(BotSettings, 1) is None:
             session.add(BotSettings(id=1))

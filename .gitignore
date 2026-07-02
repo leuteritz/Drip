@@ -1,13 +1,12 @@
-# Secrets - NIEMALS committen!
+# Secrets - never commit these!
 .env
 cdp_api_key.json
 *.pem
 
-# Daten
+# Data
 backend/data/
 *.db
 *.csv
-!legacy/bitcoin_purchases.csv.example
 
 # Python
 __pycache__/
@@ -15,7 +14,7 @@ __pycache__/
 .venv/
 venv/
 
-# Node / Frontend
+# Node / frontend
 node_modules/
 frontend/dist/
 backend/static/

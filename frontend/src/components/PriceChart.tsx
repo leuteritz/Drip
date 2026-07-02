@@ -44,23 +44,23 @@ export default function PriceChart({
     <ResponsiveContainer width="100%" height={340}>
       <ComposedChart data={data} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
         <defs>
-          <linearGradient id="btcGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f7931a" stopOpacity={0.35} />
-            <stop offset="100%" stopColor="#f7931a" stopOpacity={0.02} />
+          <linearGradient id="waterGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#93b7be" stopOpacity={0.45} />
+            <stop offset="100%" stopColor="#93b7be" stopOpacity={0.04} />
           </linearGradient>
         </defs>
-        <CartesianGrid stroke="#232a3b" strokeDasharray="3 3" vertical={false} />
+        <CartesianGrid stroke="#d5c7bc" strokeDasharray="3 5" vertical={false} opacity={0.6} />
         <XAxis
           dataKey="date"
-          tick={{ fill: "#64748b", fontSize: 11 }}
+          tick={{ fill: "#6f6f6f", fontSize: 11 }}
           tickFormatter={(d: string) => d.slice(5)}
-          axisLine={{ stroke: "#232a3b" }}
+          axisLine={{ stroke: "#d5c7bc" }}
           tickLine={false}
           minTickGap={40}
         />
         <YAxis
           domain={["auto", "auto"]}
-          tick={{ fill: "#64748b", fontSize: 11 }}
+          tick={{ fill: "#6f6f6f", fontSize: 11 }}
           tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
           axisLine={false}
           tickLine={false}
@@ -70,25 +70,30 @@ export default function PriceChart({
         <Area
           type="monotone"
           dataKey="close"
-          stroke="#f7931a"
-          strokeWidth={2}
-          fill="url(#btcGradient)"
+          stroke="#45818c"
+          strokeWidth={2.5}
+          fill="url(#waterGradient)"
           dot={false}
           name="BTC-EUR"
         />
-        <Scatter dataKey="purchaseY" fill="#22c55e" shape={<PurchaseDot />} />
+        <Scatter dataKey="purchaseY" shape={<PurchaseDrop />} />
       </ComposedChart>
     </ResponsiveContainer>
   );
 }
 
-function PurchaseDot(props: any) {
+// Buys are drawn as little drops on the price line
+function PurchaseDrop(props: any) {
   const { cx, cy, payload } = props;
   if (cx == null || cy == null || !payload?.purchase) return null;
   return (
-    <g>
-      <circle cx={cx} cy={cy} r={7} fill="#22c55e" opacity={0.25} />
-      <circle cx={cx} cy={cy} r={3.5} fill="#22c55e" stroke="#0b0e14" strokeWidth={1.5} />
+    <g transform={`translate(${cx - 6} ${cy - 14})`}>
+      <path
+        d="M6 0 C4.2 3.2 2 5.4 2 8 a4 4 0 0 0 8 0 c0-2.6-2.2-4.8-4-8Z"
+        fill="#785964"
+        stroke="#fbfffd"
+        strokeWidth="1.2"
+      />
     </g>
   );
 }
@@ -97,16 +102,16 @@ function PriceTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const point: Point = payload[0].payload;
   return (
-    <div className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs shadow-xl">
-      <div className="font-semibold text-slate-200">{point.date}</div>
-      <div className="text-btc">{fmtEur(point.close, 0)}</div>
+    <div className="rounded-xl border-2 border-sand bg-paper px-3 py-2 text-xs shadow-puff">
+      <div className="font-bold text-ink">{point.date}</div>
+      <div className="text-teal">{fmtEur(point.close, 0)}</div>
       {point.purchase && (
-        <div className="mt-1 border-t border-line pt-1 text-up">
-          <div className="font-semibold">
-            {point.purchase.dry_run ? "🧪 Dry-Run" : "✅ Kauf"}: {fmtEur(point.purchase.amount_eur)}
+        <div className="mt-1 border-t border-sand pt-1 text-rose">
+          <div className="font-bold">
+            {point.purchase.dry_run ? "Dry run" : "Buy"}: {fmtEur(point.purchase.amount_eur)}
           </div>
-          <div className="text-slate-400">
-            Score {point.purchase.score} · ×{point.purchase.multiplier}
+          <div className="text-ink-soft">
+            Score {point.purchase.score} at x{point.purchase.multiplier}
           </div>
         </div>
       )}

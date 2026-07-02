@@ -1,4 +1,4 @@
-"""Anwendungskonfiguration - laedt Secrets aus backend/.env"""
+"""Application configuration - loads secrets from backend/.env."""
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,7 +23,7 @@ class AppConfig(BaseSettings):
 
     @property
     def api_secret_normalized(self) -> str:
-        # Im .env steht der PEM-Key einzeilig mit literalen \n-Sequenzen
+        # The PEM key is stored single-line in .env with literal \n sequences
         return self.coinbase_api_secret.replace("\\n", "\n")
 
     @property

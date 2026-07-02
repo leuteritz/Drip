@@ -1,4 +1,4 @@
-"""SQLModel-Tabellen: Kaeufe, Bot-Einstellungen, Candle-Cache"""
+"""SQLModel tables: purchases, bot settings, candle cache."""
 from datetime import date, datetime
 from typing import Optional
 
@@ -24,7 +24,7 @@ class Purchase(SQLModel, table=True):
 class BotSettings(SQLModel, table=True):
     id: int = Field(default=1, primary_key=True)
     base_amount_eur: float = 50.0
-    schedule_weekday: int = 0  # 0 = Montag ... 6 = Sonntag
+    schedule_weekday: int = 0  # 0 = Monday ... 6 = Sunday
     schedule_time: str = "09:00"
     dry_run: bool = True
     paused_until: Optional[date] = None

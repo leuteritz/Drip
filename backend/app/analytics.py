@@ -1,15 +1,15 @@
-"""Performance-Auswertung: P&L und Vergleich Bot-Strategie vs. einfaches DCA.
+"""Performance analytics: P&L plus bot strategy vs. plain DCA comparison.
 
-DCA-Baseline: An denselben Kaufzeitpunkten wird stur der Basisbetrag
-(amount / multiplier) zum selben Preis investiert - der einzige Unterschied
-zur Bot-Strategie ist also der Score-Multiplikator.
+DCA baseline: at each purchase event the base amount (amount / multiplier)
+is invested at the same price - so the only difference from the bot
+strategy is the score multiplier.
 """
 from datetime import date, timedelta
 
 from sqlmodel import Session, select
 
 from .coinbase_client import ensure_candles, get_current_price
-from .models import Candle, Purchase
+from .models import Purchase
 
 
 def _relevant_purchases(session: Session, include_dry_run: bool) -> list[Purchase]:
@@ -56,7 +56,7 @@ def performance_summary(session: Session, include_dry_run: bool = True) -> dict:
 
 
 def comparison_series(session: Session, include_dry_run: bool = True) -> list[dict]:
-    """Taegliche Zeitreihe: Portfoliowert Bot vs. Plain-DCA seit dem ersten Kauf."""
+    """Daily time series: bot vs. plain DCA portfolio value since the first buy."""
     purchases = _relevant_purchases(session, include_dry_run)
     if not purchases:
         return []

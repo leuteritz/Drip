@@ -26,5 +26,5 @@ def candles(days: int = Query(default=90, ge=7, le=1500),
 
 @router.get("/indicators")
 def indicators(session: Session = Depends(get_session)):
-    """Live-Analyse: was wuerde der Bot jetzt tun?"""
+    """Live analysis: what would the bot do right now?"""
     return strategy.analyze(session).as_dict()

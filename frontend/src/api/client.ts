@@ -1,4 +1,4 @@
-// Typisierter Client fuer die Backend-API
+// Typed client for the backend API
 
 export interface BotSettings {
   id: number;
@@ -47,7 +47,6 @@ export interface Indicators {
   ma_distance_pct: number;
   multiplier: number;
   signal: string;
-  emoji: string;
 }
 
 export interface Candle {
@@ -98,7 +97,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!resp.ok) {
     const body = await resp.text();
-    throw new Error(`API-Fehler ${resp.status}: ${body}`);
+    throw new Error(`API error ${resp.status}: ${body}`);
   }
   return resp.json() as Promise<T>;
 }
@@ -132,24 +131,23 @@ export const api = {
 };
 
 export const fmtEur = (v: number, digits = 2) =>
-  new Intl.NumberFormat("de-DE", {
+  new Intl.NumberFormat("en-IE", {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: digits,
     minimumFractionDigits: digits > 2 ? 2 : digits,
   }).format(v);
 
-export const fmtBtc = (v: number) => `${v.toFixed(8)} ₿`;
+export const fmtBtc = (v: number) => `${v.toFixed(8)} BTC`;
 
-export const fmtPct = (v: number) =>
-  `${v >= 0 ? "+" : ""}${v.toFixed(2).replace(".", ",")} %`;
+export const fmtPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 
 export const WEEKDAYS = [
-  "Montag",
-  "Dienstag",
-  "Mittwoch",
-  "Donnerstag",
-  "Freitag",
-  "Samstag",
-  "Sonntag",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
 ];

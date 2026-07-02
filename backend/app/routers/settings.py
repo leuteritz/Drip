@@ -15,6 +15,9 @@ def get_settings(session: Session = Depends(get_session)):
     return load_settings(session)
 
 
+# Settings updates that touch the schedule also reschedule the cron job
+
+
 @router.put("")
 def update_settings(update: SettingsUpdate, session: Session = Depends(get_session)):
     settings = load_settings(session)

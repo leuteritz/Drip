@@ -1,13 +1,12 @@
-"""Coinbase-Zugriff.
+"""Coinbase access.
 
-Marktdaten (Preis, Candles) laufen ueber die oeffentlichen Brokerage-Endpunkte
-ohne API-Key - so funktionieren Dashboard und Dry-Run auch ohne Credentials.
-Nur echte Kaeufe brauchen den authentifizierten SDK-Client.
+Market data (price, candles) uses the public brokerage endpoints without an
+API key, so the dashboard and dry runs work without credentials.
+Only real orders require the authenticated SDK client.
 """
 import logging
 import uuid
-from datetime import date, datetime, time, timedelta, timezone
-from typing import Optional
+from datetime import datetime, time, timedelta, timezone
 
 import requests
 from sqlmodel import Session, select
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 PUBLIC_API = "https://api.coinbase.com/api/v3/brokerage/market"
 PRODUCT_ID = "BTC-EUR"
-MAX_CANDLES_PER_REQUEST = 300  # API-Limit ist 350, mit Puffer
+MAX_CANDLES_PER_REQUEST = 300  # API limit is 350, keep some headroom
 
 
 class CoinbaseError(Exception):
@@ -27,7 +26,7 @@ class CoinbaseError(Exception):
 
 
 def get_current_price() -> float:
-    """Aktueller BTC-EUR Preis (oeffentlicher Endpunkt)"""
+    """Current BTC-EUR price (public endpoint)."""
     resp = requests.get(f"{PUBLIC_API}/products/{PRODUCT_ID}", timeout=15)
     resp.raise_for_status()
     return float(resp.json()["price"])
@@ -48,8 +47,8 @@ def _fetch_daily_candles(start: datetime, end: datetime) -> list[dict]:
 
 
 def ensure_candles(session: Session, days: int) -> list[Candle]:
-    """Liefert Tages-Candles der letzten `days` Tage; fehlende werden von
-    Coinbase geholt und in SQLite gecacht."""
+    """Returns daily candles for the last `days` days; missing ones are
+    fetched from Coinbase and cached in SQLite."""
     today = datetime.now(timezone.utc).date()
     start_day = today - timedelta(days=days)
 
@@ -57,12 +56,12 @@ def ensure_candles(session: Session, days: int) -> list[Candle]:
         c.day: c
         for c in session.exec(select(Candle).where(Candle.day >= start_day)).all()
     }
-    # Heutiger Candle aendert sich laufend -> immer neu holen
+    # Today's candle keeps changing -> always refetch it
     missing_from = start_day
     have_days = sorted(d for d in cached if d < today)
     if have_days:
-        # Nur den Bereich nach dem letzten gecachten Tag nachladen,
-        # sofern der Cache am Anfang lueckenlos beginnt
+        # Only fetch the range after the last cached day, provided the cache
+        # is gapless at the start of the window
         if have_days[0] <= start_day + timedelta(days=1):
             missing_from = have_days[-1]
 
@@ -75,7 +74,7 @@ def ensure_candles(session: Session, days: int) -> list[Candle]:
         try:
             raw = _fetch_daily_candles(cursor, chunk_end)
         except requests.RequestException as exc:
-            logger.warning("Candle-Abruf fehlgeschlagen: %s", exc)
+            logger.warning("Candle fetch failed: %s", exc)
             break
         for entry in raw:
             day = datetime.fromtimestamp(int(entry["start"]), tz=timezone.utc).date()
@@ -98,11 +97,11 @@ def ensure_candles(session: Session, days: int) -> list[Candle]:
 
 
 def place_market_buy(amount_eur: float) -> tuple[str, str]:
-    """Fuehrt echten Market-Buy aus. Rueckgabe: (order_id, status).
-    Wirft CoinbaseError bei Fehlern."""
+    """Places a real market buy. Returns (order_id, status).
+    Raises CoinbaseError on failure."""
     if not config.has_coinbase_credentials:
         raise CoinbaseError(
-            "Keine Coinbase-Credentials in backend/.env konfiguriert "
+            "No Coinbase credentials configured in backend/.env "
             "(COINBASE_API_KEY / COINBASE_API_SECRET)"
         )
 
@@ -118,13 +117,13 @@ def place_market_buy(amount_eur: float) -> tuple[str, str]:
         quote_size=f"{amount_eur:.2f}",
     )
 
-    # CreateOrderResponse ist ein Objekt, kein Dict (Bug im Altcode)
+    # CreateOrderResponse is an object, not a dict
     if getattr(order, "success", False):
         success = order.success_response
         order_id = getattr(success, "order_id", None) or (
-            success.get("order_id") if isinstance(success, dict) else "unbekannt"
+            success.get("order_id") if isinstance(success, dict) else "unknown"
         )
-        return str(order_id), "Erfolgreich"
+        return str(order_id), "Success"
 
     error = getattr(order, "error_response", None)
-    raise CoinbaseError(f"Order fehlgeschlagen: {error}")
+    raise CoinbaseError(f"Order failed: {error}")

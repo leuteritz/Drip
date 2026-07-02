@@ -1,4 +1,4 @@
-"""Kauf-Ausfuehrung: Analyse -> Betrag -> Order (oder Dry-Run) -> DB + Discord"""
+"""Purchase execution: analysis -> amount -> order (or dry run) -> DB + Discord."""
 import logging
 from datetime import date, datetime
 
@@ -18,23 +18,23 @@ def is_paused(paused_until: date | None) -> bool:
 
 def run_purchase(dry_run_override: bool | None = None,
                  triggered_by: str = "manual") -> dict:
-    """Fuehrt einen kompletten Bot-Durchlauf aus.
+    """Runs one full bot cycle.
 
-    dry_run_override: None = Einstellung aus DB verwenden,
-    sonst explizit Dry-Run erzwingen/aufheben (nur manuell sinnvoll).
+    dry_run_override: None = use the stored setting,
+    otherwise force/lift dry run explicitly (only useful for manual runs).
     """
     with Session(engine) as session:
         settings = load_settings(session)
 
         if triggered_by == "schedule" and is_paused(settings.paused_until):
-            logger.info("Bot pausiert bis %s - Kauf uebersprungen", settings.paused_until)
+            logger.info("Bot paused until %s - skipping scheduled buy", settings.paused_until)
             notifier.send_notification(
-                title="⏸️ Bitcoin Bot pausiert",
-                description=f"Geplanter Kauf uebersprungen - pausiert bis {settings.paused_until}",
-                color=0x808080,
+                title="Drip paused",
+                description=f"Scheduled buy skipped - paused until {settings.paused_until}",
+                color=0x454545,
                 enabled=settings.discord_enabled,
             )
-            return {"skipped": True, "reason": f"Pausiert bis {settings.paused_until}"}
+            return {"skipped": True, "reason": f"Paused until {settings.paused_until}"}
 
         dry_run = settings.dry_run if dry_run_override is None else dry_run_override
         analysis = strategy.analyze(session)
@@ -51,9 +51,9 @@ def run_purchase(dry_run_override: bool | None = None,
                 order_id, status = place_market_buy(amount_eur)
             except CoinbaseError as exc:
                 order_id = "ERROR"
-                status = f"Fehler: {exc}"
+                status = f"Error: {exc}"
                 error = str(exc)
-                logger.error("Kauf fehlgeschlagen: %s", exc)
+                logger.error("Buy failed: %s", exc)
 
         purchase = Purchase(
             timestamp=timestamp,
@@ -86,26 +86,26 @@ def run_purchase(dry_run_override: bool | None = None,
 def _notify(analysis: strategy.Analysis, purchase: Purchase,
             discord_enabled: bool, error: str | None) -> None:
     fields = [
-        {"name": "💰 BTC-Preis", "value": f"€{analysis.current_price:,.2f}", "inline": True},
-        {"name": "💶 Betrag", "value": f"€{purchase.amount_eur:.2f}", "inline": True},
-        {"name": "₿ Bitcoin", "value": f"{purchase.btc_amount:.8f} BTC", "inline": True},
-        {"name": "🏆 Score", "value": f"{analysis.score}/{strategy.SCORE_MAX} - {analysis.signal}", "inline": False},
-        {"name": "😱 Fear & Greed", "value": f"{analysis.fear_greed} ({analysis.fng_classification})", "inline": True},
-        {"name": "📈 RSI", "value": f"{analysis.rsi:.1f}", "inline": True},
-        {"name": "📉 350d-MA", "value": f"€{analysis.ma_350:,.0f}", "inline": True},
+        {"name": "BTC price", "value": f"€{analysis.current_price:,.2f}", "inline": True},
+        {"name": "Amount", "value": f"€{purchase.amount_eur:.2f}", "inline": True},
+        {"name": "Bitcoin", "value": f"{purchase.btc_amount:.8f} BTC", "inline": True},
+        {"name": "Score", "value": f"{analysis.score}/{strategy.SCORE_MAX} - {analysis.signal}", "inline": False},
+        {"name": "Fear & Greed", "value": f"{analysis.fear_greed} ({analysis.fng_classification})", "inline": True},
+        {"name": "RSI", "value": f"{analysis.rsi:.1f}", "inline": True},
+        {"name": "350d MA", "value": f"€{analysis.ma_350:,.0f}", "inline": True},
     ]
 
     if error:
-        title = "❌ Bitcoin Kauf FEHLGESCHLAGEN!"
+        title = "Drip - buy FAILED"
         description = f"**{purchase.timestamp:%Y-%m-%d %H:%M}**\n{error}"
-        color = 0xFF0000
+        color = 0x785964
     elif purchase.dry_run:
-        title = f"{analysis.emoji} Bitcoin Bot - Dry Run"
-        description = f"**{purchase.timestamp:%Y-%m-%d %H:%M}**\n🧪 Test-Durchlauf (kein echter Kauf)"
+        title = "Drip - dry run"
+        description = f"**{purchase.timestamp:%Y-%m-%d %H:%M}**\nTest cycle (no real order placed)"
         color = analysis.color
     else:
-        title = f"{analysis.emoji} Bitcoin erfolgreich gekauft!"
-        description = f"**{purchase.timestamp:%Y-%m-%d %H:%M}**\n✅ Order `{purchase.order_id}`"
+        title = "Drip - bitcoin bought"
+        description = f"**{purchase.timestamp:%Y-%m-%d %H:%M}**\nOrder `{purchase.order_id}`"
         color = analysis.color
 
     notifier.send_notification(title, description, color, fields, discord_enabled)

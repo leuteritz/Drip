@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import DropSlashIcon from "~icons/ph/drop-slash";
+import PlayIcon from "~icons/ph/play-fill";
+import WarningIcon from "~icons/ph/warning-fill";
 import {
   api,
   fmtEur,
@@ -9,9 +12,9 @@ import {
 import { Badge, Card, CardTitle, Spinner, Toggle } from "../components/ui";
 
 const PAUSE_PRESETS = [
-  { label: "1 Woche", days: 7 },
-  { label: "2 Wochen", days: 14 },
-  { label: "4 Wochen", days: 28 },
+  { label: "1 week", days: 7 },
+  { label: "2 weeks", days: 14 },
+  { label: "4 weeks", days: 28 },
 ];
 
 export default function Settings() {
@@ -64,7 +67,7 @@ export default function Settings() {
     }
   };
 
-  if (error) return <Card className="border-down/40 text-down">⚠️ {error}</Card>;
+  if (error) return <Card className="border-rose/50 font-bold text-rose">{error}</Card>;
   if (!settings) return <Spinner />;
 
   const isPaused =
@@ -74,16 +77,16 @@ export default function Settings() {
   return (
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
-        <h1 className="text-xl font-bold">⚙️ Konfiguration</h1>
-        {saving && <Badge tone="gray">Speichern…</Badge>}
-        {saved && <Badge tone="green">✓ Gespeichert</Badge>}
+        <h1 className="font-display text-3xl font-semibold">Settings</h1>
+        {saving && <Badge tone="neutral">Saving...</Badge>}
+        {saved && <Badge tone="teal">Saved</Badge>}
       </div>
 
-      {/* Kaufbetrag */}
+      {/* Buy amount */}
       <Card>
-        <CardTitle>Kaufbetrag</CardTitle>
-        <label className="mb-2 block text-sm text-slate-400">
-          Basisbetrag pro Kauf (der Bot multipliziert je nach Marktlage mit 0,5× bis 1,5×)
+        <CardTitle>Buy amount</CardTitle>
+        <label className="mb-2 block text-sm text-ink-soft">
+          Base amount per buy - Drip multiplies it by 0.5x to 1.5x depending on the market
         </label>
         <div className="flex items-center gap-4">
           <input
@@ -97,9 +100,9 @@ export default function Settings() {
             }
             onMouseUp={() => save({ base_amount_eur: settings.base_amount_eur })}
             onTouchEnd={() => save({ base_amount_eur: settings.base_amount_eur })}
-            className="w-full accent-btc"
+            className="w-full accent-teal"
           />
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <input
               type="number"
               min={1}
@@ -108,82 +111,84 @@ export default function Settings() {
                 setSettings({ ...settings, base_amount_eur: Number(e.target.value) })
               }
               onBlur={() => save({ base_amount_eur: settings.base_amount_eur })}
-              className="w-24 rounded-lg border border-line bg-surface-2 px-3 py-2 text-right font-semibold tabular-nums outline-none focus:border-btc"
+              className="w-24 rounded-xl border-2 border-sand bg-paper px-3 py-2 text-right font-bold outline-none focus:border-teal"
             />
-            <span className="text-slate-400">€</span>
+            <span className="font-bold text-ink-soft">EUR</span>
           </div>
         </div>
         {indicators && (
-          <div className="mt-4 rounded-xl border border-btc/30 bg-btc/5 p-3 text-sm">
-            <span className="text-slate-300">Beim nächsten Kauf (aktuelle Marktlage): </span>
-            <span className="font-bold text-btc">
-              {fmtEur(settings.base_amount_eur)} × {indicators.multiplier} ={" "}
+          <div className="mt-4 rounded-xl border-2 border-water bg-water-soft p-4 text-sm">
+            <span className="text-ink">Next buy at current market conditions: </span>
+            <span className="font-display text-lg font-bold text-teal">
+              {fmtEur(settings.base_amount_eur)} x {indicators.multiplier} ={" "}
               {fmtEur(settings.base_amount_eur * indicators.multiplier)}
             </span>
-            <span className="ml-2 text-slate-500">({indicators.signal})</span>
+            <span className="ml-2 text-ink-soft">({indicators.signal})</span>
           </div>
         )}
       </Card>
 
-      {/* Zeitplan */}
+      {/* Schedule */}
       <Card>
-        <CardTitle>Kaufzeitpunkt</CardTitle>
-        <label className="mb-2 block text-sm text-slate-400">Wochentag</label>
+        <CardTitle>Schedule</CardTitle>
+        <label className="mb-2 block text-sm text-ink-soft">Day of the week</label>
         <div className="mb-4 flex flex-wrap gap-2">
           {WEEKDAYS.map((day, idx) => (
             <button
               key={day}
               onClick={() => save({ schedule_weekday: idx })}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
                 settings.schedule_weekday === idx
-                  ? "bg-btc text-black"
-                  : "bg-surface-2 text-slate-400 hover:text-slate-200"
+                  ? "bg-ink text-cream"
+                  : "bg-sand-soft text-ink-soft hover:text-ink"
               }`}
             >
-              {day.slice(0, 2)}
+              {day.slice(0, 3)}
             </button>
           ))}
         </div>
-        <label className="mb-2 block text-sm text-slate-400">Uhrzeit</label>
+        <label className="mb-2 block text-sm text-ink-soft">Time</label>
         <input
           type="time"
           value={settings.schedule_time}
           onChange={(e) => save({ schedule_time: e.target.value })}
-          className="rounded-lg border border-line bg-surface-2 px-3 py-2 font-semibold outline-none focus:border-btc [color-scheme:dark]"
+          className="rounded-xl border-2 border-sand bg-paper px-3 py-2 font-bold outline-none focus:border-teal"
         />
-        <p className="mt-3 text-sm text-slate-500">
-          Der Bot kauft jeden <b className="text-slate-300">{WEEKDAYS[settings.schedule_weekday]}</b> um{" "}
-          <b className="text-slate-300">{settings.schedule_time} Uhr</b>.
+        <p className="mt-3 text-sm text-ink-soft">
+          Drip buys every{" "}
+          <b className="text-ink">{WEEKDAYS[settings.schedule_weekday]}</b> at{" "}
+          <b className="text-ink">{settings.schedule_time}</b>.
         </p>
       </Card>
 
       {/* Pause */}
       <Card>
-        <CardTitle>Pausieren</CardTitle>
+        <CardTitle>Pause the faucet</CardTitle>
         {isPaused ? (
           <div className="flex flex-wrap items-center gap-4">
-            <Badge tone="gray">
-              ⏸ Pausiert bis {new Date(settings.paused_until!).toLocaleDateString("de-DE")}
+            <Badge tone="rose">
+              <DropSlashIcon /> Faucet off until{" "}
+              {new Date(settings.paused_until!).toLocaleDateString("en-GB")}
             </Badge>
             <button
               onClick={resume}
-              className="rounded-lg bg-up px-4 py-2 text-sm font-semibold text-black transition hover:bg-green-400"
+              className="flex items-center gap-2 rounded-full bg-teal px-5 py-2.5 text-sm font-bold text-cream transition hover:bg-ink"
             >
-              ▶ Jetzt fortsetzen
+              <PlayIcon /> Resume now
             </button>
           </div>
         ) : (
           <>
-            <p className="mb-3 text-sm text-slate-400">
-              Käufe für einen Zeitraum aussetzen — der Zeitplan bleibt erhalten und läuft danach
-              automatisch weiter.
+            <p className="mb-3 text-sm text-ink-soft">
+              Skip buys for a while - the schedule stays put and picks up again on its
+              own.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               {PAUSE_PRESETS.map((p) => (
                 <button
                   key={p.days}
                   onClick={() => pause(p.days)}
-                  className="rounded-lg bg-surface-2 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
+                  className="rounded-xl bg-sand-soft px-4 py-2 text-sm font-bold text-ink transition hover:bg-sand"
                 >
                   {p.label}
                 </button>
@@ -193,17 +198,17 @@ export default function Settings() {
                   type="number"
                   min={1}
                   max={365}
-                  placeholder="Tage"
+                  placeholder="Days"
                   value={customPauseDays}
                   onChange={(e) => setCustomPauseDays(e.target.value)}
-                  className="w-20 rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm outline-none focus:border-btc"
+                  className="w-20 rounded-xl border-2 border-sand bg-paper px-3 py-2 text-sm outline-none focus:border-teal"
                 />
                 <button
                   onClick={() => customPauseDays && pause(Number(customPauseDays))}
                   disabled={!customPauseDays}
-                  className="rounded-lg bg-surface-2 px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700 disabled:opacity-40"
+                  className="rounded-xl bg-sand-soft px-3 py-2 text-sm font-bold text-ink transition hover:bg-sand disabled:opacity-40"
                 >
-                  Pausieren
+                  Pause
                 </button>
               </div>
             </div>
@@ -211,18 +216,18 @@ export default function Settings() {
         )}
       </Card>
 
-      {/* Modus & Benachrichtigungen */}
+      {/* Mode & alerts */}
       <Card>
-        <CardTitle>Modus &amp; Benachrichtigungen</CardTitle>
+        <CardTitle>Mode and alerts</CardTitle>
         <div className="space-y-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="font-semibold">
-                Live-Trading{" "}
-                {!settings.dry_run && <Badge tone="red">AKTIV — echtes Geld!</Badge>}
+              <div className="flex items-center gap-2 font-bold">
+                Live trading
+                {!settings.dry_run && <Badge tone="rose">real money</Badge>}
               </div>
-              <div className="text-sm text-slate-500">
-                Aus = Dry-Run (Käufe werden nur simuliert und geloggt)
+              <div className="text-sm text-ink-soft">
+                Off = dry run (buys are only simulated and logged)
               </div>
             </div>
             <Toggle
@@ -238,9 +243,9 @@ export default function Settings() {
           </div>
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="font-semibold">Discord-Benachrichtigungen</div>
-              <div className="text-sm text-slate-500">
-                Webhook-URL wird in <code>backend/.env</code> konfiguriert
+              <div className="font-bold">Discord notifications</div>
+              <div className="text-sm text-ink-soft">
+                The webhook URL is configured in <code>backend/.env</code>
               </div>
             </div>
             <Toggle
@@ -251,31 +256,33 @@ export default function Settings() {
         </div>
       </Card>
 
-      {/* Live-Bestätigungs-Dialog */}
+      {/* Live-trading confirmation dialog */}
       {confirmLive && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <Card className="max-w-md border-down/50">
-            <h3 className="mb-2 text-lg font-bold text-down">⚠️ Live-Trading aktivieren?</h3>
-            <p className="text-sm text-slate-300">
-              Der Bot kauft ab sofort <b>mit echtem Geld</b> über deine Coinbase-API — jeden{" "}
-              {WEEKDAYS[settings.schedule_weekday]} um {settings.schedule_time} Uhr, Basisbetrag{" "}
-              {fmtEur(settings.base_amount_eur)} (× Multiplikator je nach Marktlage).
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
+          <Card className="max-w-md border-rose/60">
+            <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
+              <WarningIcon /> Turn on live trading?
+            </h3>
+            <p className="text-sm text-ink">
+              Drip will buy <b>with real money</b> through your Coinbase API - every{" "}
+              {WEEKDAYS[settings.schedule_weekday]} at {settings.schedule_time}, base
+              amount {fmtEur(settings.base_amount_eur)} (times the market multiplier).
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setConfirmLive(false)}
-                className="rounded-lg bg-surface-2 px-4 py-2 text-sm font-semibold text-slate-300"
+                className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink"
               >
-                Abbrechen
+                Cancel
               </button>
               <button
                 onClick={() => {
                   setConfirmLive(false);
                   save({ dry_run: false });
                 }}
-                className="rounded-lg bg-down px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
+                className="rounded-full bg-rose px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
               >
-                Ja, live handeln
+                Trade live
               </button>
             </div>
           </Card>

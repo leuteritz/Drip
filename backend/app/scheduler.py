@@ -1,5 +1,5 @@
-"""APScheduler: fuehrt den Kauf zum konfigurierten Wochentag + Uhrzeit aus.
-Reschedule bei jeder Settings-Aenderung."""
+"""APScheduler: runs the buy at the configured weekday + time.
+Rescheduled whenever the settings change."""
 import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -13,17 +13,17 @@ logger = logging.getLogger(__name__)
 JOB_ID = "weekly_purchase"
 scheduler = BackgroundScheduler()
 
-# APScheduler day_of_week: mon=0 ... sun=6 (deckt sich mit unserem Schema)
+# APScheduler day_of_week: mon=0 ... sun=6 (matches our settings schema)
 _WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
 
 def _run_scheduled() -> None:
-    logger.info("Geplanter Bot-Lauf startet...")
+    logger.info("Scheduled bot run starting...")
     try:
         result = bot.run_purchase(triggered_by="schedule")
-        logger.info("Bot-Lauf abgeschlossen: %s", result.get("reason", "OK"))
+        logger.info("Bot run finished: %s", result.get("reason", "OK"))
     except Exception:
-        logger.exception("Geplanter Bot-Lauf fehlgeschlagen")
+        logger.exception("Scheduled bot run failed")
 
 
 def reschedule(settings: BotSettings) -> None:
@@ -41,7 +41,7 @@ def reschedule(settings: BotSettings) -> None:
         misfire_grace_time=3600,
     )
     logger.info(
-        "Kauf-Job geplant: %s %s", _WEEKDAYS[settings.schedule_weekday], settings.schedule_time
+        "Buy job scheduled: %s %s", _WEEKDAYS[settings.schedule_weekday], settings.schedule_time
     )
 
 

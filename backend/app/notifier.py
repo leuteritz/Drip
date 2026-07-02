@@ -1,4 +1,4 @@
-"""Discord-Benachrichtigungen - portiert aus legacy/helper.py"""
+"""Discord webhook notifications."""
 import logging
 from datetime import datetime, timezone
 
@@ -9,7 +9,7 @@ from .config import config
 logger = logging.getLogger(__name__)
 
 
-def send_notification(title: str, description: str, color: int = 0x00FF00,
+def send_notification(title: str, description: str, color: int = 0x93B7BE,
                       fields: list[dict] | None = None, enabled: bool = True) -> bool:
     if not enabled or not config.discord_webhook_url:
         return False
@@ -19,7 +19,7 @@ def send_notification(title: str, description: str, color: int = 0x00FF00,
         "description": description,
         "color": color,
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "footer": {"text": "Bitcoin Smart-DCA Bot"},
+        "footer": {"text": "Drip"},
     }
     if fields:
         embed["fields"] = fields
@@ -27,12 +27,12 @@ def send_notification(title: str, description: str, color: int = 0x00FF00,
     try:
         response = requests.post(
             config.discord_webhook_url,
-            json={"embeds": [embed], "username": "Bitcoin Smart-DCA Bot"},
+            json={"embeds": [embed], "username": "Drip"},
             timeout=10,
         )
         if response.status_code in (200, 204):
             return True
-        logger.warning("Discord-Fehler %s: %s", response.status_code, response.text)
+        logger.warning("Discord error %s: %s", response.status_code, response.text)
     except requests.RequestException as exc:
-        logger.warning("Discord nicht erreichbar: %s", exc)
+        logger.warning("Discord unreachable: %s", exc)
     return False

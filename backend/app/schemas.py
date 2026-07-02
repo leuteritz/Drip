@@ -1,4 +1,4 @@
-"""Pydantic Request/Response-Schemas"""
+"""Pydantic request/response schemas."""
 from datetime import date
 from typing import Optional
 
@@ -19,4 +19,4 @@ class PauseRequest(BaseModel):
 
 
 class RunRequest(BaseModel):
-    dry_run: Optional[bool] = None  # None = Einstellung aus DB
+    dry_run: Optional[bool] = None  # None = use the stored setting

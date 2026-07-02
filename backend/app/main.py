@@ -1,7 +1,7 @@
-"""Bitcoin Smart-DCA Bot - FastAPI-Backend.
+"""Drip - FastAPI backend.
 
-Serviert die REST-API unter /api sowie (falls gebaut) das Frontend
-aus backend/static als Single-Page-App.
+Serves the REST API under /api and, once built, the frontend
+from backend/static as a single-page app.
 """
 import logging
 from contextlib import asynccontextmanager
@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
     scheduler.shutdown()
 
 
-app = FastAPI(title="Bitcoin Smart-DCA Bot", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Drip", version="1.0.0", lifespan=lifespan)
 
 app.include_router(settings.router)
 app.include_router(purchases.router)

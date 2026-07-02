@@ -26,7 +26,7 @@ def status(session: Session = Depends(get_session)):
 
 @router.post("/run")
 def run_now(request: RunRequest):
-    """Manueller Bot-Lauf. dry_run=None nutzt die gespeicherte Einstellung."""
+    """Manual bot run. dry_run=None uses the stored setting."""
     try:
         return bot_runner.run_purchase(
             dry_run_override=request.dry_run, triggered_by="manual"
