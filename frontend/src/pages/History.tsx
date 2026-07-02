@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import TrashIcon from "~icons/ph/trash";
+import UploadSimpleIcon from "~icons/ph/upload-simple";
 import { api, fmtBtc, fmtEur, type Purchase } from "../api/client";
 import { ScoreDrops } from "../components/drops";
+import ImportModal from "../components/ImportModal";
 import TabHeader, { type Page } from "../components/TabHeader";
 import { Badge, Card, Spinner } from "../components/ui";
 
@@ -19,6 +21,7 @@ export default function History({
   const [sortDesc, setSortDesc] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
 
   const refresh = useCallback(() => {
     api.getPurchases().then(setPurchases).catch((e) => setError(String(e)));
@@ -96,19 +99,29 @@ export default function History({
     </th>
   );
 
-  const clearButton = hasTestRuns && (
-    <button
-      onClick={clearTestRuns}
-      disabled={busy}
-      className="flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-sm font-bold text-rose shadow-sm transition hover:bg-white disabled:opacity-40"
-    >
-      <TrashIcon /> Clear test runs
-    </button>
+  const headerActions = (
+    <>
+      <button
+        onClick={() => setShowImport(true)}
+        className="flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-sm font-bold text-teal shadow-sm transition hover:bg-white"
+      >
+        <UploadSimpleIcon /> Import CSV
+      </button>
+      {hasTestRuns && (
+        <button
+          onClick={clearTestRuns}
+          disabled={busy}
+          className="flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-sm font-bold text-rose shadow-sm transition hover:bg-white disabled:opacity-40"
+        >
+          <TrashIcon /> Clear test runs
+        </button>
+      )}
+    </>
   );
 
   return (
     <div className="flex h-full flex-col">
-      <TabHeader active={active} onNavigate={onNavigate} right={clearButton}>
+      <TabHeader active={active} onNavigate={onNavigate} right={headerActions}>
         <div className="text-cream">
           <div className="font-display text-3xl font-bold leading-none md:text-4xl">
             Buy history
@@ -206,8 +219,16 @@ export default function History({
                   {sorted.length === 0 && (
                     <tr>
                       <td colSpan={9} className="px-4 py-12 text-center text-ink-soft">
-                        No buys yet. Run a test buy from the overview, or wait for the
-                        first scheduled run.
+                        <p>
+                          No buys yet. Run a test buy from the overview, or wait for the
+                          first scheduled run.
+                        </p>
+                        <button
+                          onClick={() => setShowImport(true)}
+                          className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
+                        >
+                          <UploadSimpleIcon /> Import CSV history
+                        </button>
                       </td>
                     </tr>
                   )}
@@ -217,6 +238,16 @@ export default function History({
           </Card>
         )}
       </div>
+
+      {showImport && (
+        <ImportModal
+          onClose={() => setShowImport(false)}
+          onDone={() => {
+            setShowImport(false);
+            refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

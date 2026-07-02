@@ -107,6 +107,13 @@ export interface SimulationResult {
   series: ComparisonPoint[];
 }
 
+export interface ImportResult {
+  imported: number;
+  skipped: number;
+  total: number;
+  errors: { line: number; message: string }[];
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const resp = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -151,6 +158,15 @@ export const api = {
     request<{ deleted: number }>(`/api/purchases/${id}`, { method: "DELETE" }),
   clearTestRuns: () =>
     request<{ deleted: number }>("/api/purchases/test-runs", { method: "DELETE" }),
+  importPurchases: async (file: File, includeErrors: boolean): Promise<ImportResult> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("include_errors", String(includeErrors));
+    // No Content-Type header: the browser sets the multipart boundary itself.
+    const resp = await fetch("/api/purchases/import", { method: "POST", body: fd });
+    if (!resp.ok) throw new Error(`API error ${resp.status}: ${await resp.text()}`);
+    return resp.json() as Promise<ImportResult>;
+  },
   testNotification: () =>
     request<{ sent: boolean; reason?: string }>("/api/bot/test-notification", {
       method: "POST",
