@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-btc: #f7931a;
+  --color-btc-dark: #c76f00;
+  --color-surface: #131722;
+  --color-surface-2: #1c2230;
+  --color-bg: #0b0e14;
+  --color-line: #232a3b;
+  --color-up: #22c55e;
+  --color-down: #ef4444;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--color-bg);
+  color: #e2e8f0;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: rgba(247, 147, 26, 0.35);
+}
+
+/* dezente Scrollbars im Dark Theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2c3549 transparent;
+}

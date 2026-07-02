@@ -1,0 +1,7 @@
+fastapi>=0.115
+uvicorn[standard]>=0.32
+sqlmodel>=0.0.22
+apscheduler>=3.10,<4
+pydantic-settings>=2.6
+coinbase-advanced-py>=1.8
+requests>=2.32

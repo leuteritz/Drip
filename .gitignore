@@ -1,0 +1,28 @@
+# Secrets - NIEMALS committen!
+.env
+cdp_api_key.json
+*.pem
+
+# Daten
+backend/data/
+*.db
+*.csv
+!legacy/bitcoin_purchases.csv.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+backend/static/
+*.tsbuildinfo
+
+# IDE / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
