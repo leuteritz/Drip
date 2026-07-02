@@ -22,11 +22,12 @@ import {
   type Purchase,
   type RunResult,
 } from "../api/client";
-import { DripAnimation, ScoreDrops } from "../components/drops";
-import Gauge from "../components/Gauge";
+import { ScoreDrops } from "../components/drops";
 import PriceChart from "../components/PriceChart";
 import SimulationModal from "../components/SimulationModal";
-import { Badge, Card, CardTitle, Spinner, Toggle } from "../components/ui";
+import TabHeader, { type Page } from "../components/TabHeader";
+import { Card, CardTitle, Spinner, Toggle } from "../components/ui";
+import type { ReactNode } from "react";
 
 const RANGES = [
   { label: "30d", days: 30 },
@@ -34,7 +35,13 @@ const RANGES = [
   { label: "1y", days: 365 },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({
+  active,
+  onNavigate,
+}: {
+  active: Page;
+  onNavigate: (p: Page) => void;
+}) {
   const [status, setStatus] = useState<BotStatus | null>(null);
   const [settings, setSettings] = useState<BotSettings | null>(null);
   const [indicators, setIndicators] = useState<Indicators | null>(null);
@@ -96,283 +103,274 @@ export default function Dashboard() {
     }
   };
 
-  if (error) {
-    return (
-      <Card className="border-rose/50">
-        <div className="font-bold text-rose">{error}</div>
-        <div className="mt-2 text-sm text-ink-soft">
-          Is the backend running? <code className="text-ink">uvicorn app.main:app</code>
-        </div>
-      </Card>
-    );
-  }
-
   const profitable = (performance?.profit_eur ?? 0) >= 0;
 
-  return (
+  const statusPills = status && (
     <>
-      <div className="max-md:space-y-4 md:grid md:h-[calc(100dvh-3rem)] md:grid-cols-12 md:grid-rows-6 md:gap-4 md:overflow-hidden">
+      {status.paused && status.paused_until ? (
+        <HeaderPill>
+          <DropSlashIcon /> Off until {formatDate(status.paused_until)}
+        </HeaderPill>
+      ) : status.next_run ? (
+        <HeaderPill>
+          <ClockIcon /> Next {formatDateTime(status.next_run)}
+        </HeaderPill>
+      ) : null}
+      <HeaderPill>
+        {status.dry_run ? (
+          <>
+            <FlaskIcon /> Dry run
+          </>
+        ) : (
+          <>
+            <LightningIcon /> Live
+          </>
+        )}
+      </HeaderPill>
+      {!status.has_credentials && (
+        <HeaderPill>
+          <KeyIcon /> No API keys
+        </HeaderPill>
+      )}
+    </>
+  );
+
+  return (
+    <div className="flex h-full flex-col">
+      <TabHeader active={active} onNavigate={onNavigate} right={statusPills}>
         {/* Hero: the reservoir */}
-        <Card className="relative flex flex-col overflow-hidden md:col-span-5 md:row-span-3">
-          <div className="flex flex-1 flex-wrap items-start justify-between gap-4">
-            <div className="flex min-w-0 flex-col">
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">
-                Your reservoir
-              </div>
-              {performance ? (
-                <>
-                  <div className="mt-1 font-display text-5xl font-bold leading-none text-ink max-sm:text-4xl">
-                    {fmtEur(performance.value_eur)}
-                  </div>
-                  <div
-                    className={`mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold ${
-                      profitable ? "text-teal" : "text-rose"
-                    }`}
-                  >
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-4 text-cream">
+          <div className="min-w-0">
+            <div className="text-xs font-bold uppercase tracking-[0.22em] text-cream/85">
+              Your reservoir
+            </div>
+            {performance ? (
+              <>
+                <div className="mt-1 font-display text-5xl font-bold leading-none md:text-6xl">
+                  {fmtEur(performance.value_eur)}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-base font-bold">
+                  <span className="inline-flex items-center gap-1.5">
                     {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
                     {profitable ? "+" : ""}
                     {fmtEur(performance.profit_eur)} ({fmtPct(performance.profit_pct)})
-                    <span className="text-xs font-medium text-ink-soft">
-                      on {fmtEur(performance.invested_eur)}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <Spinner />
-              )}
-              {indicators && (
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <ScoreDrops multiplier={indicators.multiplier} />
-                  <Badge tone="teal">x{indicators.multiplier} buff</Badge>
-                  <span className="text-xs text-ink-soft">{indicators.signal}</span>
-                </div>
-              )}
-              <label className="mt-3 flex items-center gap-2 text-xs text-ink-soft">
-                Include dry runs
-                <Toggle checked={includeDryRun} onChange={toggleDryRunStats} />
-              </label>
-              {runResult?.analysis && (
-                <div className="mt-3 rounded-xl border-2 border-water bg-water-soft px-3 py-2 text-xs font-bold text-teal">
-                  {runResult.analysis.signal} - score {runResult.analysis.score}/
-                  {runResult.analysis.score_max}, would buy{" "}
-                  {fmtEur(runResult.purchase?.amount_eur ?? 0)}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col items-center gap-2">
-              <DripAnimation />
-              {status && (
-                <div className="flex flex-col items-center gap-1.5 text-center">
-                  {status.paused && status.paused_until ? (
-                    <Badge tone="rose">
-                      <DropSlashIcon /> Off until {formatDate(status.paused_until)}
-                    </Badge>
-                  ) : status.next_run ? (
-                    <Badge tone="water">
-                      <ClockIcon /> Next {formatDateTime(status.next_run)}
-                    </Badge>
-                  ) : null}
-                  <Badge tone={status.dry_run ? "neutral" : "rose"}>
-                    {status.dry_run ? (
-                      <>
-                        <FlaskIcon /> Dry run
-                      </>
-                    ) : (
-                      <>
-                        <LightningIcon /> Live
-                      </>
-                    )}
-                  </Badge>
-                  {!status.has_credentials && (
-                    <Badge tone="rose">
-                      <KeyIcon /> No API keys
-                    </Badge>
-                  )}
-                  <button
-                    onClick={runAnalysis}
-                    disabled={running}
-                    className="mt-1 flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-xs font-bold text-cream transition hover:bg-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal disabled:opacity-50"
-                  >
-                    <PlayIcon />
-                    {running ? "Testing..." : "Test a buy (no charge)"}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* BTC price */}
-        <Card className="flex flex-col justify-center md:col-span-3 md:row-span-2">
-          <CardTitle>BTC price</CardTitle>
-          {performance ? (
-            <>
-              <div className="font-display text-4xl font-bold leading-none text-ink max-sm:text-3xl">
-                {fmtEur(performance.current_price, 0)}
-              </div>
-              <div className="mt-2 text-xs text-ink-soft">Coinbase BTC-EUR (live)</div>
-            </>
-          ) : (
-            <Spinner />
-          )}
-        </Card>
-
-        {/* Config + simulate */}
-        <Card className="flex flex-col justify-between md:col-span-4 md:row-span-2">
-          <div>
-            <CardTitle>Your plan</CardTitle>
-            {settings ? (
-              <>
-                <div className="font-display text-3xl font-bold leading-none text-ink">
-                  {WEEKDAYS[settings.schedule_weekday]}s
-                </div>
-                <div className="mt-1 text-sm text-ink-soft">
-                  at <b className="text-ink">{settings.schedule_time}</b> · base{" "}
-                  <b className="text-ink">{fmtEur(settings.base_amount_eur)}</b>
-                  {indicators && (
-                    <>
-                      {" "}
-                      → next ≈{" "}
-                      <b className="text-teal">
-                        {fmtEur(settings.base_amount_eur * indicators.multiplier)}
-                      </b>
-                    </>
-                  )}
+                  </span>
+                  <span className="text-xs font-medium text-cream/80">
+                    on {fmtEur(performance.invested_eur)}
+                  </span>
                 </div>
               </>
             ) : (
-              <Spinner />
+              <div className="mt-2 h-16 w-40 animate-pulse rounded-xl bg-cream/20" />
+            )}
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              {indicators && (
+                <HeaderPill>
+                  x{indicators.multiplier} &middot; {indicators.signal}
+                </HeaderPill>
+              )}
+              <label className="flex items-center gap-2 text-xs font-medium text-cream/85">
+                Include dry runs
+                <Toggle checked={includeDryRun} onChange={toggleDryRunStats} />
+              </label>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-2">
+            <button
+              onClick={runAnalysis}
+              disabled={running}
+              className="flex items-center gap-2 rounded-full bg-cream px-4 py-2.5 text-sm font-bold text-teal shadow-sm transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream disabled:opacity-60"
+            >
+              <PlayIcon />
+              {running ? "Testing..." : "Test a buy (no charge)"}
+            </button>
+            {runResult?.analysis && (
+              <div className="rounded-xl bg-cream/20 px-3 py-1.5 text-right text-xs font-bold text-cream">
+                {runResult.analysis.signal} &middot; would buy{" "}
+                {fmtEur(runResult.purchase?.amount_eur ?? 0)}
+              </div>
             )}
           </div>
-          <button
-            onClick={() => setShowSim(true)}
-            className="mt-3 flex items-center justify-center gap-2 rounded-full bg-teal px-4 py-2.5 text-sm font-bold text-cream transition hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
-          >
-            <ChartLineIcon /> Simulate backtest
-          </button>
-        </Card>
-
-        {/* Stat tiles */}
-        <div className="grid grid-cols-3 gap-4 md:col-span-7 md:col-start-6 md:row-span-1 md:row-start-3">
-          <MiniStat
-            label="Invested"
-            value={performance ? fmtEur(performance.invested_eur) : "-"}
-            sub={performance ? `${performance.purchase_count} buys` : undefined}
-          />
-          <MiniStat
-            label="Bitcoin stack"
-            value={performance ? fmtBtc(performance.btc_total) : "-"}
-          />
-          <MiniStat
-            label="Profit / loss"
-            value={
-              performance
-                ? `${profitable ? "+" : ""}${fmtEur(performance.profit_eur)}`
-                : "-"
-            }
-            sub={performance ? fmtPct(performance.profit_pct) : undefined}
-            tone={profitable ? "up" : "down"}
-          />
         </div>
+      </TabHeader>
 
-        {/* Price chart */}
-        <Card className="flex min-h-0 flex-col md:col-span-7 md:row-span-3 md:row-start-4">
-          <div className="mb-2 flex items-center justify-between">
-            <CardTitle>Bitcoin price and buys</CardTitle>
-            <div className="flex gap-1">
-              {RANGES.map((r) => (
-                <button
-                  key={r.days}
-                  onClick={() => setRangeDays(r.days)}
-                  className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-                    rangeDays === r.days
-                      ? "bg-ink text-cream"
-                      : "bg-sand-soft text-ink-soft hover:text-ink"
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
+      {/* Body: fixed height, never scrolls */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4 md:gap-4 md:p-6">
+        {error ? (
+          <Card className="border-rose/50">
+            <div className="font-bold text-rose">{error}</div>
+            <div className="mt-2 text-sm text-ink-soft">
+              Is the backend running? <code className="text-ink">uvicorn app.main:app</code>
             </div>
-          </div>
-          <div className="h-64 min-h-0 md:h-auto md:flex-1">
-            {candles.length ? (
-              <PriceChart candles={candles} purchases={purchases} height="100%" />
-            ) : (
-              <Spinner />
-            )}
-          </div>
-        </Card>
+          </Card>
+        ) : (
+          <>
+            {/* Stat tiles */}
+            <div className="grid shrink-0 grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+              <MiniStat
+                label="BTC price"
+                value={performance ? fmtEur(performance.current_price, 0) : "-"}
+                sub="Coinbase (live)"
+              />
+              <MiniStat
+                label="Invested"
+                value={performance ? fmtEur(performance.invested_eur) : "-"}
+                sub={performance ? `${performance.purchase_count} buys` : undefined}
+              />
+              <MiniStat
+                label="Bitcoin stack"
+                value={performance ? fmtBtc(performance.btc_total) : "-"}
+                sub="BTC"
+              />
+              <MiniStat
+                label="350-day avg"
+                value={indicators ? fmtEur(indicators.ma_350, 0) : "-"}
+                sub={indicators ? `price ${fmtPct(indicators.ma_distance_pct)}` : undefined}
+                tone={indicators && indicators.ma_distance_pct < 0 ? "up" : undefined}
+              />
+            </div>
 
-        {/* Live analysis */}
-        <Card className="flex min-h-0 flex-col md:col-span-5 md:row-span-3 md:row-start-4">
-          <CardTitle>What would Drip do right now?</CardTitle>
-          {indicators ? (
-            <div className="grid flex-1 grid-cols-2 items-center gap-2">
-              <Gauge
-                value={indicators.rsi}
-                label="RSI (14)"
-                sublabel={
-                  indicators.rsi < 30
-                    ? "Oversold"
-                    : indicators.rsi > 70
-                      ? "Overbought"
-                      : "Neutral"
-                }
-                zones={[
-                  { to: 30, color: "#45818c" },
-                  { to: 45, color: "#93b7be" },
-                  { to: 70, color: "#d5c7bc" },
-                  { to: 100, color: "#785964" },
-                ]}
-              />
-              <Gauge
-                value={indicators.fear_greed}
-                label="Fear & Greed"
-                sublabel={indicators.fng_classification}
-                zones={[
-                  { to: 25, color: "#45818c" },
-                  { to: 45, color: "#93b7be" },
-                  { to: 55, color: "#d5c7bc" },
-                  { to: 100, color: "#785964" },
-                ]}
-              />
-              <div className="text-center">
-                <div className="text-xs font-bold uppercase tracking-[0.14em] text-ink-soft">
-                  350-day avg
+            {/* Chart + read-out */}
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
+              <Card className="flex min-h-0 flex-col md:col-span-2">
+                <div className="mb-2 flex items-center justify-between">
+                  <CardTitle>Bitcoin price and buys</CardTitle>
+                  <div className="flex gap-1">
+                    {RANGES.map((r) => (
+                      <button
+                        key={r.days}
+                        onClick={() => setRangeDays(r.days)}
+                        className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                          rangeDays === r.days
+                            ? "bg-ink text-cream"
+                            : "bg-sand-soft text-ink-soft hover:text-ink"
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="mt-1 font-display text-xl font-semibold">
-                  {fmtEur(indicators.ma_350, 0)}
+                <div className="min-h-0 flex-1">
+                  {candles.length ? (
+                    <PriceChart candles={candles} purchases={purchases} height="100%" />
+                  ) : (
+                    <Spinner />
+                  )}
                 </div>
-                <div
-                  className={`text-xs font-bold ${
-                    indicators.ma_distance_pct < 0 ? "text-teal" : "text-ink-soft"
-                  }`}
-                >
-                  price {fmtPct(indicators.ma_distance_pct)}
+              </Card>
+
+              <Card className="flex min-h-0 flex-col gap-3 overflow-hidden">
+                <div>
+                  <CardTitle>What Drip sees</CardTitle>
+                  {indicators ? (
+                    <div className="space-y-3">
+                      <IndicatorBar
+                        label={`RSI ${Math.round(indicators.rsi)}`}
+                        pct={indicators.rsi}
+                        note={
+                          indicators.rsi < 30
+                            ? "Oversold"
+                            : indicators.rsi > 70
+                              ? "Overbought"
+                              : "Neutral"
+                        }
+                      />
+                      <IndicatorBar
+                        label={`F&G ${indicators.fear_greed}`}
+                        pct={indicators.fear_greed}
+                        note={indicators.fng_classification}
+                      />
+                      <div className="flex items-center gap-2 pt-1">
+                        <ScoreDrops multiplier={indicators.multiplier} size="text-base" />
+                        <span className="text-xs text-ink-soft">
+                          score {indicators.score}/{indicators.score_max}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <Spinner />
+                  )}
                 </div>
-              </div>
-              <div className="flex flex-col items-center gap-1 text-center">
-                <div className="text-xs font-bold uppercase tracking-[0.14em] text-ink-soft">
-                  Buy strength
+
+                <div className="mt-auto border-t border-sand-soft pt-3">
+                  <CardTitle>Your plan</CardTitle>
+                  {settings ? (
+                    <div className="font-display text-lg font-semibold text-ink">
+                      {WEEKDAYS[settings.schedule_weekday]}s, {settings.schedule_time}
+                    </div>
+                  ) : (
+                    <div className="h-6" />
+                  )}
+                  {settings && (
+                    <div className="text-xs text-ink-soft">
+                      base <b className="text-ink">{fmtEur(settings.base_amount_eur)}</b>
+                      {indicators && (
+                        <>
+                          {" "}
+                          &rarr; next &asymp;{" "}
+                          <b className="text-teal">
+                            {fmtEur(settings.base_amount_eur * indicators.multiplier)}
+                          </b>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setShowSim(true)}
+                    className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full bg-teal px-4 py-2 text-sm font-bold text-cream transition hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+                  >
+                    <ChartLineIcon /> Simulate backtest
+                  </button>
                 </div>
-                <ScoreDrops multiplier={indicators.multiplier} />
-                <div className="text-xs text-ink-soft">
-                  score {indicators.score}/{indicators.score_max}
-                </div>
-              </div>
+              </Card>
             </div>
-          ) : (
-            <Spinner />
-          )}
-        </Card>
+          </>
+        )}
       </div>
 
       {showSim && settings && (
         <SimulationModal settings={settings} onClose={() => setShowSim(false)} />
       )}
-    </>
+    </div>
+  );
+}
+
+function HeaderPill({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-cream/20 px-3 py-1.5 text-xs font-bold text-cream">
+      {children}
+    </span>
+  );
+}
+
+function IndicatorBar({
+  label,
+  pct,
+  note,
+}: {
+  label: string;
+  pct: number;
+  note: string;
+}) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  return (
+    <div>
+      <div className="mb-1 flex justify-between text-xs">
+        <span className="font-bold text-ink">{label}</span>
+        <span className="text-ink-soft">{note}</span>
+      </div>
+      <div className="h-2.5 overflow-hidden rounded-full bg-sand-soft">
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${clamped}%`,
+            background: "linear-gradient(90deg,#93b7be,#45818c)",
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -394,7 +392,9 @@ function MiniStat({
       <span className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
         {label}
       </span>
-      <span className={`font-display text-xl font-semibold ${valueColor}`}>{value}</span>
+      <span className={`font-display text-2xl font-semibold ${valueColor} max-sm:text-xl`}>
+        {value}
+      </span>
       {sub && <span className="text-xs text-ink-soft">{sub}</span>}
     </Card>
   );

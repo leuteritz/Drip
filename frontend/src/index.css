@@ -27,11 +27,23 @@
   --shadow-puff: 0 2px 0 0 rgba(69, 69, 69, 0.06), 0 12px 32px -12px rgba(120, 89, 100, 0.18);
 }
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   background: var(--color-cream);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
+  overflow: hidden; /* fixed-canvas app: the frame owns all height, no page scroll */
+}
+
+/* The signature header gradient: light water deepening into teal */
+.hero-gradient {
+  background: linear-gradient(160deg, var(--color-water), var(--color-teal));
 }
 
 ::selection {
@@ -90,9 +102,59 @@ body {
   transform-origin: center;
 }
 
+/* The header wave: two crests marquee sideways to fake a rolling waterline */
+@keyframes wm {
+  to {
+    transform: translateX(-120px);
+  }
+}
+
+.animate-wave {
+  animation: wm 7s linear infinite;
+}
+
+.animate-wave-fast {
+  animation: wm 4.2s linear infinite;
+}
+
+/* Tab switch: the incoming page slides in from the direction of travel */
+@keyframes tab-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes tab-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-tab-in-right {
+  animation: tab-in-right 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-tab-in-left {
+  animation: tab-in-left 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-drip,
-  .animate-ripple {
+  .animate-ripple,
+  .animate-wave,
+  .animate-wave-fast,
+  .animate-tab-in-right,
+  .animate-tab-in-left {
     animation: none;
   }
 }
