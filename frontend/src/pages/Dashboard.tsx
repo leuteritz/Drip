@@ -107,7 +107,7 @@ export default function Overview({
   return (
     <section id="overview" className="scroll-mt-20">
       {/* Reservoir hero on the gradient */}
-      <div className="hero-gradient relative overflow-hidden px-6 pt-6 pb-14 md:px-10 md:pb-16">
+      <div className="hero-gradient relative overflow-hidden px-6 pt-6 pb-20 md:px-10 md:pb-24">
         <div className="flex flex-wrap items-end justify-between gap-4 text-cream">
           <div className="min-w-0">
             <div className="text-xs font-bold uppercase tracking-[0.22em] text-cream/85">
@@ -123,9 +123,6 @@ export default function Overview({
                     {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
                     {profitable ? "+" : ""}
                     {fmtEur(performance.profit_eur)} ({fmtPct(performance.profit_pct)})
-                  </span>
-                  <span className="text-xs font-medium text-cream/80">
-                    on {fmtEur(performance.invested_eur)}
                   </span>
                 </div>
               </>
@@ -163,6 +160,30 @@ export default function Overview({
           </div>
         </div>
 
+        {/* The four key metrics, sitting large on the gradient */}
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <HeroStat
+            label="BTC price"
+            value={performance ? fmtEur(performance.current_price, 0) : "—"}
+            sub="Coinbase (live)"
+          />
+          <HeroStat
+            label="Invested"
+            value={performance ? fmtEur(performance.invested_eur) : "—"}
+            sub={performance ? `${performance.purchase_count} buys` : undefined}
+          />
+          <HeroStat
+            label="Bitcoin stack"
+            value={performance ? fmtBtc(performance.btc_total) : "—"}
+            sub="BTC"
+          />
+          <HeroStat
+            label="350-day avg"
+            value={indicators ? fmtEur(indicators.ma_350, 0) : "—"}
+            sub={indicators ? `price ${fmtPct(indicators.ma_distance_pct)}` : undefined}
+          />
+        </div>
+
         {/* Rolling waterline */}
         <svg
           viewBox="0 0 1080 46"
@@ -195,31 +216,6 @@ export default function Overview({
             </div>
           </Card>
         )}
-
-        {/* Stat tiles */}
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          <MiniStat
-            label="BTC price"
-            value={performance ? fmtEur(performance.current_price, 0) : "-"}
-            sub="Coinbase (live)"
-          />
-          <MiniStat
-            label="Invested"
-            value={performance ? fmtEur(performance.invested_eur) : "-"}
-            sub={performance ? `${performance.purchase_count} buys` : undefined}
-          />
-          <MiniStat
-            label="Bitcoin stack"
-            value={performance ? fmtBtc(performance.btc_total) : "-"}
-            sub="BTC"
-          />
-          <MiniStat
-            label="350-day avg"
-            value={indicators ? fmtEur(indicators.ma_350, 0) : "-"}
-            sub={indicators ? `price ${fmtPct(indicators.ma_distance_pct)}` : undefined}
-            tone={indicators && indicators.ma_distance_pct < 0 ? "up" : undefined}
-          />
-        </div>
 
         {/* Chart + read-out */}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
@@ -406,28 +402,25 @@ function IndicatorBar({
   );
 }
 
-function MiniStat({
+// A key metric shown large on the gradient hero — translucent "glass" tile.
+function HeroStat({
   label,
   value,
   sub,
-  tone,
 }: {
   label: string;
   value: string;
   sub?: string;
-  tone?: "up" | "down";
 }) {
-  const valueColor =
-    tone === "up" ? "text-teal" : tone === "down" ? "text-rose" : "text-ink";
   return (
-    <Card className="flex flex-col justify-center gap-0.5 !p-4">
-      <span className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
+    <div className="flex flex-col justify-center gap-0.5 rounded-2xl border border-cream/15 bg-cream/10 px-4 py-3 text-cream">
+      <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-cream/70">
         {label}
       </span>
-      <span className={`font-display text-2xl font-semibold ${valueColor} max-sm:text-xl`}>
+      <span className="font-display text-2xl font-semibold leading-tight md:text-3xl">
         {value}
       </span>
-      {sub && <span className="text-xs text-ink-soft">{sub}</span>}
-    </Card>
+      {sub && <span className="text-xs font-medium text-cream/70">{sub}</span>}
+    </div>
   );
 }
