@@ -1,14 +1,17 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 
 export function Card({
   children,
   className = "",
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
+  onClick?: (e: MouseEvent) => void;
 }) {
   return (
     <div
+      onClick={onClick}
       className={`rounded-card border-2 border-sand bg-paper p-6 shadow-puff ${className}`}
     >
       {children}

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
 from .. import bot as bot_runner
+from .. import notifier
 from .. import scheduler
 from ..bot import is_paused
 from ..config import config
@@ -33,3 +34,16 @@ def run_now(request: RunRequest):
         )
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc))
+
+
+@router.post("/test-notification")
+def test_notification():
+    """Send a test message to the configured Discord webhook."""
+    if not config.discord_webhook_url:
+        return {"sent": False, "reason": "No Discord webhook configured in backend/.env"}
+    sent = notifier.send_notification(
+        title="Drip - test",
+        description="Your Discord webhook is working. This is only a test.",
+        color=0x45818C,
+    )
+    return {"sent": sent}

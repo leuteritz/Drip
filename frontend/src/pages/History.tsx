@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import TrashIcon from "~icons/ph/trash";
 import { api, fmtBtc, fmtEur, type Purchase } from "../api/client";
 import { ScoreDrops } from "../components/drops";
 import { Badge, Card, Spinner } from "../components/ui";
@@ -9,11 +10,47 @@ export default function History() {
   const [purchases, setPurchases] = useState<Purchase[] | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDesc, setSortDesc] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     api.getPurchases().then(setPurchases).catch((e) => setError(String(e)));
   }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const deleteOne = async (p: Purchase) => {
+    if (!window.confirm("Delete this entry from the history?")) return;
+    setBusy(true);
+    try {
+      await api.deletePurchase(p.id);
+      refresh();
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const clearTestRuns = async () => {
+    if (!window.confirm("Delete all dry-run (test) entries from the history?")) return;
+    setBusy(true);
+    try {
+      await api.clearTestRuns();
+      refresh();
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const hasTestRuns = useMemo(
+    () => (purchases ?? []).some((p) => p.dry_run),
+    [purchases],
+  );
 
   const sorted = useMemo(() => {
     if (!purchases) return [];
@@ -59,11 +96,22 @@ export default function History() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="font-display text-3xl font-semibold">Buy history</h1>
-        {totals && (
-          <div className="text-sm text-ink-soft">
-            {totals.count} buys, {fmtEur(totals.eur)}, {fmtBtc(totals.btc)}
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {totals && (
+            <div className="text-sm text-ink-soft">
+              {totals.count} buys, {fmtEur(totals.eur)}, {fmtBtc(totals.btc)}
+            </div>
+          )}
+          {hasTestRuns && (
+            <button
+              onClick={clearTestRuns}
+              disabled={busy}
+              className="flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-rose transition hover:bg-rose-soft disabled:opacity-40"
+            >
+              <TrashIcon /> Clear test runs
+            </button>
+          )}
+        </div>
       </div>
 
       <Card className="overflow-x-auto p-0">
@@ -85,6 +133,9 @@ export default function History() {
               {header("Score", "score", "text-left")}
               <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
                 Status
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
+                <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
@@ -122,11 +173,21 @@ export default function History() {
                     <Badge tone="teal">Bought</Badge>
                   )}
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <button
+                    onClick={() => deleteOne(p)}
+                    disabled={busy}
+                    aria-label="Delete entry"
+                    className="rounded-lg p-2 text-ink-soft transition hover:bg-rose-soft hover:text-rose disabled:opacity-40"
+                  >
+                    <TrashIcon />
+                  </button>
+                </td>
               </tr>
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-ink-soft">
+                <td colSpan={9} className="px-4 py-12 text-center text-ink-soft">
                   No buys yet. Run a test buy from the overview, or wait for the first
                   scheduled run.
                 </td>

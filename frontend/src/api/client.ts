@@ -90,6 +90,23 @@ export interface RunResult {
   error?: string | null;
 }
 
+export interface SimulationSummary {
+  days: number;
+  purchase_count: number;
+  current_price: number;
+  start_date: string;
+  end_date: string;
+  weekday: number;
+  base_amount_eur: number;
+  bot: PerformanceSide;
+  dca: PerformanceSide;
+}
+
+export interface SimulationResult {
+  summary: SimulationSummary;
+  series: ComparisonPoint[];
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const resp = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -128,6 +145,16 @@ export const api = {
     request<Performance>(`/api/stats/performance?include_dry_run=${includeDryRun}`),
   getComparison: (includeDryRun: boolean) =>
     request<ComparisonPoint[]>(`/api/stats/comparison?include_dry_run=${includeDryRun}`),
+  getSimulation: (days: number) =>
+    request<SimulationResult>(`/api/simulate?days=${days}`),
+  deletePurchase: (id: number) =>
+    request<{ deleted: number }>(`/api/purchases/${id}`, { method: "DELETE" }),
+  clearTestRuns: () =>
+    request<{ deleted: number }>("/api/purchases/test-runs", { method: "DELETE" }),
+  testNotification: () =>
+    request<{ sent: boolean; reason?: string }>("/api/bot/test-notification", {
+      method: "POST",
+    }),
 };
 
 export const fmtEur = (v: number, digits = 2) =>

@@ -21,9 +21,11 @@ interface Point {
 export default function PriceChart({
   candles,
   purchases,
+  height = 340,
 }: {
   candles: Candle[];
   purchases: Purchase[];
+  height?: number | string;
 }) {
   const byDay = new Map<string, Purchase>();
   for (const p of purchases) {
@@ -41,7 +43,7 @@ export default function PriceChart({
   });
 
   return (
-    <ResponsiveContainer width="100%" height={340}>
+    <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={data} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
         <defs>
           <linearGradient id="waterGradient" x1="0" y1="0" x2="0" y2="1">

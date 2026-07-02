@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import DropSlashIcon from "~icons/ph/drop-slash";
 import PlayIcon from "~icons/ph/play-fill";
+import PaperPlaneIcon from "~icons/ph/paper-plane-tilt";
 import WarningIcon from "~icons/ph/warning-fill";
 import {
   api,
@@ -24,6 +25,8 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
   const [confirmLive, setConfirmLive] = useState(false);
   const [customPauseDays, setCustomPauseDays] = useState("");
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [webhookResult, setWebhookResult] = useState<"sent" | "failed" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,6 +67,20 @@ export default function Settings() {
       setSettings(await api.resume());
     } finally {
       setSaving(false);
+    }
+  };
+
+  const testWebhook = async () => {
+    setTestingWebhook(true);
+    setWebhookResult(null);
+    try {
+      const { sent } = await api.testNotification();
+      setWebhookResult(sent ? "sent" : "failed");
+    } catch {
+      setWebhookResult("failed");
+    } finally {
+      setTestingWebhook(false);
+      setTimeout(() => setWebhookResult(null), 4000);
     }
   };
 
@@ -246,6 +263,20 @@ export default function Settings() {
               <div className="font-bold">Discord notifications</div>
               <div className="text-sm text-ink-soft">
                 The webhook URL is configured in <code>backend/.env</code>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  onClick={testWebhook}
+                  disabled={testingWebhook}
+                  className="flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-ink transition hover:bg-sand disabled:opacity-40"
+                >
+                  <PaperPlaneIcon />
+                  {testingWebhook ? "Sending..." : "Send test message"}
+                </button>
+                {webhookResult === "sent" && <Badge tone="teal">Sent ✓</Badge>}
+                {webhookResult === "failed" && (
+                  <Badge tone="rose">Not configured / failed</Badge>
+                )}
               </div>
             </div>
             <Toggle
