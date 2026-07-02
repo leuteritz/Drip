@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import PlayIcon from "~icons/ph/play-fill";
-import SlidersIcon from "~icons/ph/sliders-horizontal";
 import TrendUpIcon from "~icons/ph/trend-up";
 import TrendDownIcon from "~icons/ph/trend-down";
 import {
@@ -17,7 +16,6 @@ import {
   type Purchase,
   type RunResult,
 } from "../api/client";
-import { ScoreDrops } from "../components/drops";
 import ComparisonChart from "../components/ComparisonChart";
 import PriceChart from "../components/PriceChart";
 import { HeaderPill } from "../components/SiteHeader";
@@ -165,6 +163,46 @@ export default function Overview({
                 value={indicators ? fmtEur(indicators.ma_350, 0) : "—"}
                 sub={indicators ? `price ${fmtPct(indicators.ma_distance_pct)}` : undefined}
               />
+              <HeroStat
+                label="RSI"
+                value={indicators ? String(Math.round(indicators.rsi)) : "—"}
+                sub={
+                  indicators
+                    ? indicators.rsi < 30
+                      ? "Oversold"
+                      : indicators.rsi > 70
+                        ? "Overbought"
+                        : "Neutral"
+                    : undefined
+                }
+              />
+              <HeroStat
+                label="Fear & Greed"
+                value={indicators ? String(indicators.fear_greed) : "—"}
+                sub={indicators?.fng_classification}
+              />
+              <HeroStat
+                label="Score"
+                value={indicators ? `${indicators.score}/${indicators.score_max}` : "—"}
+                sub={indicators ? `x${indicators.multiplier}` : undefined}
+              />
+              <HeroStat
+                label="Schedule"
+                value={
+                  settings
+                    ? `${WEEKDAYS[settings.schedule_weekday]}s, ${settings.schedule_time}`
+                    : "—"
+                }
+              />
+              <HeroStat
+                label="Next buy"
+                value={
+                  settings && indicators
+                    ? fmtEur(settings.base_amount_eur * indicators.multiplier)
+                    : "—"
+                }
+                sub={settings ? `base ${fmtEur(settings.base_amount_eur)}` : undefined}
+              />
             </div>
           </div>
 
@@ -219,136 +257,62 @@ export default function Overview({
           </Card>
         )}
 
-        {/* Chart + read-out */}
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
-          <Card className="flex min-h-[360px] flex-col md:col-span-2">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <CardTitle>
-                {chartView === "price"
-                  ? "Bitcoin price and buys"
-                  : "My strategy vs. the market"}
-              </CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex gap-1">
-                  <ViewPill
-                    on={chartView === "price"}
-                    onClick={() => setChartView("price")}
+        {/* Chart */}
+        <Card className="flex min-h-[440px] flex-col">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <CardTitle>
+              {chartView === "price"
+                ? "Bitcoin price and buys"
+                : "My strategy vs. the market"}
+            </CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex gap-1">
+                <ViewPill on={chartView === "price"} onClick={() => setChartView("price")}>
+                  Price &amp; buys
+                </ViewPill>
+                <ViewPill
+                  on={chartView === "strategy"}
+                  onClick={() => setChartView("strategy")}
+                >
+                  My strategy
+                </ViewPill>
+              </div>
+              <div className="flex gap-1">
+                {RANGES.map((r) => (
+                  <button
+                    key={r.days}
+                    onClick={() => setRangeDays(r.days)}
+                    className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                      rangeDays === r.days
+                        ? "bg-ink text-cream"
+                        : "bg-sand-soft text-ink-soft hover:text-ink"
+                    }`}
                   >
-                    Price &amp; buys
-                  </ViewPill>
-                  <ViewPill
-                    on={chartView === "strategy"}
-                    onClick={() => setChartView("strategy")}
-                  >
-                    My strategy
-                  </ViewPill>
-                </div>
-                <div className="flex gap-1">
-                  {RANGES.map((r) => (
-                    <button
-                      key={r.days}
-                      onClick={() => setRangeDays(r.days)}
-                      className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-                        rangeDays === r.days
-                          ? "bg-ink text-cream"
-                          : "bg-sand-soft text-ink-soft hover:text-ink"
-                      }`}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
+                    {r.label}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="min-h-0 flex-1">
-              {chartView === "price" ? (
-                candles.length ? (
-                  <PriceChart candles={candles} purchases={purchases} height="100%" />
-                ) : (
-                  <Spinner />
-                )
-              ) : !compLoaded ? (
-                <Spinner />
-              ) : strategySeries.length > 1 ? (
-                <ComparisonChart data={strategySeries} height="100%" />
-              ) : (
-                <p className="flex h-full items-center justify-center px-6 text-center text-sm text-ink-soft">
-                  Not enough buys yet to chart your strategy. Run a test buy or import your
-                  history.
-                </p>
-              )}
-            </div>
-          </Card>
-
-          <Card className="flex min-h-0 flex-col gap-3 overflow-hidden">
-            <div>
-              <CardTitle>What Drip sees</CardTitle>
-              {indicators ? (
-                <div className="space-y-3">
-                  <IndicatorBar
-                    label={`RSI ${Math.round(indicators.rsi)}`}
-                    pct={indicators.rsi}
-                    note={
-                      indicators.rsi < 30
-                        ? "Oversold"
-                        : indicators.rsi > 70
-                          ? "Overbought"
-                          : "Neutral"
-                    }
-                  />
-                  <IndicatorBar
-                    label={`F&G ${indicators.fear_greed}`}
-                    pct={indicators.fear_greed}
-                    note={indicators.fng_classification}
-                  />
-                  <div className="flex items-center gap-2 pt-1">
-                    <ScoreDrops multiplier={indicators.multiplier} size="text-base" />
-                    <span className="text-xs text-ink-soft">
-                      score {indicators.score}/{indicators.score_max}
-                    </span>
-                  </div>
-                </div>
+          </div>
+          <div className="min-h-0 flex-1">
+            {chartView === "price" ? (
+              candles.length ? (
+                <PriceChart candles={candles} purchases={purchases} height="100%" />
               ) : (
                 <Spinner />
-              )}
-            </div>
-
-            <div className="mt-auto border-t border-sand-soft pt-3">
-              <CardTitle>Your plan</CardTitle>
-              {settings ? (
-                <div className="font-display text-lg font-semibold text-ink">
-                  {WEEKDAYS[settings.schedule_weekday]}s, {settings.schedule_time}
-                </div>
-              ) : (
-                <div className="h-6" />
-              )}
-              {settings && (
-                <div className="text-xs text-ink-soft">
-                  base <b className="text-ink">{fmtEur(settings.base_amount_eur)}</b>
-                  {indicators && (
-                    <>
-                      {" "}
-                      &rarr; next &asymp;{" "}
-                      <b className="text-teal">
-                        {fmtEur(settings.base_amount_eur * indicators.multiplier)}
-                      </b>
-                    </>
-                  )}
-                </div>
-              )}
-              <button
-                onClick={() =>
-                  document
-                    .getElementById("settings")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
-                }
-                className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full bg-teal px-4 py-2 text-sm font-bold text-cream transition hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
-              >
-                <SlidersIcon /> Adjust plan
-              </button>
-            </div>
-          </Card>
-        </div>
+              )
+            ) : !compLoaded ? (
+              <Spinner />
+            ) : strategySeries.length > 1 ? (
+              <ComparisonChart data={strategySeries} height="100%" />
+            ) : (
+              <p className="flex h-full items-center justify-center px-6 text-center text-sm text-ink-soft">
+                Not enough buys yet to chart your strategy. Run a test buy or import your
+                history.
+              </p>
+            )}
+          </div>
+        </Card>
       </div>
     </section>
   );
@@ -372,35 +336,6 @@ function ViewPill({
     >
       {children}
     </button>
-  );
-}
-
-function IndicatorBar({
-  label,
-  pct,
-  note,
-}: {
-  label: string;
-  pct: number;
-  note: string;
-}) {
-  const clamped = Math.max(0, Math.min(100, pct));
-  return (
-    <div>
-      <div className="mb-1 flex justify-between text-xs">
-        <span className="font-bold text-ink">{label}</span>
-        <span className="text-ink-soft">{note}</span>
-      </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-sand-soft">
-        <div
-          className="h-full rounded-full"
-          style={{
-            width: `${clamped}%`,
-            background: "linear-gradient(90deg,#93b7be,#45818c)",
-          }}
-        />
-      </div>
-    </div>
   );
 }
 
