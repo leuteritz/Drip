@@ -61,6 +61,7 @@ export default function SiteHeader({
   runResult: RunResult | null;
 }) {
   const active = useScrollSpy(scrollRef);
+  const scrolled = useScrolled(scrollRef);
 
   const jumpTo = (id: Section) => {
     document
@@ -69,22 +70,23 @@ export default function SiteHeader({
   };
 
   return (
-    <header className="hero-gradient relative shrink-0 overflow-hidden px-6 pb-24 pt-5 text-cream md:px-10 md:pb-28">
-      <div className="mx-auto max-w-[1180px]">
-        {/* App bar: brand + mode pills (left) · jump-nav (right) */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-              <DropFillIcon className="text-3xl leading-none" />
-              <span className="font-display text-2xl font-bold leading-none">
-                Drip
-              </span>
-            </div>
-            {status && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <ModePills status={status} />
-              </div>
-            )}
+    <>
+      {/* Sticky condensed bar: brand (left) · jump-nav (right). Stays pinned
+          across the whole scroll — transparent over the hero, blurred teal once
+          scrolled. */}
+      <header
+        className={`sticky top-0 z-30 shrink-0 text-cream transition-colors duration-300 ${
+          scrolled
+            ? "border-b border-cream/10 bg-teal/95 shadow-[0_6px_24px_-12px_rgba(0,0,0,.5)] backdrop-blur-md"
+            : "border-b border-transparent bg-transparent"
+        }`}
+      >
+        <div className="mx-auto flex h-16 w-full max-w-[1180px] items-center justify-between px-6 md:px-10">
+          <div className="flex items-center gap-2.5">
+            <DropFillIcon className="text-2xl leading-none" />
+            <span className="font-display text-xl font-bold leading-none">
+              Drip
+            </span>
           </div>
           <nav className="flex gap-1.5">
             {NAV.map(({ id, label, Icon }) => {
@@ -107,65 +109,71 @@ export default function SiteHeader({
             })}
           </nav>
         </div>
+      </header>
 
-        {/* Centered reservoir headline with the P&L on a single line */}
-        <Reservoir performance={performance} />
+      {/* Hero: pulled up under the transparent bar (-mt-16) with pt-16 reserving
+          its height so the reservoir clears it. */}
+      <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-24 pt-16 text-cream md:px-10 md:pb-28">
+        <div className="mx-auto max-w-[1180px]">
+          {/* Centered reservoir headline with the P&L on a single line */}
+          <Reservoir performance={performance} />
 
-        {/* Unified read-out row: Score · F&G · RSI · BTC · next buy + actions */}
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-6">
-          {indicators && (
-            <>
-              <ScoreReadout indicators={indicators} />
-              <Divider />
-              <FearGreedReadout indicators={indicators} />
-              <Divider />
-              <RsiReadout indicators={indicators} />
-              <Divider />
-            </>
+          {/* Unified read-out row: Score · F&G · RSI · BTC · next buy + actions */}
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-6">
+            {indicators && (
+              <>
+                <ScoreReadout indicators={indicators} />
+                <Divider />
+                <FearGreedReadout indicators={indicators} />
+                <Divider />
+                <RsiReadout indicators={indicators} />
+                <Divider />
+              </>
+            )}
+            <BtcReadout indicators={indicators} performance={performance} />
+            <Divider />
+            <NextBuyActions
+              indicators={indicators}
+              settings={settings}
+              status={status}
+              onTestBuy={onTestBuy}
+              onSimulate={onSimulate}
+              running={running}
+            />
+          </div>
+
+          {runResult?.analysis && (
+            <div className="mt-5 flex justify-center">
+              <div className="rounded-lg bg-cream/15 px-3 py-1.5 text-xs font-bold text-cream">
+                {runResult.analysis.signal} &middot; would buy{" "}
+                {fmtEur(runResult.purchase?.amount_eur ?? 0)}
+              </div>
+            </div>
           )}
-          <BtcReadout indicators={indicators} performance={performance} />
-          <Divider />
-          <NextBuyActions
-            indicators={indicators}
-            settings={settings}
-            status={status}
-            onTestBuy={onTestBuy}
-            onSimulate={onSimulate}
-            running={running}
-          />
         </div>
 
-        {runResult?.analysis && (
-          <div className="mt-5 flex justify-center">
-            <div className="rounded-lg bg-cream/15 px-3 py-1.5 text-xs font-bold text-cream">
-              {runResult.analysis.signal} &middot; would buy{" "}
-              {fmtEur(runResult.purchase?.amount_eur ?? 0)}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Rolling waterline */}
-      <svg
-        viewBox="0 0 1080 46"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 -bottom-px h-[70px] w-full"
-      >
-        <g className="animate-wave">
-          <path
-            d="M-120 32 q30 -11 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
-            fill="rgba(241,255,250,.35)"
-          />
-        </g>
-        <g className="animate-wave-fast">
-          <path
-            d="M-120 28 q30 -14 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
-            fill="rgba(241,255,250,.6)"
-          />
-        </g>
-      </svg>
-    </header>
+        {/* Rolling waterline */}
+        <svg
+          viewBox="0 0 1080 46"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 -bottom-px h-[70px] w-full"
+        >
+          <g className="animate-wave">
+            <path
+              d="M-120 32 q30 -11 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
+              fill="rgba(241,255,250,.35)"
+            />
+          </g>
+          <g className="animate-wave-fast">
+            <path
+              d="M-120 28 q30 -14 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
+              fill="rgba(241,255,250,.6)"
+            />
+          </g>
+        </svg>
+      </section>
+    </>
   );
 }
 
@@ -406,29 +414,36 @@ function NextBuyActions({
       : "—";
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="text-center">
-        <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-cream/65">
-          Next buy &middot; {nextWhen}
+    <div className="flex flex-col items-center gap-2.5">
+      {status && (
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          <ModePills status={status} />
         </div>
-        <div className="mt-1 font-display text-3xl font-semibold leading-none">
-          {nextAmount}
+      )}
+      <div className="flex items-center gap-4">
+        <div className="text-center">
+          <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-cream/65">
+            Next buy &middot; {nextWhen}
+          </div>
+          <div className="mt-1 font-display text-3xl font-semibold leading-none">
+            {nextAmount}
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col gap-2">
-        <button
-          onClick={onTestBuy}
-          disabled={running}
-          className="flex items-center justify-center gap-1.5 rounded-full bg-cream px-4 py-2 text-xs font-bold text-teal shadow-sm transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream disabled:opacity-60"
-        >
-          <PlayIcon /> {running ? "Testing…" : "Test a buy"}
-        </button>
-        <button
-          onClick={onSimulate}
-          className="flex items-center justify-center gap-1.5 rounded-full bg-cream/20 px-4 py-2 text-xs font-bold text-cream transition hover:bg-cream/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
-        >
-          <ChartLineUpIcon /> Simulate
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onTestBuy}
+            disabled={running}
+            className="flex items-center justify-center gap-1.5 rounded-full bg-cream px-4 py-2 text-xs font-bold text-teal shadow-sm transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream disabled:opacity-60"
+          >
+            <PlayIcon /> {running ? "Testing…" : "Test a buy"}
+          </button>
+          <button
+            onClick={onSimulate}
+            className="flex items-center justify-center gap-1.5 rounded-full bg-cream/20 px-4 py-2 text-xs font-bold text-cream transition hover:bg-cream/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+          >
+            <ChartLineUpIcon /> Simulate
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -440,6 +455,26 @@ export function HeaderPill({ children }: { children: ReactNode }) {
       {children}
     </span>
   );
+}
+
+/** True once the scroll container has moved past `threshold` px — drives the
+ *  sticky bar's condensed (blurred teal) background. */
+function useScrolled(
+  scrollRef: RefObject<HTMLDivElement | null>,
+  threshold = 40,
+): boolean {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    const onScroll = () => setScrolled(root.scrollTop > threshold);
+    onScroll();
+    root.addEventListener("scroll", onScroll, { passive: true });
+    return () => root.removeEventListener("scroll", onScroll);
+  }, [scrollRef, threshold]);
+
+  return scrolled;
 }
 
 /** Highlights the nav entry for whichever section is most in view. */
