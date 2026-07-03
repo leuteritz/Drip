@@ -1,8 +1,10 @@
+import { useMemo } from "react";
 import {
+  Area,
   CartesianGrid,
+  ComposedChart,
   Legend,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -18,9 +20,21 @@ export default function ComparisonChart({
   data: ComparisonPoint[];
   height?: number | string;
 }) {
+  // Range bands between the bot's value and what it invested: teal where the
+  // strategy is in profit, rose where it is under water. Each band collapses
+  // onto the invested line when it doesn't apply, so crossovers stay smooth.
+  const enriched = useMemo(
+    () =>
+      data.map((p) => ({
+        ...p,
+        gainBand: [p.bot_invested, Math.max(p.bot_value, p.bot_invested)],
+        lossBand: [Math.min(p.bot_value, p.bot_invested), p.bot_invested],
+      })),
+    [data],
+  );
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={data} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
+      <ComposedChart data={enriched} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
         <CartesianGrid stroke="#d5c7bc" strokeDasharray="3 5" vertical={false} opacity={0.6} />
         <XAxis
           dataKey="date"
@@ -42,6 +56,28 @@ export default function ComparisonChart({
         <Legend
           wrapperStyle={{ fontSize: 12 }}
           formatter={(value: string) => <span style={{ color: "#454545" }}>{value}</span>}
+        />
+        <Area
+          dataKey="gainBand"
+          name="Profit"
+          stroke="none"
+          fill="#45818c"
+          fillOpacity={0.18}
+          legendType="none"
+          tooltipType="none"
+          isAnimationActive={false}
+          activeDot={false}
+        />
+        <Area
+          dataKey="lossBand"
+          name="Loss"
+          stroke="none"
+          fill="#785964"
+          fillOpacity={0.12}
+          legendType="none"
+          tooltipType="none"
+          isAnimationActive={false}
+          activeDot={false}
         />
         <Line
           type="monotone"
@@ -69,16 +105,18 @@ export default function ComparisonChart({
           strokeDasharray="2 5"
           dot={false}
         />
-      </LineChart>
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }
 
 function ComparisonTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
-  const point: ComparisonPoint = payload[0].payload;
+  const point: ComparisonPoint =
+    payload.find((p: any) => p.dataKey === "bot_value")?.payload ?? payload[0].payload;
   const botProfit = point.bot_value - point.bot_invested;
   const dcaProfit = point.dca_value - point.dca_invested;
+  const edge = botProfit - dcaProfit;
   return (
     <div className="rounded-xl border-2 border-sand bg-paper px-3 py-2 text-xs shadow-puff">
       <div className="font-bold text-ink">{label}</div>
@@ -95,6 +133,13 @@ function ComparisonTooltip({ active, payload, label }: any) {
           <span className={dcaProfit >= 0 ? "text-teal" : "text-rose"}>
             ({dcaProfit >= 0 ? "+" : ""}
             {fmtEur(dcaProfit)})
+          </span>
+        </div>
+        <div className="border-t border-sand pt-0.5 text-ink-soft">
+          vs. DCA:{" "}
+          <span className={edge >= 0 ? "text-teal" : "text-rose"}>
+            {edge >= 0 ? "+" : ""}
+            {fmtEur(edge)}
           </span>
         </div>
       </div>
