@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import InfoIcon from "~icons/ph/info";
 import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
@@ -20,13 +20,12 @@ const RANGES = [
   { label: "1y", days: 365 },
 ];
 
-type ChartView = "price" | "strategy";
-
 /**
- * The Overview body: the price / strategy chart. The reservoir headline and its
- * stats now live in the hero header (SiteHeader); the "include dry runs" filter
- * is lifted to App (it drives both the header stats and the strategy series),
- * and is surfaced here next to the chart it affects.
+ * The Overview body: one combined chart — the strategy comparison with the BTC
+ * price as a backdrop and buys pinned onto the price line. The reservoir
+ * headline and its stats live in the hero header (SiteHeader); the "include
+ * dry runs" filter is lifted to App (it drives both the header stats and the
+ * strategy series), and is surfaced here next to the chart it affects.
  */
 export default function Overview({
   purchases,
@@ -38,10 +37,10 @@ export default function Overview({
   onToggleDryRun: (v: boolean) => void;
 }) {
   const [candles, setCandles] = useState<Candle[]>([]);
+  const [candlesLoaded, setCandlesLoaded] = useState(false);
   const [comparison, setComparison] = useState<ComparisonPoint[]>([]);
   const [compLoaded, setCompLoaded] = useState(false);
   const [rangeDays, setRangeDays] = useState(90);
-  const [chartView, setChartView] = useState<ChartView>("price");
   const [error, setError] = useState<string | null>(null);
 
   const loadComparison = useCallback((dry: boolean) => {
@@ -54,20 +53,35 @@ export default function Overview({
       .catch((e) => setError(String(e)));
   }, []);
 
+  // Candles only back the price-only fallback shown before there are enough
+  // buys to chart the strategy.
   useEffect(() => {
-    api.getCandles(rangeDays).then(setCandles).catch((e) => setError(String(e)));
+    setCandlesLoaded(false);
+    api
+      .getCandles(rangeDays)
+      .then((c) => {
+        setCandles(c);
+        setCandlesLoaded(true);
+      })
+      .catch((e) => setError(String(e)));
   }, [rangeDays]);
 
-  // The strategy series is only fetched once the user opens that view, and is
-  // refreshed whenever the buy history changes (e.g. after a header test buy).
+  // Refreshed whenever the buy history changes (e.g. after a header test buy).
   useEffect(() => {
-    if (chartView === "strategy") loadComparison(includeDryRun);
-  }, [chartView, includeDryRun, purchases, loadComparison]);
+    loadComparison(includeDryRun);
+  }, [includeDryRun, purchases, loadComparison]);
 
   const strategySeries = comparison.slice(-rangeDays);
   const latest = strategySeries.length
     ? strategySeries[strategySeries.length - 1]
     : null;
+  const hasStrategy = strategySeries.length > 1;
+  // Keep the drop markers consistent with the plotted series: when dry runs
+  // are excluded from the comparison, hide their drops too.
+  const markerPurchases = useMemo(
+    () => (includeDryRun ? purchases : purchases.filter((p) => !p.dry_run)),
+    [includeDryRun, purchases],
+  );
 
   return (
     <section id="overview" className="scroll-mt-20">
@@ -84,27 +98,12 @@ export default function Overview({
         {/* Chart */}
         <Card className="flex flex-col">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>
-              {chartView === "price"
-                ? "Bitcoin price and buys"
-                : "My strategy vs. plain DCA"}
-            </CardTitle>
+            <CardTitle>My strategy vs. plain DCA</CardTitle>
             <div className="flex flex-wrap items-center gap-2">
               <label className="flex items-center gap-2 text-xs font-medium text-ink-soft">
                 Include dry runs
                 <Toggle checked={includeDryRun} onChange={onToggleDryRun} />
               </label>
-              <div className="flex gap-1">
-                <ViewPill on={chartView === "price"} onClick={() => setChartView("price")}>
-                  Price &amp; buys
-                </ViewPill>
-                <ViewPill
-                  on={chartView === "strategy"}
-                  onClick={() => setChartView("strategy")}
-                >
-                  My strategy
-                </ViewPill>
-              </div>
               <div className="flex gap-1">
                 {RANGES.map((r) => (
                   <button
@@ -122,20 +121,18 @@ export default function Overview({
               </div>
             </div>
           </div>
-          {chartView === "strategy" && strategySeries.length > 1 && latest && (
-            <StrategyKpis latest={latest} />
-          )}
+          {hasStrategy && latest && <StrategyKpis latest={latest} />}
           <div className="h-[380px] md:h-[440px]">
-            {chartView === "price" ? (
-              candles.length ? (
-                <PriceChart candles={candles} purchases={purchases} height="100%" />
-              ) : (
-                <Spinner />
-              )
-            ) : !compLoaded ? (
+            {!compLoaded || (!hasStrategy && !candlesLoaded) ? (
               <Spinner />
-            ) : strategySeries.length > 1 ? (
-              <ComparisonChart data={strategySeries} height="100%" />
+            ) : hasStrategy ? (
+              <ComparisonChart
+                data={strategySeries}
+                purchases={markerPurchases}
+                height="100%"
+              />
+            ) : candles.length ? (
+              <PriceChart candles={candles} purchases={purchases} height="100%" />
             ) : (
               <p className="flex h-full items-center justify-center px-6 text-center text-sm text-ink-soft">
                 Not enough buys yet to chart your strategy. Run a test buy or import your
@@ -143,7 +140,7 @@ export default function Overview({
               </p>
             )}
           </div>
-          {chartView === "strategy" && strategySeries.length > 1 && (
+          {hasStrategy ? (
             <p className="mt-3 flex items-start gap-1.5 text-xs text-ink-soft">
               <InfoIcon className="mt-0.5 shrink-0" aria-hidden="true" />
               <span>
@@ -151,9 +148,21 @@ export default function Overview({
                 schedule and base amount, but without Drip&apos;s 0.5&times;&ndash;1.5&times;
                 score multiplier &mdash; the multiplier is the only difference between the
                 two lines. Shaded areas show where your strategy is in profit (teal) or at
-                a loss (rose) versus what you invested &mdash; not versus DCA.
+                a loss (rose) versus what you invested &mdash; not versus DCA. The light
+                blue backdrop is the BTC price (right axis); each drop is a buy, sized by
+                its multiplier.
               </span>
             </p>
+          ) : (
+            compLoaded && (
+              <p className="mt-3 flex items-start gap-1.5 text-xs text-ink-soft">
+                <InfoIcon className="mt-0.5 shrink-0" aria-hidden="true" />
+                <span>
+                  Showing the BTC price for now &mdash; once there are a couple of buys,
+                  this chart compares your strategy against plain DCA.
+                </span>
+              </p>
+            )
           )}
         </Card>
       </div>
@@ -211,26 +220,5 @@ function Kpi({
       <dt className="text-xs font-medium text-ink-soft">{label}</dt>
       <dd className={`font-display text-xl font-semibold ${toneClass}`}>{children}</dd>
     </dl>
-  );
-}
-
-function ViewPill({
-  on,
-  onClick,
-  children,
-}: {
-  on: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-        on ? "bg-teal text-cream" : "bg-sand-soft text-ink-soft hover:text-ink"
-      }`}
-    >
-      {children}
-    </button>
   );
 }
