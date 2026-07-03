@@ -41,9 +41,14 @@ body {
   overflow: hidden; /* fixed-canvas app: the frame owns all height, no page scroll */
 }
 
-/* The signature header gradient: light water deepening into teal */
+/* "The Tank" sky: a light mint gradient the aquarium sits under */
 .hero-gradient {
-  background: linear-gradient(160deg, var(--color-water), var(--color-teal));
+  background: linear-gradient(180deg, #f4fffb 0%, #e4f1f0 46%);
+}
+
+/* The submerged body of water that fills the lower hero */
+.tank-water {
+  background: linear-gradient(180deg, #57929c 0%, #3c6d78 100%);
 }
 
 ::selection {
@@ -117,11 +122,56 @@ body {
   animation: wm 4.2s linear infinite;
 }
 
+/* Bubbles rising through the tank: swell in, drift up, shrink and fade */
+@keyframes bubble {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.7;
+  }
+  88% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateY(-230px) scale(0.35);
+    opacity: 0;
+  }
+}
+
+@keyframes bubble-short {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-150px) scale(0.4);
+    opacity: 0;
+  }
+}
+
+.animate-bubble {
+  animation: bubble 6.5s ease-in infinite;
+}
+
+.animate-bubble-short {
+  animation: bubble-short 5s ease-in infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-drip,
   .animate-ripple,
   .animate-wave,
-  .animate-wave-fast {
+  .animate-wave-fast,
+  .animate-bubble,
+  .animate-bubble-short {
     animation: none;
   }
 }

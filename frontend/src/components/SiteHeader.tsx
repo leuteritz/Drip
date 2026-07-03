@@ -33,6 +33,24 @@ export const NAV: { id: Section; label: string; Icon: typeof DropFillIcon }[] = 
   { id: "history", label: "History", Icon: ListDashesIcon },
 ];
 
+/** Rising bubbles for the tank — position, size, tempo and delay per the design. */
+const BUBBLES: {
+  left: string;
+  bottom: string;
+  size: string;
+  color: string;
+  duration: string;
+  delay: string;
+  short?: boolean;
+}[] = [
+  { left: "12%", bottom: "12px", size: "9px", color: "rgba(241,255,250,.5)", duration: "6.5s", delay: ".2s" },
+  { left: "26%", bottom: "6px", size: "6px", color: "rgba(241,255,250,.45)", duration: "5s", delay: "1.4s", short: true },
+  { left: "47%", bottom: "10px", size: "12px", color: "rgba(241,255,250,.4)", duration: "7.4s", delay: ".9s" },
+  { left: "63%", bottom: "4px", size: "7px", color: "rgba(241,255,250,.5)", duration: "5.6s", delay: "2.1s", short: true },
+  { left: "78%", bottom: "14px", size: "10px", color: "rgba(241,255,250,.42)", duration: "6.9s", delay: ".5s" },
+  { left: "90%", bottom: "8px", size: "5px", color: "rgba(241,255,250,.5)", duration: "4.6s", delay: "1.8s", short: true },
+];
+
 /**
  * The signature gradient hero that opens the app. Following the "Settings in
  * Header integrieren" design, the header is now the whole command center: the
@@ -89,9 +107,9 @@ export default function SiteHeader({
           Stays pinned across the whole scroll — transparent over the hero,
           blurred teal once scrolled. */}
       <header
-        className={`sticky top-0 z-30 shrink-0 text-cream transition-colors duration-300 ${
+        className={`sticky top-0 z-30 shrink-0 text-teal transition-colors duration-300 ${
           scrolled
-            ? "border-b border-cream/10 bg-teal/95 shadow-[0_6px_24px_-12px_rgba(0,0,0,.5)] backdrop-blur-md"
+            ? "border-b border-teal/10 bg-paper/90 shadow-[0_6px_24px_-14px_rgba(60,109,120,.6)] backdrop-blur-md"
             : "border-b border-transparent bg-transparent"
         }`}
       >
@@ -128,10 +146,10 @@ export default function SiteHeader({
                     key={id}
                     onClick={() => jumpTo(id)}
                     aria-current={on ? "true" : undefined}
-                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream ${
+                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
                       on
-                        ? "bg-cream/95 text-teal shadow-sm"
-                        : "bg-cream/20 text-cream hover:bg-cream/30"
+                        ? "bg-teal text-cream shadow-sm"
+                        : "bg-teal/10 text-teal hover:bg-teal/15"
                     }`}
                   >
                     <Icon className="text-sm" />
@@ -144,27 +162,71 @@ export default function SiteHeader({
         </div>
       </header>
 
-      {/* Hero: pulled up under the transparent bar (-mt-16) with pt-16 reserving
-          its height so the reservoir clears it. */}
-      <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-24 pt-16 text-cream md:px-10 md:pb-28">
-        <div className="mx-auto max-w-[1180px]">
-          {/* Centered reservoir headline with the P&L on a single line */}
+      {/* Hero "tank": a light sky (dark-teal type) over a body of water. Pulled up
+          under the transparent bar (-mt-16) with pt-16 reserving its height so the
+          reservoir clears it. The bottom padding keeps the stat cards straddling
+          the waterline while the panel is closed. */}
+      <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-[150px] pt-16 text-ink md:px-10 md:pb-[172px]">
+        {/* Water body pinned to the floor: waterline waves at its top edge, rising
+            bubbles within. Purely decorative — content rides above on z-10. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[210px] md:h-[230px]"
+        >
+          <svg
+            viewBox="0 0 1080 46"
+            preserveAspectRatio="none"
+            className="absolute inset-x-0 -top-[34px] h-[70px] w-full"
+          >
+            <g className="animate-wave">
+              <path
+                d="M-120 32 q30 -11 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
+                fill="rgba(87,146,156,.55)"
+              />
+            </g>
+            <g className="animate-wave-fast">
+              <path
+                d="M-120 28 q30 -14 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
+                fill="#57929c"
+              />
+            </g>
+          </svg>
+          <div className="tank-water absolute inset-0 overflow-hidden">
+            {BUBBLES.map((b, i) => (
+              <span
+                key={i}
+                className={
+                  b.short ? "animate-bubble-short absolute rounded-full" : "animate-bubble absolute rounded-full"
+                }
+                style={{
+                  left: b.left,
+                  bottom: b.bottom,
+                  width: b.size,
+                  height: b.size,
+                  backgroundColor: b.color,
+                  animationDuration: b.duration,
+                  animationDelay: b.delay,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-[1180px]">
+          {/* Centered reservoir headline floating over the sky */}
           <Reservoir performance={performance} />
 
-          {/* Unified read-out row: Score · F&G · RSI · BTC · next buy + actions */}
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-6">
+          {/* Stat cards straddling the waterline: Score · F&G · RSI · BTC (frosted
+              glass) + the solid Next-buy card with its actions */}
+          <div className="mt-8 flex flex-wrap items-stretch justify-center gap-4">
             {indicators && (
               <>
                 <ScoreReadout indicators={indicators} />
-                <Divider />
                 <FearGreedReadout indicators={indicators} />
-                <Divider />
                 <RsiReadout indicators={indicators} />
-                <Divider />
               </>
             )}
             <BtcReadout indicators={indicators} performance={performance} />
-            <Divider />
             <NextBuyActions
               indicators={indicators}
               settings={settings}
@@ -191,70 +253,51 @@ export default function SiteHeader({
 
           {runResult?.analysis && (
             <div className="mt-5 flex justify-center">
-              <div className="rounded-lg bg-cream/15 px-3 py-1.5 text-xs font-bold text-cream">
+              <div className="rounded-lg bg-cream/85 px-3 py-1.5 text-xs font-bold text-teal shadow-sm">
                 {runResult.analysis.signal} &middot; would buy{" "}
                 {fmtEur(runResult.purchase?.amount_eur ?? 0)}
               </div>
             </div>
           )}
         </div>
-
-        {/* Rolling waterline */}
-        <svg
-          viewBox="0 0 1080 46"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 -bottom-px h-[70px] w-full"
-        >
-          <g className="animate-wave">
-            <path
-              d="M-120 32 q30 -11 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
-              fill="rgba(241,255,250,.35)"
-            />
-          </g>
-          <g className="animate-wave-fast">
-            <path
-              d="M-120 28 q30 -14 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
-              fill="rgba(241,255,250,.6)"
-            />
-          </g>
-        </svg>
       </section>
     </>
   );
 }
 
-/** A hairline separator between read-out items; folds away when they wrap. */
-function Divider() {
-  return <div className="h-16 w-px bg-cream/20 max-lg:hidden" />;
-}
-
 /** The centered headline: portfolio value with the P&L on a single line. */
 function Reservoir({ performance }: { performance: Performance | null }) {
   const profitable = (performance?.profit_eur ?? 0) >= 0;
+  const value = performance ? fmtEur(performance.value_eur) : "";
+  const dot = value.lastIndexOf(".");
+  const valueMain = dot >= 0 ? value.slice(0, dot) : value;
+  const valueCents = dot >= 0 ? value.slice(dot) : "";
 
   return (
-    <div className="mt-8 text-center">
-      <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-cream/80">
+    <div className="mt-6 text-center">
+      <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c8a91]">
         Your reservoir
       </div>
       {performance ? (
         <>
-          <div className="mt-1 font-display text-6xl font-semibold leading-[0.9] tracking-tight md:text-[78px]">
-            {fmtEur(performance.value_eur)}
+          <div className="mt-1.5 font-display text-6xl font-semibold leading-[0.9] tracking-tight text-[#2f5a63] md:text-[78px]">
+            {valueMain}
+            <span className="text-[#6ba0a8]">{valueCents}</span>
           </div>
           <div className="mt-3.5 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1 text-[15px] font-bold md:text-[17px]">
-            <span className="inline-flex items-center gap-1.5">
+            <span
+              className={`inline-flex items-center gap-1.5 ${profitable ? "text-teal" : "text-rose"}`}
+            >
               {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
               {profitable ? "+" : ""}
               {fmtEur(performance.profit_eur)}
             </span>
-            <span className="text-cream/50">&middot;</span>
-            <span className="font-semibold text-cream/80">
+            <span className="text-[#a9c4c8]">&middot;</span>
+            <span className={`font-semibold ${profitable ? "text-teal" : "text-rose"}`}>
               {fmtPct(performance.profit_pct)}
             </span>
-            <span className="text-cream/50 max-sm:hidden">&middot;</span>
-            <span className="text-sm font-medium text-cream/75 max-sm:w-full">
+            <span className="text-[#a9c4c8] max-sm:hidden">&middot;</span>
+            <span className="text-[13px] font-medium text-[#6f8f95] max-sm:w-full">
               {fmtEur(performance.invested_eur)} invested &middot;{" "}
               {performance.purchase_count} buys &middot;{" "}
               {fmtBtc(performance.btc_total)}
@@ -263,8 +306,8 @@ function Reservoir({ performance }: { performance: Performance | null }) {
         </>
       ) : (
         <>
-          <div className="mx-auto mt-3 h-16 w-64 animate-pulse rounded-xl bg-cream/20" />
-          <div className="mx-auto mt-4 h-5 w-80 max-w-full animate-pulse rounded-lg bg-cream/15" />
+          <div className="mx-auto mt-3 h-16 w-64 animate-pulse rounded-xl bg-teal/15" />
+          <div className="mx-auto mt-4 h-5 w-80 max-w-full animate-pulse rounded-lg bg-teal/10" />
         </>
       )}
     </div>
@@ -288,20 +331,20 @@ function ModeToggle({
   const [confirmLive, setConfirmLive] = useState(false);
   const dry = status.dry_run;
   const seg =
-    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
+    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
 
   return (
     <>
       <div
         role="group"
         aria-label="Trading mode"
-        className="flex items-center gap-0.5 rounded-full bg-cream/15 p-0.5"
+        className="flex items-center gap-0.5 rounded-full bg-teal/12 p-0.5"
       >
         <button
           type="button"
           aria-pressed={dry}
           onClick={() => !dry && onSetDryRun(true)}
-          className={`${seg} ${dry ? "bg-cream text-teal shadow-sm" : "text-cream/70 hover:text-cream"}`}
+          className={`${seg} ${dry ? "bg-cream text-teal shadow-sm" : "text-teal/70 hover:text-teal"}`}
         >
           <FlaskIcon /> Dry run
         </button>
@@ -309,7 +352,7 @@ function ModeToggle({
           type="button"
           aria-pressed={!dry}
           onClick={() => dry && setConfirmLive(true)}
-          className={`${seg} ${!dry ? "bg-rose text-cream shadow-sm" : "text-cream/70 hover:text-cream"}`}
+          className={`${seg} ${!dry ? "bg-rose text-cream shadow-sm" : "text-teal/70 hover:text-teal"}`}
         >
           <LightningIcon /> Live
         </button>
@@ -328,28 +371,32 @@ function ModeToggle({
   );
 }
 
+/** Shared frosted-glass chip that floats the stat read-outs on the waterline. */
+const FROST_CARD =
+  "flex flex-col rounded-[18px] border border-cream/35 bg-cream/16 px-[18px] py-[15px] text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-[9px]";
+
 /** Score: five potency drops, the score fraction, and the buy multiplier. */
 function ScoreReadout({ indicators }: { indicators: Indicators }) {
   const potency = potencyFromMultiplier(indicators.multiplier);
   return (
-    <div className="text-center">
+    <div className={`${FROST_CARD} w-[172px]`}>
       <div
-        className="mb-1.5 flex items-center justify-center gap-1.5"
+        className="mb-2 flex items-center gap-1"
         role="img"
         aria-label={`Buy strength ${potency} of 5`}
       >
         {[1, 2, 3, 4, 5].map((i) => (
           <DropFillIcon
             key={i}
-            className={`text-xl ${i <= potency ? "text-cream" : "text-cream/25"}`}
+            className={`text-[15px] ${i <= potency ? "text-cream" : "text-cream/25"}`}
           />
         ))}
       </div>
       <div className="font-display text-3xl font-semibold leading-none">
         {indicators.score}
-        <span className="text-xl text-cream/70">/{indicators.score_max}</span>
+        <span className="text-lg text-cream/70">/{indicators.score_max}</span>
       </div>
-      <div className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-cream/65">
+      <div className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.13em] text-cream/72">
         Score &middot; x{indicators.multiplier}
       </div>
     </div>
@@ -359,12 +406,12 @@ function ScoreReadout({ indicators }: { indicators: Indicators }) {
 /** Fear & Greed: the cream semicircle gauge, its value, and the classification. */
 function FearGreedReadout({ indicators }: { indicators: Indicators }) {
   return (
-    <div className="text-center">
+    <div className={`${FROST_CARD} w-[172px]`}>
       <FearGreedArc value={indicators.fear_greed} />
-      <div className="-mt-0.5 font-display text-3xl font-semibold leading-none">
+      <div className="mt-0.5 font-display text-3xl font-semibold leading-none">
         {indicators.fear_greed}
       </div>
-      <div className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-cream/65">
+      <div className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.13em] text-cream/72">
         {indicators.fng_classification}
       </div>
     </div>
@@ -383,26 +430,26 @@ function RsiReadout({ indicators }: { indicators: Indicators }) {
   const pos = Math.max(0, Math.min(100, rsi));
 
   return (
-    <div className="w-[190px]">
+    <div className={`${FROST_CARD} w-[210px] justify-center`}>
       <div className="mb-3 flex items-baseline justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-cream/65">
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-cream/72">
           RSI &middot; {rsiLabel}
         </span>
-        <span className="font-display text-3xl font-semibold leading-none">
+        <span className="font-display text-[26px] font-semibold leading-none">
           {rsi}
         </span>
       </div>
-      <div className="relative h-[9px] rounded-full bg-cream/20">
+      <div className="relative h-2 rounded-full bg-cream/22">
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-cream"
           style={{ width: `${pos}%` }}
         />
         <div
-          className="absolute top-1/2 h-[15px] w-[15px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cream shadow-[0_0_0_4px_rgba(69,129,140,0.5)]"
+          className="absolute top-1/2 h-[14px] w-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cream shadow-[0_0_0_4px_rgba(60,109,120,0.5)]"
           style={{ left: `${pos}%` }}
         />
       </div>
-      <div className="mt-2 flex justify-between text-[10px] font-semibold text-cream/50">
+      <div className="mt-2 flex justify-between text-[9px] font-semibold text-cream/50">
         <span>Oversold</span>
         <span>Overbought</span>
       </div>
@@ -416,7 +463,7 @@ function FearGreedArc({ value }: { value: number }) {
   const arcLen = 131.9; // π · r with r = 42
   const offset = arcLen * (1 - clamped / 100);
   return (
-    <svg viewBox="0 0 100 58" className="mx-auto block h-[56px] w-[100px]">
+    <svg viewBox="0 0 100 58" className="block h-[42px] w-[76px]">
       <path
         d="M8 50 A42 42 0 0 1 92 50"
         fill="none"
@@ -446,16 +493,16 @@ function BtcReadout({
   performance: Performance | null;
 }) {
   return (
-    <div className="text-center">
-      <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-cream/65">
+    <div className={`${FROST_CARD} w-[210px] justify-center`}>
+      <div className="text-[10px] font-bold uppercase tracking-[0.13em] text-cream/72">
         BTC price
       </div>
       <div className="mt-1 font-display text-3xl font-semibold leading-none">
         {performance ? fmtEur(performance.current_price, 0) : "—"}
       </div>
-      <div className="mt-1.5 text-xs font-semibold text-cream/72">
+      <div className="mt-1.5 text-[11px] font-semibold text-cream/80">
         {indicators
-          ? `350-day avg ${fmtEur(indicators.ma_350, 0)} · ${fmtPct(indicators.ma_distance_pct)}`
+          ? `350‑day avg ${fmtEur(indicators.ma_350, 0)} · ${fmtPct(indicators.ma_distance_pct)}`
           : "—"}
       </div>
     </div>
@@ -496,41 +543,38 @@ function NextBuyActions({
       : "—";
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex w-[210px] flex-col rounded-[18px] bg-cream px-[18px] py-[15px] shadow-[0_18px_38px_-16px_rgba(0,0,0,.55)]">
       <button
         type="button"
         onClick={onTogglePanel}
         aria-expanded={panelOpen}
-        className="flex items-center gap-2.5 rounded-2xl border border-cream/40 bg-cream/12 px-3 py-1.5 text-left transition hover:border-cream/70 hover:bg-cream/22 hover:shadow-[0_8px_22px_-10px_rgba(0,0,0,.45)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+        aria-label="Adjust the next buy"
+        className="flex items-center gap-1.5 rounded-md text-left text-[10px] font-bold uppercase tracking-[0.1em] text-[#5c8a91] transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
       >
-        <div>
-          <div className="flex items-center gap-1.5 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.12em] text-cream/70">
-            Next buy &middot; {nextWhen}
-            <span className="rounded-full bg-cream/90 px-1.5 py-px text-[9px] tracking-[0.06em] text-teal">
-              ADJUST
-            </span>
-          </div>
-          <div className="mt-0.5 font-display text-3xl font-semibold leading-none">
-            {nextAmount}
-          </div>
-        </div>
+        <span className="whitespace-nowrap">Next buy &middot; {nextWhen}</span>
+        <span className="rounded-full bg-teal px-1.5 py-px text-[8px] tracking-[0.05em] text-cream">
+          ADJUST
+        </span>
         <CaretDownIcon
-          className={`text-sm opacity-80 transition-transform duration-300 ${panelOpen ? "rotate-180" : ""}`}
+          className={`ml-auto text-sm transition-transform duration-300 ${panelOpen ? "rotate-180" : ""}`}
         />
       </button>
-      <div className="flex flex-col gap-2">
+      <div className="mt-1 font-display text-3xl font-semibold leading-none text-[#2f5a63]">
+        {nextAmount}
+      </div>
+      <div className="mt-3 flex gap-1.5">
         <button
           onClick={onTestBuy}
           disabled={running}
-          className="flex items-center justify-center gap-1.5 rounded-full bg-cream px-4 py-2 text-xs font-bold text-teal shadow-sm transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream disabled:opacity-60"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal py-[7px] text-[11px] font-bold text-cream transition hover:bg-teal/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal disabled:opacity-60"
         >
-          <PlayIcon /> {running ? "Testing…" : "Test a buy"}
+          <PlayIcon /> {running ? "Testing…" : "Test"}
         </button>
         <button
           onClick={onSimulate}
-          className="flex items-center justify-center gap-1.5 rounded-full bg-cream/20 px-4 py-2 text-xs font-bold text-cream transition hover:bg-cream/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal/14 py-[7px] text-[11px] font-bold text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
         >
-          <ChartLineUpIcon /> Simulate
+          <ChartLineUpIcon /> Sim
         </button>
       </div>
     </div>
@@ -611,7 +655,7 @@ function FaucetControls({
         open ? "mt-4 max-h-[520px] opacity-100" : "mt-0 max-h-0 opacity-0"
       }`}
     >
-      <div className="mx-auto flex max-w-[1000px] flex-wrap items-center justify-center gap-x-1 gap-y-2 rounded-[20px] border border-cream/25 bg-cream/14 p-2.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md">
+      <div className="mx-auto flex max-w-[1000px] flex-wrap items-center justify-center gap-x-1 gap-y-2 rounded-[20px] border border-cream/20 bg-teal/95 p-2.5 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md">
         {settings ? (
           <>
             {/* Amount */}
@@ -809,7 +853,7 @@ function MiniToggle({
 
 export function HeaderPill({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-cream/20 px-2.5 py-1.5 text-[11px] font-bold text-cream">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1.5 text-[11px] font-bold text-teal">
       {children}
     </span>
   );
