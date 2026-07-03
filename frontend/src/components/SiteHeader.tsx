@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode, type RefObject } from "react";
+import CaretDownIcon from "~icons/ph/caret-down";
 import ChartLineUpIcon from "~icons/ph/chart-line-up";
 import DropFillIcon from "~icons/ph/drop-fill";
 import DropSlashIcon from "~icons/ph/drop-slash";
@@ -6,39 +7,40 @@ import FlaskIcon from "~icons/ph/flask";
 import KeyIcon from "~icons/ph/key";
 import LightningIcon from "~icons/ph/lightning-fill";
 import ListDashesIcon from "~icons/ph/list-dashes";
+import PaperPlaneIcon from "~icons/ph/paper-plane-tilt";
 import PlayIcon from "~icons/ph/play-fill";
-import SlidersIcon from "~icons/ph/sliders-horizontal";
 import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
+import XIcon from "~icons/ph/x";
 import {
   fmtBtc,
   fmtEur,
   fmtPct,
   WEEKDAYS,
   type BotSettings,
-  type BotStatus,
   type Indicators,
   type Performance,
   type RunResult,
+  type BotStatus,
 } from "../api/client";
 import { potencyFromMultiplier } from "./drops";
 import LiveModeDialog from "./LiveModeDialog";
 
-export type Section = "overview" | "settings" | "history";
+export type Section = "overview" | "history";
 
 export const NAV: { id: Section; label: string; Icon: typeof DropFillIcon }[] = [
   { id: "overview", label: "Overview", Icon: ChartLineUpIcon },
-  { id: "settings", label: "Settings", Icon: SlidersIcon },
   { id: "history", label: "History", Icon: ListDashesIcon },
 ];
 
 /**
- * The signature gradient hero that opens the app — the "2b" centered layout:
- * an app bar (brand + mode pills on the left, jump-nav with scroll-spy on the
- * right), a centered "reservoir" headline with the P&L on a single line, and one
- * unified read-out row (Score · Fear & Greed · RSI · BTC · next buy + actions)
- * riding over the rolling waterline. Not sticky: it scrolls away, but the nav
- * still smooth-scrolls to each section and highlights the one in view.
+ * The signature gradient hero that opens the app. Following the "Settings in
+ * Header integrieren" design, the header is now the whole command center: the
+ * sticky bar carries the brand, the Dry-run / Live mode toggle and the jump-nav;
+ * the hero shows the centered "reservoir" headline, one unified read-out row
+ * (Score · Fear & Greed · RSI · BTC · next buy + actions), and a collapsible
+ * "faucet control bar" that slides open from the Next-buy chip to tune the
+ * amount, schedule, Discord and pause inline. It rides over the rolling waterline.
  */
 export default function SiteHeader({
   status,
@@ -49,6 +51,10 @@ export default function SiteHeader({
   onSimulate,
   onTestBuy,
   onSetDryRun,
+  onSaveSettings,
+  onPause,
+  onResume,
+  onTestWebhook,
   running,
   runResult,
 }: {
@@ -60,11 +66,16 @@ export default function SiteHeader({
   onSimulate: () => void;
   onTestBuy: () => void;
   onSetDryRun: (dry: boolean) => void;
+  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onPause: (days: number) => Promise<void>;
+  onResume: () => Promise<void>;
+  onTestWebhook: () => Promise<boolean>;
   running: boolean;
   runResult: RunResult | null;
 }) {
   const active = useScrollSpy(scrollRef);
   const scrolled = useScrolled(scrollRef);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const jumpTo = (id: Section) => {
     document
@@ -74,9 +85,9 @@ export default function SiteHeader({
 
   return (
     <>
-      {/* Sticky condensed bar: brand (left) · jump-nav (right). Stays pinned
-          across the whole scroll — transparent over the hero, blurred teal once
-          scrolled. */}
+      {/* Sticky condensed bar: brand (left) · mode toggle + jump-nav (right).
+          Stays pinned across the whole scroll — transparent over the hero,
+          blurred teal once scrolled. */}
       <header
         className={`sticky top-0 z-30 shrink-0 text-cream transition-colors duration-300 ${
           scrolled
@@ -91,26 +102,45 @@ export default function SiteHeader({
               Drip
             </span>
           </div>
-          <nav className="flex gap-1.5">
-            {NAV.map(({ id, label, Icon }) => {
-              const on = active === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => jumpTo(id)}
-                  aria-current={on ? "true" : undefined}
-                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream ${
-                    on
-                      ? "bg-cream/95 text-teal shadow-sm"
-                      : "bg-cream/20 text-cream hover:bg-cream/30"
-                  }`}
-                >
-                  <Icon className="text-sm" />
-                  <span className="max-sm:hidden">{label}</span>
-                </button>
-              );
-            })}
-          </nav>
+          <div className="flex items-center gap-2.5 md:gap-3.5">
+            {status && (
+              <ModeToggle
+                status={status}
+                settings={settings}
+                onSetDryRun={onSetDryRun}
+              />
+            )}
+            {status?.paused && status.paused_until && (
+              <HeaderPill>
+                <DropSlashIcon /> Off until {formatDate(status.paused_until)}
+              </HeaderPill>
+            )}
+            {status && !status.has_credentials && (
+              <HeaderPill>
+                <KeyIcon /> <span className="max-sm:hidden">No API keys</span>
+              </HeaderPill>
+            )}
+            <nav className="flex gap-1.5">
+              {NAV.map(({ id, label, Icon }) => {
+                const on = active === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => jumpTo(id)}
+                    aria-current={on ? "true" : undefined}
+                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream ${
+                      on
+                        ? "bg-cream/95 text-teal shadow-sm"
+                        : "bg-cream/20 text-cream hover:bg-cream/30"
+                    }`}
+                  >
+                    <Icon className="text-sm" />
+                    <span className="max-sm:hidden">{label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
         </div>
       </header>
 
@@ -141,10 +171,23 @@ export default function SiteHeader({
               status={status}
               onTestBuy={onTestBuy}
               onSimulate={onSimulate}
-              onSetDryRun={onSetDryRun}
+              onTogglePanel={() => setPanelOpen((v) => !v)}
+              panelOpen={panelOpen}
               running={running}
             />
           </div>
+
+          {/* Collapsible faucet control bar (amount · schedule · Discord · pause) */}
+          <FaucetControls
+            open={panelOpen}
+            settings={settings}
+            indicators={indicators}
+            onClose={() => setPanelOpen(false)}
+            onSave={onSaveSettings}
+            onPause={onPause}
+            onResume={onResume}
+            onTestWebhook={onTestWebhook}
+          />
 
           {runResult?.analysis && (
             <div className="mt-5 flex justify-center">
@@ -229,9 +272,9 @@ function Reservoir({ performance }: { performance: Performance | null }) {
 }
 
 /**
- * Interactive Dry run / Live segmented switch. Going Live is guarded by the
- * shared LiveModeDialog (real-money confirmation); going back to Dry run — the
- * safe direction — applies immediately.
+ * Interactive Dry run / Live segmented switch, now living in the sticky bar.
+ * Going Live is guarded by the shared LiveModeDialog (real-money confirmation);
+ * going back to Dry run — the safe direction — applies immediately.
  */
 function ModeToggle({
   status,
@@ -245,7 +288,7 @@ function ModeToggle({
   const [confirmLive, setConfirmLive] = useState(false);
   const dry = status.dry_run;
   const seg =
-    "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
+    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
 
   return (
     <>
@@ -419,14 +462,18 @@ function BtcReadout({
   );
 }
 
-/** Next scheduled buy plus the dry-run test and simulate actions. */
+/**
+ * Next scheduled buy — now a button that opens the faucet control bar — plus the
+ * dry-run test and simulate actions.
+ */
 function NextBuyActions({
   indicators,
   settings,
   status,
   onTestBuy,
   onSimulate,
-  onSetDryRun,
+  onTogglePanel,
+  panelOpen,
   running,
 }: {
   indicators: Indicators | null;
@@ -434,7 +481,8 @@ function NextBuyActions({
   status: BotStatus | null;
   onTestBuy: () => void;
   onSimulate: () => void;
-  onSetDryRun: (dry: boolean) => void;
+  onTogglePanel: () => void;
+  panelOpen: boolean;
   running: boolean;
 }) {
   const nextWhen = status?.next_run
@@ -448,58 +496,320 @@ function NextBuyActions({
       : "—";
 
   return (
-    <div className="flex flex-col items-center gap-2.5">
-      {status && (
-        <div className="flex flex-wrap items-center justify-center gap-1.5">
-          <ModeToggle
-            status={status}
-            settings={settings}
-            onSetDryRun={onSetDryRun}
-          />
-          {status.paused && status.paused_until && (
-            <HeaderPill>
-              <DropSlashIcon /> Off until {formatDate(status.paused_until)}
-            </HeaderPill>
-          )}
-          {!status.has_credentials && (
-            <HeaderPill>
-              <KeyIcon /> No API keys
-            </HeaderPill>
-          )}
-        </div>
-      )}
-      <div className="flex items-center gap-4">
-        <div className="text-center">
-          <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-cream/65">
+    <div className="flex items-center gap-4">
+      <button
+        type="button"
+        onClick={onTogglePanel}
+        aria-expanded={panelOpen}
+        className="flex items-center gap-2.5 rounded-2xl border border-cream/40 bg-cream/12 px-3 py-1.5 text-left transition hover:border-cream/70 hover:bg-cream/22 hover:shadow-[0_8px_22px_-10px_rgba(0,0,0,.45)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+      >
+        <div>
+          <div className="flex items-center gap-1.5 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.12em] text-cream/70">
             Next buy &middot; {nextWhen}
+            <span className="rounded-full bg-cream/90 px-1.5 py-px text-[9px] tracking-[0.06em] text-teal">
+              ADJUST
+            </span>
           </div>
-          <div className="mt-1 font-display text-3xl font-semibold leading-none">
+          <div className="mt-0.5 font-display text-3xl font-semibold leading-none">
             {nextAmount}
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={onTestBuy}
-            disabled={running}
-            className="flex items-center justify-center gap-1.5 rounded-full bg-cream px-4 py-2 text-xs font-bold text-teal shadow-sm transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream disabled:opacity-60"
-          >
-            <PlayIcon /> {running ? "Testing…" : "Test a buy"}
-          </button>
-          <button
-            onClick={onSimulate}
-            className="flex items-center justify-center gap-1.5 rounded-full bg-cream/20 px-4 py-2 text-xs font-bold text-cream transition hover:bg-cream/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
-          >
-            <ChartLineUpIcon /> Simulate
-          </button>
-        </div>
+        <CaretDownIcon
+          className={`text-sm opacity-80 transition-transform duration-300 ${panelOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+      <div className="flex flex-col gap-2">
+        <button
+          onClick={onTestBuy}
+          disabled={running}
+          className="flex items-center justify-center gap-1.5 rounded-full bg-cream px-4 py-2 text-xs font-bold text-teal shadow-sm transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream disabled:opacity-60"
+        >
+          <PlayIcon /> {running ? "Testing…" : "Test a buy"}
+        </button>
+        <button
+          onClick={onSimulate}
+          className="flex items-center justify-center gap-1.5 rounded-full bg-cream/20 px-4 py-2 text-xs font-bold text-cream transition hover:bg-cream/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+        >
+          <ChartLineUpIcon /> Simulate
+        </button>
       </div>
     </div>
   );
 }
 
+const PAUSE_OPTIONS = [
+  { label: "Running", days: 0 },
+  { label: "1 week", days: 7 },
+  { label: "2 weeks", days: 14 },
+  { label: "4 weeks", days: 28 },
+];
+
+/**
+ * The collapsible glass control bar that folds the old Settings page into the
+ * hero: amount stepper, schedule, Discord and pause — each persisting on change
+ * through App. Slides open/closed on `open` via a max-height/opacity transition.
+ */
+function FaucetControls({
+  open,
+  settings,
+  indicators,
+  onClose,
+  onSave,
+  onPause,
+  onResume,
+  onTestWebhook,
+}: {
+  open: boolean;
+  settings: BotSettings | null;
+  indicators: Indicators | null;
+  onClose: () => void;
+  onSave: (update: Partial<BotSettings>) => Promise<void>;
+  onPause: (days: number) => Promise<void>;
+  onResume: () => Promise<void>;
+  onTestWebhook: () => Promise<boolean>;
+}) {
+  const [saved, setSaved] = useState(false);
+  const [webhookSent, setWebhookSent] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  const flashSaved = () => {
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2200);
+  };
+  const save = async (update: Partial<BotSettings>) => {
+    await onSave(update);
+    flashSaved();
+  };
+
+  const testWebhook = async () => {
+    setTesting(true);
+    setWebhookSent(false);
+    try {
+      const sent = await onTestWebhook();
+      setWebhookSent(sent);
+      window.setTimeout(() => setWebhookSent(false), 3000);
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const isPaused =
+    settings?.paused_until != null &&
+    new Date(settings.paused_until) >= new Date(new Date().toDateString());
+
+  const field =
+    "rounded-lg border border-cream/30 bg-cream/15 px-2.5 py-1.5 text-[13px] font-bold text-cream outline-none [color-scheme:dark] focus:border-cream/70";
+  const stepBtn =
+    "flex h-7 w-7 items-center justify-center rounded-lg bg-cream/15 text-lg leading-none text-cream transition hover:bg-cream/30";
+  const groupLabel =
+    "text-[10px] font-bold uppercase tracking-[0.14em] text-cream/60";
+  const barDivider = "h-8 w-px bg-cream/20 max-md:hidden";
+
+  return (
+    <div
+      className={`overflow-hidden transition-[max-height,opacity,margin-top] duration-400 ${
+        open ? "mt-4 max-h-[520px] opacity-100" : "mt-0 max-h-0 opacity-0"
+      }`}
+    >
+      <div className="mx-auto flex max-w-[1000px] flex-wrap items-center justify-center gap-x-1 gap-y-2 rounded-[20px] border border-cream/25 bg-cream/14 p-2.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md">
+        {settings ? (
+          <>
+            {/* Amount */}
+            <div className="flex items-center gap-2.5 px-4 py-1.5">
+              <span className={groupLabel}>Drip</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label="Less"
+                  onClick={() =>
+                    save({
+                      base_amount_eur: Math.max(5, settings.base_amount_eur - 5),
+                    })
+                  }
+                  className={stepBtn}
+                >
+                  &minus;
+                </button>
+                <span className="min-w-[56px] text-center font-display text-xl font-semibold">
+                  {fmtEur(settings.base_amount_eur, 0)}
+                </span>
+                <button
+                  type="button"
+                  aria-label="More"
+                  onClick={() =>
+                    save({
+                      base_amount_eur: Math.min(
+                        500,
+                        settings.base_amount_eur + 5,
+                      ),
+                    })
+                  }
+                  className={stepBtn}
+                >
+                  +
+                </button>
+              </div>
+              {indicators && (
+                <span className="whitespace-nowrap text-xs text-cream/72">
+                  &times; {indicators.multiplier} &rarr;{" "}
+                  <b>
+                    {fmtEur(settings.base_amount_eur * indicators.multiplier)}
+                  </b>
+                </span>
+              )}
+            </div>
+
+            <div className={barDivider} />
+
+            {/* Schedule */}
+            <div className="flex items-center gap-2 px-4 py-1.5">
+              <span className={groupLabel}>Every</span>
+              <select
+                value={settings.schedule_weekday}
+                onChange={(e) =>
+                  save({ schedule_weekday: Number(e.target.value) })
+                }
+                className={`${field} cursor-pointer`}
+              >
+                {WEEKDAYS.map((day, idx) => (
+                  <option key={day} value={idx}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-cream/60">at</span>
+              <input
+                type="time"
+                value={settings.schedule_time}
+                onChange={(e) => save({ schedule_time: e.target.value })}
+                className={field}
+              />
+            </div>
+
+            <div className={barDivider} />
+
+            {/* Discord */}
+            <div className="flex items-center gap-2 px-4 py-1.5">
+              <span className={groupLabel}>Discord</span>
+              <MiniToggle
+                checked={settings.discord_enabled}
+                onChange={(v) => save({ discord_enabled: v })}
+              />
+              <button
+                type="button"
+                aria-label="Send test message"
+                title="Send test message"
+                onClick={testWebhook}
+                disabled={testing}
+                className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
+              >
+                <PaperPlaneIcon className="text-sm" />
+              </button>
+              {webhookSent && (
+                <span className="text-[11px] font-bold text-cream">
+                  Sent &#10003;
+                </span>
+              )}
+            </div>
+
+            <div className={barDivider} />
+
+            {/* Pause */}
+            <div className="flex items-center gap-2 px-4 py-1.5">
+              <span className={groupLabel}>Pause</span>
+              {isPaused ? (
+                <>
+                  <span className="inline-flex items-center rounded-full bg-rose/60 px-2.5 py-1 text-xs font-bold text-cream">
+                    until{" "}
+                    {new Date(settings.paused_until!).toLocaleDateString(
+                      "en-GB",
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onResume}
+                    className="flex items-center gap-1 rounded-lg bg-cream px-3 py-1.5 text-xs font-bold text-teal transition hover:bg-white"
+                  >
+                    <PlayIcon /> Resume
+                  </button>
+                </>
+              ) : (
+                <select
+                  value={0}
+                  onChange={(e) => {
+                    const days = Number(e.target.value);
+                    if (days > 0) onPause(days);
+                  }}
+                  className={`${field} cursor-pointer`}
+                >
+                  {PAUSE_OPTIONS.map((p) => (
+                    <option key={p.days} value={p.days}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className={barDivider} />
+
+            {/* Saved flag + close */}
+            <div className="flex items-center gap-2 py-1.5 pl-2 pr-2.5">
+              {saved && (
+                <span className="inline-flex items-center rounded-full bg-cream/90 px-2.5 py-1 text-[11px] font-bold text-teal">
+                  Saved &#10003;
+                </span>
+              )}
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={onClose}
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 text-cream transition hover:bg-cream/30"
+              >
+                <XIcon className="text-sm" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="px-4 py-3 text-xs font-bold text-cream/70">
+            Loading settings…
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** A compact cream-on-glass switch for the faucet control bar. */
+function MiniToggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative h-6 w-11 flex-none rounded-full border-2 transition ${
+        checked ? "border-cream bg-cream/80" : "border-cream/50 bg-cream/15"
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-4 w-4 rounded-full bg-paper shadow-sm transition-all ${
+          checked ? "left-[22px]" : "left-0.5"
+        }`}
+      />
+    </button>
+  );
+}
+
 export function HeaderPill({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-cream/20 px-3 py-1.5 text-xs font-bold text-cream">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-cream/20 px-2.5 py-1.5 text-[11px] font-bold text-cream">
       {children}
     </span>
   );

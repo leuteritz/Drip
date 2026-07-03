@@ -11,7 +11,6 @@ import {
 import SiteHeader from "./components/SiteHeader";
 import SimulationModal from "./components/SimulationModal";
 import Overview from "./pages/Dashboard";
-import SettingsSection from "./pages/Settings";
 import HistorySection from "./pages/History";
 
 export default function App() {
@@ -58,6 +57,39 @@ export default function App() {
     },
     [reloadStatus],
   );
+
+  // Persist a settings change (amount, schedule, Discord) from the header's
+  // faucet control bar; keep the shared mirror + status in sync so the reservoir
+  // and next-buy readouts update immediately. Schedule edits reschedule on the
+  // backend (routers/settings.py).
+  const saveSettings = useCallback(
+    async (update: Partial<BotSettings>) => {
+      const next = await api.updateSettings(update);
+      setSettings(next);
+      reloadStatus();
+    },
+    [reloadStatus],
+  );
+
+  const pause = useCallback(
+    async (days: number) => {
+      const next = await api.pause(days);
+      setSettings(next);
+      reloadStatus();
+    },
+    [reloadStatus],
+  );
+
+  const resume = useCallback(async () => {
+    const next = await api.resume();
+    setSettings(next);
+    reloadStatus();
+  }, [reloadStatus]);
+
+  const testWebhook = useCallback(async () => {
+    const { sent } = await api.testNotification();
+    return sent;
+  }, []);
 
   // Manual "test a buy" is always a dry run; refresh purchases + reservoir after.
   const testBuy = useCallback(async () => {
@@ -107,6 +139,10 @@ export default function App() {
           onSimulate={() => setShowSim(true)}
           onTestBuy={testBuy}
           onSetDryRun={setDryRun}
+          onSaveSettings={saveSettings}
+          onPause={pause}
+          onResume={resume}
+          onTestWebhook={testWebhook}
           running={running}
           runResult={runResult}
         />
@@ -116,12 +152,6 @@ export default function App() {
             purchases={purchases}
             includeDryRun={includeDryRun}
             onToggleDryRun={onToggleDryRun}
-          />
-          <SettingsSection
-            settings={settings}
-            indicators={indicators}
-            onSettingsChange={setSettings}
-            onStatusChange={reloadStatus}
           />
           <HistorySection purchases={purchases} onChanged={reloadPurchases} />
         </main>
