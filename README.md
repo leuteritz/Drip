@@ -3,6 +3,8 @@
 Stack sats on a slow drip. A self-hosted bitcoin savings bot with a web dashboard,
 built to run on a Raspberry Pi.
 
+![Drip dashboard](docs/screenshot-dashboard.png)
+
 ## Features
 
 - Buys bitcoin automatically every week through the Coinbase Advanced Trade API
