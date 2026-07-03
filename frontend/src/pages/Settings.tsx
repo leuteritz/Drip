@@ -3,9 +3,9 @@ import DropSlashIcon from "~icons/ph/drop-slash";
 import PlayIcon from "~icons/ph/play-fill";
 import PaperPlaneIcon from "~icons/ph/paper-plane-tilt";
 import SlidersIcon from "~icons/ph/sliders-horizontal";
-import WarningIcon from "~icons/ph/warning-fill";
 import { api, fmtEur, WEEKDAYS, type BotSettings, type Indicators } from "../api/client";
 import { Badge, Card, CardTitle, SectionHeading, Spinner, Toggle } from "../components/ui";
+import LiveModeDialog from "../components/LiveModeDialog";
 
 const PAUSE_PRESETS = [
   { label: "1 week", days: 7 },
@@ -322,35 +322,14 @@ export default function SettingsSection({
 
       {/* Live-trading confirmation dialog */}
       {confirmLive && settings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
-          <Card className="max-w-md border-rose/60">
-            <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
-              <WarningIcon /> Turn on live trading?
-            </h3>
-            <p className="text-sm text-ink">
-              Drip will buy <b>with real money</b> through your Coinbase API - every{" "}
-              {WEEKDAYS[settings.schedule_weekday]} at {settings.schedule_time}, base amount{" "}
-              {fmtEur(settings.base_amount_eur)} (times the market multiplier).
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setConfirmLive(false)}
-                className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setConfirmLive(false);
-                  save({ dry_run: false });
-                }}
-                className="rounded-full bg-rose px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
-              >
-                Trade live
-              </button>
-            </div>
-          </Card>
-        </div>
+        <LiveModeDialog
+          settings={settings}
+          onCancel={() => setConfirmLive(false)}
+          onConfirm={() => {
+            setConfirmLive(false);
+            save({ dry_run: false });
+          }}
+        />
       )}
     </section>
   );

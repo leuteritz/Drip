@@ -22,6 +22,7 @@ import {
   type RunResult,
 } from "../api/client";
 import { potencyFromMultiplier } from "./drops";
+import LiveModeDialog from "./LiveModeDialog";
 
 export type Section = "overview" | "settings" | "history";
 
@@ -47,6 +48,7 @@ export default function SiteHeader({
   scrollRef,
   onSimulate,
   onTestBuy,
+  onSetDryRun,
   running,
   runResult,
 }: {
@@ -57,6 +59,7 @@ export default function SiteHeader({
   scrollRef: RefObject<HTMLDivElement | null>;
   onSimulate: () => void;
   onTestBuy: () => void;
+  onSetDryRun: (dry: boolean) => void;
   running: boolean;
   runResult: RunResult | null;
 }) {
@@ -138,6 +141,7 @@ export default function SiteHeader({
               status={status}
               onTestBuy={onTestBuy}
               onSimulate={onSimulate}
+              onSetDryRun={onSetDryRun}
               running={running}
             />
           </div>
@@ -224,30 +228,58 @@ function Reservoir({ performance }: { performance: Performance | null }) {
   );
 }
 
-/** Bot-mode + warning pills that sit under the brand in the app bar. */
-function ModePills({ status }: { status: BotStatus }) {
+/**
+ * Interactive Dry run / Live segmented switch. Going Live is guarded by the
+ * shared LiveModeDialog (real-money confirmation); going back to Dry run — the
+ * safe direction — applies immediately.
+ */
+function ModeToggle({
+  status,
+  settings,
+  onSetDryRun,
+}: {
+  status: BotStatus;
+  settings: BotSettings | null;
+  onSetDryRun: (dry: boolean) => void;
+}) {
+  const [confirmLive, setConfirmLive] = useState(false);
+  const dry = status.dry_run;
+  const seg =
+    "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream";
+
   return (
     <>
-      <HeaderPill>
-        {status.dry_run ? (
-          <>
-            <FlaskIcon /> Dry run
-          </>
-        ) : (
-          <>
-            <LightningIcon /> Live
-          </>
-        )}
-      </HeaderPill>
-      {status.paused && status.paused_until && (
-        <HeaderPill>
-          <DropSlashIcon /> Off until {formatDate(status.paused_until)}
-        </HeaderPill>
-      )}
-      {!status.has_credentials && (
-        <HeaderPill>
-          <KeyIcon /> No API keys
-        </HeaderPill>
+      <div
+        role="group"
+        aria-label="Trading mode"
+        className="flex items-center gap-0.5 rounded-full bg-cream/15 p-0.5"
+      >
+        <button
+          type="button"
+          aria-pressed={dry}
+          onClick={() => !dry && onSetDryRun(true)}
+          className={`${seg} ${dry ? "bg-cream text-teal shadow-sm" : "text-cream/70 hover:text-cream"}`}
+        >
+          <FlaskIcon /> Dry run
+        </button>
+        <button
+          type="button"
+          aria-pressed={!dry}
+          onClick={() => dry && setConfirmLive(true)}
+          className={`${seg} ${!dry ? "bg-rose text-cream shadow-sm" : "text-cream/70 hover:text-cream"}`}
+        >
+          <LightningIcon /> Live
+        </button>
+      </div>
+      {confirmLive && settings && (
+        <LiveModeDialog
+          settings={settings}
+          onCancel={() => setConfirmLive(false)}
+          onConfirm={() => {
+            setConfirmLive(false);
+            onSetDryRun(false);
+          }}
+        />
       )}
     </>
   );
@@ -394,6 +426,7 @@ function NextBuyActions({
   status,
   onTestBuy,
   onSimulate,
+  onSetDryRun,
   running,
 }: {
   indicators: Indicators | null;
@@ -401,6 +434,7 @@ function NextBuyActions({
   status: BotStatus | null;
   onTestBuy: () => void;
   onSimulate: () => void;
+  onSetDryRun: (dry: boolean) => void;
   running: boolean;
 }) {
   const nextWhen = status?.next_run
@@ -417,7 +451,21 @@ function NextBuyActions({
     <div className="flex flex-col items-center gap-2.5">
       {status && (
         <div className="flex flex-wrap items-center justify-center gap-1.5">
-          <ModePills status={status} />
+          <ModeToggle
+            status={status}
+            settings={settings}
+            onSetDryRun={onSetDryRun}
+          />
+          {status.paused && status.paused_until && (
+            <HeaderPill>
+              <DropSlashIcon /> Off until {formatDate(status.paused_until)}
+            </HeaderPill>
+          )}
+          {!status.has_credentials && (
+            <HeaderPill>
+              <KeyIcon /> No API keys
+            </HeaderPill>
+          )}
         </div>
       )}
       <div className="flex items-center gap-4">

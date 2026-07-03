@@ -44,6 +44,21 @@ export default function App() {
     [loadPerformance],
   );
 
+  // Switch the bot's live/dry-run mode from the header; keep the settings
+  // mirror and status in sync. Going live is guarded by LiveModeDialog upstream.
+  const setDryRun = useCallback(
+    async (dry: boolean) => {
+      try {
+        const next = await api.updateSettings({ dry_run: dry });
+        setSettings(next);
+        reloadStatus();
+      } catch {
+        // Header stays quiet; the Settings page surfaces mode errors.
+      }
+    },
+    [reloadStatus],
+  );
+
   // Manual "test a buy" is always a dry run; refresh purchases + reservoir after.
   const testBuy = useCallback(async () => {
     setRunning(true);
@@ -91,6 +106,7 @@ export default function App() {
           scrollRef={scrollRef}
           onSimulate={() => setShowSim(true)}
           onTestBuy={testBuy}
+          onSetDryRun={setDryRun}
           running={running}
           runResult={runResult}
         />
