@@ -48,7 +48,7 @@ body {
 
 /* The submerged body of water: lighter at the sunlit surface, deepening below */
 .tank-water {
-  background: linear-gradient(180deg, #5c939d 0%, #3f717c 45%, #345e69 100%);
+  background: linear-gradient(180deg, #5c939d 0%, #3f717c 45%, #2f5761 100%);
 }
 
 ::selection {

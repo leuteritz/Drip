@@ -172,40 +172,6 @@ export default function SiteHeader({
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 top-[88px] z-0"
         >
-          <svg
-            viewBox="0 0 1080 130"
-            preserveAspectRatio="none"
-            className="animate-swell absolute inset-x-0 -top-[74px] h-[150px] w-full"
-          >
-            {/* Back — faint, slow, wide rounded swells */}
-            <g className="animate-wave-slow">
-              <path
-                d="M-120 95 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 V130 H-120 Z"
-                fill="rgba(87,146,156,.35)"
-              />
-            </g>
-            {/* Mid — medium, mixed widths */}
-            <g className="animate-wave">
-              <path
-                d="M-120 95 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 V130 H-120 Z"
-                fill="rgba(87,146,156,.55)"
-              />
-            </g>
-            {/* Front — solid, fast, rounded rolling swells with a sunlit foam crest */}
-            <g className="animate-wave-fast">
-              <path
-                d="M-120 95 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 V130 H-120 Z"
-                fill="#57929c"
-              />
-              <path
-                d="M-120 95 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0"
-                fill="none"
-                stroke="rgba(241,255,250,.4)"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </g>
-          </svg>
           <div className="tank-water absolute inset-0 overflow-hidden">
             {BUBBLES.map((b, i) => (
               <span
@@ -225,14 +191,52 @@ export default function SiteHeader({
               />
             ))}
           </div>
+          {/* The waving surface, painted over the water's top edge: baseline at the
+              waterline, asymmetric sine swells crossing above and below it. Painted
+              after the water so it is never covered. */}
+          <svg
+            viewBox="0 0 1080 120"
+            preserveAspectRatio="none"
+            className="animate-swell absolute inset-x-0 -top-[60px] h-[120px] w-full"
+          >
+            {/* Back — faint, slow, gentle uneven swell */}
+            <g className="animate-wave-slow">
+              <path
+                d="M-120 60 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 V120 H-120 Z"
+                fill="rgba(87,146,156,.35)"
+              />
+            </g>
+            {/* Mid — phase-offset so the layers never align */}
+            <g className="animate-wave">
+              <path
+                d="M-120 60 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 V120 H-120 Z"
+                fill="rgba(87,146,156,.55)"
+              />
+            </g>
+            {/* Front — solid rolling swell (fill matches the water's top stop) with a
+                sunlit foam line riding the crest */}
+            <g className="animate-wave-fast">
+              <path
+                d="M-120 60 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 V120 H-120 Z"
+                fill="#5c939d"
+              />
+              <path
+                d="M-120 60 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0"
+                fill="none"
+                stroke="rgba(241,255,250,.4)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </g>
+          </svg>
         </div>
 
         <div className="relative z-10 mx-auto max-w-[1180px]">
-          {/* Centered reservoir headline floating over the sky */}
+          {/* Centered reservoir headline, fully submerged below the waterline */}
           <Reservoir performance={performance} />
 
-          {/* Stat cards straddling the waterline: Score · F&G · RSI · BTC (frosted
-              glass) + the solid Next-buy card with its actions */}
+          {/* Submerged stat cards: Score · F&G · RSI · BTC (frosted glass) + the
+              solid Next-buy card with its actions */}
           <div className="mt-8 flex flex-wrap items-stretch justify-center gap-4">
             {indicators && (
               <>
@@ -295,11 +299,11 @@ function Reservoir({ performance }: { performance: Performance | null }) {
       </div>
       {performance ? (
         <>
-          <div className="mt-1.5 font-display text-6xl font-semibold leading-[0.9] tracking-tight text-cream md:text-[78px]">
+          <div className="mt-1.5 font-display text-6xl font-semibold leading-[0.9] tracking-tight text-cream drop-shadow-[0_2px_18px_rgba(0,0,0,0.28)] md:text-[78px]">
             {valueMain}
             <span className="text-cream/70">{valueCents}</span>
           </div>
-          <div className="mt-3.5 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1 text-[15px] font-bold md:text-[17px]">
+          <div className="mt-3.5 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1 text-[15px] font-bold [text-shadow:0_1px_8px_rgba(0,0,0,0.25)] md:text-[17px]">
             <span
               className={`inline-flex items-center gap-1.5 ${profitable ? "text-cream" : "text-rose"}`}
             >
@@ -388,7 +392,7 @@ function ModeToggle({
 
 /** Shared frosted-glass chip that floats the stat read-outs on the waterline. */
 const FROST_CARD =
-  "flex flex-col rounded-[18px] border border-cream/40 bg-cream/[0.18] px-[18px] py-[15px] text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-[9px]";
+  "flex flex-col rounded-[18px] border border-cream/45 bg-cream/[0.22] px-[18px] py-[15px] text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-[9px]";
 
 /** Score: five potency drops, the score fraction, and the buy multiplier. */
 function ScoreReadout({ indicators }: { indicators: Indicators }) {
