@@ -107,15 +107,21 @@ body {
   transform-origin: center;
 }
 
-/* The header wave: two crests marquee sideways to fake a rolling waterline */
+/* The header waves: layered crests marquee sideways to fake a rolling waterline.
+   Each wave path repeats every 120px so the -120px shift loops seamlessly; the
+   three speeds give the water a parallax, more-alive feel. */
 @keyframes wm {
   to {
     transform: translateX(-120px);
   }
 }
 
+.animate-wave-slow {
+  animation: wm 11s linear infinite;
+}
+
 .animate-wave {
-  animation: wm 7s linear infinite;
+  animation: wm 8s linear infinite;
 }
 
 .animate-wave-fast {
@@ -168,6 +174,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-drip,
   .animate-ripple,
+  .animate-wave-slow,
   .animate-wave,
   .animate-wave-fast,
   .animate-bubble,

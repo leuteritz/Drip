@@ -174,19 +174,28 @@ export default function SiteHeader({
           className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[210px] md:h-[230px]"
         >
           <svg
-            viewBox="0 0 1080 46"
+            viewBox="0 0 1080 130"
             preserveAspectRatio="none"
-            className="absolute inset-x-0 -top-[34px] h-[70px] w-full"
+            className="absolute inset-x-0 -top-[92px] h-[150px] w-full"
           >
+            {/* Back — faint, slow, wide rounded swells */}
+            <g className="animate-wave-slow">
+              <path
+                d="M-120 95 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 q30 -34 60 0 q30 -52 60 0 V130 H-120 Z"
+                fill="rgba(87,146,156,.35)"
+              />
+            </g>
+            {/* Mid — medium, mixed widths */}
             <g className="animate-wave">
               <path
-                d="M-120 32 q30 -11 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
+                d="M-120 95 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 q20 -60 40 0 q40 -30 80 0 V130 H-120 Z"
                 fill="rgba(87,146,156,.55)"
               />
             </g>
+            {/* Front — solid, fast, tall spiky crests of varied height */}
             <g className="animate-wave-fast">
               <path
-                d="M-120 28 q30 -14 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V70 H-120 Z"
+                d="M-120 95 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 V130 H-120 Z"
                 fill="#57929c"
               />
             </g>
