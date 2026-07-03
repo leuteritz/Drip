@@ -55,6 +55,13 @@ body {
   background: rgba(147, 183, 190, 0.45);
 }
 
+/* Native dropdown lists of the header's glass selects: without this the options
+   inherit cream text on the OS default white popup and become invisible */
+.faucet-select option {
+  background-color: var(--color-teal);
+  color: var(--color-cream);
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-sand) transparent;
@@ -156,7 +163,7 @@ body {
     opacity: 0.45;
   }
   100% {
-    transform: translateY(-230px) scale(0.35);
+    transform: translateY(-300px) scale(0.35);
     opacity: 0;
   }
 }
@@ -190,7 +197,7 @@ body {
     opacity: 0.4;
   }
   100% {
-    transform: translateY(-340px) scale(0.3);
+    transform: translateY(-460px) scale(0.3);
     opacity: 0;
   }
 }

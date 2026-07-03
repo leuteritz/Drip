@@ -57,6 +57,12 @@ const BUBBLES: {
   { left: "84%", bottom: "6px", size: "13px", color: "rgba(241,255,250,.35)", duration: "7.8s", delay: "1.6s", kind: "tall" },
   { left: "90%", bottom: "8px", size: "5px", color: "rgba(241,255,250,.5)", duration: "4.6s", delay: "1.8s", kind: "short" },
   { left: "96%", bottom: "10px", size: "6px", color: "rgba(241,255,250,.48)", duration: "5.8s", delay: ".4s" },
+  { left: "8%", bottom: "6px", size: "8px", color: "rgba(241,255,250,.42)", duration: "8.4s", delay: "1.9s", kind: "tall" },
+  { left: "30%", bottom: "10px", size: "6px", color: "rgba(241,255,250,.46)", duration: "7.9s", delay: ".3s", kind: "tall" },
+  { left: "51%", bottom: "8px", size: "9px", color: "rgba(241,255,250,.4)", duration: "8.6s", delay: "2.7s", kind: "tall" },
+  { left: "59%", bottom: "12px", size: "5px", color: "rgba(241,255,250,.5)", duration: "6.4s", delay: "1.2s" },
+  { left: "74%", bottom: "6px", size: "10px", color: "rgba(241,255,250,.38)", duration: "8.2s", delay: "3.9s", kind: "tall" },
+  { left: "87%", bottom: "10px", size: "7px", color: "rgba(241,255,250,.44)", duration: "7.7s", delay: "2.2s", kind: "tall" },
 ];
 
 /**
@@ -317,7 +323,7 @@ function Reservoir({ performance }: { performance: Performance | null }) {
           </div>
           <div className="mt-3.5 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1 text-[15px] font-bold [text-shadow:0_1px_8px_rgba(0,0,0,0.25)] md:text-[17px]">
             <span
-              className={`inline-flex items-center gap-1.5 ${profitable ? "text-cream" : "text-rose"}`}
+              className={`inline-flex items-center gap-1.5 ${profitable ? "text-cream" : "text-rose-soft"}`}
             >
               {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
               {profitable ? "+" : ""}
@@ -762,7 +768,7 @@ function FaucetControls({
                   onChange={(e) =>
                     save({ schedule_weekday: Number(e.target.value) })
                   }
-                  className={`${field} cursor-pointer`}
+                  className={`${field} faucet-select cursor-pointer`}
                 >
                   {WEEKDAYS.map((day, idx) => (
                     <option key={day} value={idx}>
@@ -832,7 +838,7 @@ function FaucetControls({
                     const days = Number(e.target.value);
                     if (days > 0) onPause(days);
                   }}
-                  className={`${field} cursor-pointer`}
+                  className={`${field} faucet-select cursor-pointer`}
                 >
                   {PAUSE_OPTIONS.map((p) => (
                     <option key={p.days} value={p.days}>
