@@ -299,8 +299,6 @@ export default function SiteHeader({
               balance={balance}
               settings={settings}
               indicators={indicators}
-              status={status}
-              onOpenBuy={() => setBuyOpen(true)}
             />
             <NextBuyActions
               indicators={indicators}
@@ -308,9 +306,11 @@ export default function SiteHeader({
               status={status}
               onTestBuy={onTestBuy}
               onSimulate={onSimulate}
+              onBuy={() => setBuyOpen(true)}
               onTogglePanel={() => setPanelOpen((v) => !v)}
               panelOpen={panelOpen}
               running={running}
+              buying={buying}
             />
           </div>
 
@@ -600,20 +600,16 @@ function BtcReadout({
  * The Coinbase "well" — the source that feeds the reservoir. Shows the EUR
  * balance available for buying, the BTC held on Coinbase, and a water-level
  * runway bar: how many scheduled drips the well still covers at today's
- * potency. "Pour now" opens the manual buy dialog.
+ * potency. Buying lives in the Next-buy card.
  */
 function WellReadout({
   balance,
   settings,
   indicators,
-  status,
-  onOpenBuy,
 }: {
   balance: AccountBalance | null;
   settings: BotSettings | null;
   indicators: Indicators | null;
-  status: BotStatus | null;
-  onOpenBuy: () => void;
 }) {
   const eur = balance?.configured ? balance.eur_available : null;
   const nextAmount =
@@ -630,8 +626,6 @@ function WellReadout({
     eur != null && settings
       ? Math.max(0, Math.min(1, eur / (settings.base_amount_eur * 10)))
       : 0;
-  // A dry-run pour works without API keys; live pours need them.
-  const canPour = status != null && (status.dry_run || status.has_credentials);
 
   return (
     <div className={`${FROST_CARD} w-[210px]`}>
@@ -680,22 +674,15 @@ function WellReadout({
           </div>
         </>
       )}
-      <button
-        type="button"
-        onClick={onOpenBuy}
-        disabled={!canPour}
-        className="mt-2.5 flex items-center justify-center gap-1.5 self-stretch rounded-full bg-cream/20 py-[7px] text-[11px] font-bold text-cream transition hover:bg-cream/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream disabled:opacity-50"
-      >
-        <DropHalfBottomIcon />
-        {status?.dry_run ? "Test pour" : "Pour now"}
-      </button>
     </div>
   );
 }
 
 /**
- * Next scheduled buy — now a button that opens the faucet control bar — plus the
- * dry-run test and simulate actions.
+ * Next scheduled buy — now a button that opens the faucet control bar — plus
+ * the dry-run test, manual buy and simulate actions. Buy uses the same simple
+ * mechanic as the bot (a market buy for an amount) via ManualBuyDialog; in
+ * live mode it turns rose to signal real money.
  */
 function NextBuyActions({
   indicators,
@@ -703,19 +690,24 @@ function NextBuyActions({
   status,
   onTestBuy,
   onSimulate,
+  onBuy,
   onTogglePanel,
   panelOpen,
   running,
+  buying,
 }: {
   indicators: Indicators | null;
   settings: BotSettings | null;
   status: BotStatus | null;
   onTestBuy: () => void;
   onSimulate: () => void;
+  onBuy: () => void;
   onTogglePanel: () => void;
   panelOpen: boolean;
   running: boolean;
+  buying: boolean;
 }) {
+  const live = status != null && !status.dry_run;
   const nextWhen = status?.next_run
     ? formatDateTime(status.next_run)
     : settings
@@ -743,10 +735,23 @@ function NextBuyActions({
           <PlayIcon /> {running ? "Testing…" : "Test"}
         </button>
         <button
-          onClick={onSimulate}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal/14 py-[7px] text-[11px] font-bold text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+          onClick={onBuy}
+          disabled={buying}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-[7px] text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 ${
+            live
+              ? "bg-rose text-cream hover:opacity-90 focus-visible:outline-rose"
+              : "bg-teal/14 text-teal hover:bg-teal/20 focus-visible:outline-teal"
+          }`}
         >
-          <ChartLineUpIcon /> Sim
+          <DropHalfBottomIcon /> {buying ? "Buying…" : "Buy"}
+        </button>
+        <button
+          onClick={onSimulate}
+          aria-label="Simulate the strategy"
+          title="Simulate"
+          className="flex w-8 flex-none items-center justify-center rounded-full bg-teal/14 text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+        >
+          <ChartLineUpIcon className="text-sm" />
         </button>
         <button
           type="button"
