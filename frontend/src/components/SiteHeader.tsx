@@ -33,7 +33,7 @@ export const NAV: { id: Section; label: string; Icon: typeof DropFillIcon }[] = 
   { id: "history", label: "History", Icon: ListDashesIcon },
 ];
 
-/** Rising bubbles for the tank — position, size, tempo and delay per the design. */
+/** Rising bubbles for the tank — position, size, tempo, delay and climb height. */
 const BUBBLES: {
   left: string;
   bottom: string;
@@ -41,14 +41,22 @@ const BUBBLES: {
   color: string;
   duration: string;
   delay: string;
-  short?: boolean;
+  kind?: "short" | "tall";
 }[] = [
+  { left: "4%", bottom: "10px", size: "7px", color: "rgba(241,255,250,.48)", duration: "6.2s", delay: "2.8s" },
   { left: "12%", bottom: "12px", size: "9px", color: "rgba(241,255,250,.5)", duration: "6.5s", delay: ".2s" },
-  { left: "26%", bottom: "6px", size: "6px", color: "rgba(241,255,250,.45)", duration: "5s", delay: "1.4s", short: true },
+  { left: "19%", bottom: "5px", size: "5px", color: "rgba(241,255,250,.45)", duration: "7.6s", delay: "1.1s", kind: "tall" },
+  { left: "26%", bottom: "6px", size: "6px", color: "rgba(241,255,250,.45)", duration: "5s", delay: "1.4s", kind: "short" },
+  { left: "34%", bottom: "14px", size: "11px", color: "rgba(241,255,250,.38)", duration: "8s", delay: "3.2s", kind: "tall" },
+  { left: "41%", bottom: "8px", size: "4px", color: "rgba(241,255,250,.5)", duration: "4.5s", delay: ".7s", kind: "short" },
   { left: "47%", bottom: "10px", size: "12px", color: "rgba(241,255,250,.4)", duration: "7.4s", delay: ".9s" },
-  { left: "63%", bottom: "4px", size: "7px", color: "rgba(241,255,250,.5)", duration: "5.6s", delay: "2.1s", short: true },
+  { left: "55%", bottom: "4px", size: "8px", color: "rgba(241,255,250,.44)", duration: "6.8s", delay: "2.4s", kind: "tall" },
+  { left: "63%", bottom: "4px", size: "7px", color: "rgba(241,255,250,.5)", duration: "5.6s", delay: "2.1s", kind: "short" },
+  { left: "70%", bottom: "12px", size: "5px", color: "rgba(241,255,250,.46)", duration: "5.4s", delay: "3.5s" },
   { left: "78%", bottom: "14px", size: "10px", color: "rgba(241,255,250,.42)", duration: "6.9s", delay: ".5s" },
-  { left: "90%", bottom: "8px", size: "5px", color: "rgba(241,255,250,.5)", duration: "4.6s", delay: "1.8s", short: true },
+  { left: "84%", bottom: "6px", size: "13px", color: "rgba(241,255,250,.35)", duration: "7.8s", delay: "1.6s", kind: "tall" },
+  { left: "90%", bottom: "8px", size: "5px", color: "rgba(241,255,250,.5)", duration: "4.6s", delay: "1.8s", kind: "short" },
+  { left: "96%", bottom: "10px", size: "6px", color: "rgba(241,255,250,.48)", duration: "5.8s", delay: ".4s" },
 ];
 
 /**
@@ -176,9 +184,13 @@ export default function SiteHeader({
             {BUBBLES.map((b, i) => (
               <span
                 key={i}
-                className={
-                  b.short ? "animate-bubble-short absolute rounded-full" : "animate-bubble absolute rounded-full"
-                }
+                className={`absolute rounded-full ${
+                  b.kind === "short"
+                    ? "animate-bubble-short"
+                    : b.kind === "tall"
+                      ? "animate-bubble-tall"
+                      : "animate-bubble"
+                }`}
                 style={{
                   left: b.left,
                   bottom: b.bottom,
@@ -392,7 +404,7 @@ function ModeToggle({
 
 /** Shared frosted-glass chip that floats the stat read-outs on the waterline. */
 const FROST_CARD =
-  "flex flex-col rounded-[18px] border border-cream/45 bg-cream/[0.22] px-[18px] py-[15px] text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-[9px]";
+  "flex flex-col items-center justify-center text-center rounded-[18px] border border-cream/45 bg-cream/25 px-[18px] py-[15px] text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-md";
 
 /** Score: five potency drops, the score fraction, and the buy multiplier. */
 function ScoreReadout({ indicators }: { indicators: Indicators }) {
@@ -449,16 +461,14 @@ function RsiReadout({ indicators }: { indicators: Indicators }) {
   const pos = Math.max(0, Math.min(100, rsi));
 
   return (
-    <div className={`${FROST_CARD} w-[210px] justify-center`}>
-      <div className="mb-3 flex items-baseline justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-cream/72">
-          RSI &middot; {rsiLabel}
-        </span>
-        <span className="font-display text-[26px] font-semibold leading-none">
-          {rsi}
-        </span>
+    <div className={`${FROST_CARD} w-[210px]`}>
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-cream/72">
+        RSI &middot; {rsiLabel}
       </div>
-      <div className="relative h-2 rounded-full bg-cream/22">
+      <div className="mt-1 font-display text-3xl font-semibold leading-none">
+        {rsi}
+      </div>
+      <div className="relative mt-3 h-2 w-full self-stretch rounded-full bg-cream/22">
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-cream"
           style={{ width: `${pos}%` }}
@@ -468,7 +478,7 @@ function RsiReadout({ indicators }: { indicators: Indicators }) {
           style={{ left: `${pos}%` }}
         />
       </div>
-      <div className="mt-2 flex justify-between text-[9px] font-semibold text-cream/50">
+      <div className="mt-2 flex w-full justify-between text-[9px] font-semibold text-cream/50">
         <span>Oversold</span>
         <span>Overbought</span>
       </div>
@@ -512,7 +522,7 @@ function BtcReadout({
   performance: Performance | null;
 }) {
   return (
-    <div className={`${FROST_CARD} w-[210px] justify-center`}>
+    <div className={`${FROST_CARD} w-[210px]`}>
       <div className="text-[10px] font-bold uppercase tracking-[0.13em] text-cream/72">
         BTC price
       </div>
@@ -562,26 +572,26 @@ function NextBuyActions({
       : "—";
 
   return (
-    <div className="flex w-[210px] flex-col rounded-[18px] bg-cream px-[18px] py-[15px] shadow-[0_18px_38px_-16px_rgba(0,0,0,.55)]">
+    <div className="flex w-[210px] flex-col items-center rounded-[18px] bg-cream px-[18px] py-[15px] text-center shadow-[0_18px_38px_-16px_rgba(0,0,0,.55)]">
       <button
         type="button"
         onClick={onTogglePanel}
         aria-expanded={panelOpen}
         aria-label="Adjust the next buy"
-        className="flex items-center gap-1.5 rounded-md text-left text-[10px] font-bold uppercase tracking-[0.1em] text-[#5c8a91] transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+        className="flex items-center justify-center gap-1.5 rounded-md text-[10px] font-bold uppercase tracking-[0.1em] text-[#5c8a91] transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
       >
         <span className="whitespace-nowrap">Next buy &middot; {nextWhen}</span>
         <span className="rounded-full bg-teal px-1.5 py-px text-[8px] tracking-[0.05em] text-cream">
           ADJUST
         </span>
         <CaretDownIcon
-          className={`ml-auto text-sm transition-transform duration-300 ${panelOpen ? "rotate-180" : ""}`}
+          className={`text-sm transition-transform duration-300 ${panelOpen ? "rotate-180" : ""}`}
         />
       </button>
       <div className="mt-1 font-display text-3xl font-semibold leading-none text-[#2f5a63]">
         {nextAmount}
       </div>
-      <div className="mt-3 flex gap-1.5">
+      <div className="mt-3 flex gap-1.5 self-stretch">
         <button
           onClick={onTestBuy}
           disabled={running}
@@ -661,26 +671,47 @@ function FaucetControls({
     new Date(settings.paused_until) >= new Date(new Date().toDateString());
 
   const field =
-    "rounded-lg border border-cream/30 bg-cream/15 px-2.5 py-1.5 text-[13px] font-bold text-cream outline-none [color-scheme:dark] focus:border-cream/70";
+    "rounded-xl border border-cream/30 bg-cream/15 px-3 py-2 text-[13px] font-bold text-cream outline-none [color-scheme:dark] focus:border-cream/70";
   const stepBtn =
-    "flex h-7 w-7 items-center justify-center rounded-lg bg-cream/15 text-lg leading-none text-cream transition hover:bg-cream/30";
-  const groupLabel =
+    "flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-lg leading-none text-cream transition hover:bg-cream/30";
+  const tile =
+    "flex flex-col items-center gap-2.5 rounded-2xl border border-cream/15 bg-cream/10 p-4 text-center";
+  const tileLabel =
     "text-[10px] font-bold uppercase tracking-[0.14em] text-cream/60";
-  const barDivider = "h-8 w-px bg-cream/20 max-md:hidden";
 
   return (
     <div
       className={`overflow-hidden transition-[max-height,opacity,margin-top] duration-400 ${
-        open ? "mt-4 max-h-[520px] opacity-100" : "mt-0 max-h-0 opacity-0"
+        open ? "mt-4 max-h-[640px] opacity-100" : "mt-0 max-h-0 opacity-0"
       }`}
     >
-      <div className="mx-auto flex max-w-[1000px] flex-wrap items-center justify-center gap-x-1 gap-y-2 rounded-[20px] border border-cream/20 bg-teal/95 p-2.5 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md">
+      <div className="mx-auto max-w-[880px] rounded-3xl border border-cream/20 bg-teal/95 p-4 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md md:p-5">
+        {/* Header: title · saved feedback · close */}
+        <div className="mb-3.5 flex items-center gap-2.5">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-cream/70">
+            Adjust your drip
+          </span>
+          {saved && (
+            <span className="inline-flex items-center rounded-full bg-cream/90 px-2.5 py-0.5 text-[11px] font-bold text-teal">
+              Saved &#10003;
+            </span>
+          )}
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 text-cream transition hover:bg-cream/30"
+          >
+            <XIcon className="text-sm" />
+          </button>
+        </div>
+
         {settings ? (
-          <>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {/* Amount */}
-            <div className="flex items-center gap-2.5 px-4 py-1.5">
-              <span className={groupLabel}>Drip</span>
-              <div className="flex items-center gap-1.5">
+            <div className={tile}>
+              <span className={tileLabel}>Amount</span>
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   aria-label="Less"
@@ -693,7 +724,7 @@ function FaucetControls({
                 >
                   &minus;
                 </button>
-                <span className="min-w-[56px] text-center font-display text-xl font-semibold">
+                <span className="min-w-[64px] text-center font-display text-2xl font-semibold">
                   {fmtEur(settings.base_amount_eur, 0)}
                 </span>
                 <button
@@ -713,7 +744,7 @@ function FaucetControls({
                 </button>
               </div>
               {indicators && (
-                <span className="whitespace-nowrap text-xs text-cream/72">
+                <span className="text-xs text-cream/72">
                   &times; {indicators.multiplier} &rarr;{" "}
                   <b>
                     {fmtEur(settings.base_amount_eur * indicators.multiplier)}
@@ -722,52 +753,52 @@ function FaucetControls({
               )}
             </div>
 
-            <div className={barDivider} />
-
             {/* Schedule */}
-            <div className="flex items-center gap-2 px-4 py-1.5">
-              <span className={groupLabel}>Every</span>
-              <select
-                value={settings.schedule_weekday}
-                onChange={(e) =>
-                  save({ schedule_weekday: Number(e.target.value) })
-                }
-                className={`${field} cursor-pointer`}
-              >
-                {WEEKDAYS.map((day, idx) => (
-                  <option key={day} value={idx}>
-                    {day}
-                  </option>
-                ))}
-              </select>
-              <span className="text-xs text-cream/60">at</span>
-              <input
-                type="time"
-                value={settings.schedule_time}
-                onChange={(e) => save({ schedule_time: e.target.value })}
-                className={field}
-              />
+            <div className={tile}>
+              <span className={tileLabel}>Schedule</span>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <select
+                  value={settings.schedule_weekday}
+                  onChange={(e) =>
+                    save({ schedule_weekday: Number(e.target.value) })
+                  }
+                  className={`${field} cursor-pointer`}
+                >
+                  {WEEKDAYS.map((day, idx) => (
+                    <option key={day} value={idx}>
+                      {day}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs text-cream/60">at</span>
+                <input
+                  type="time"
+                  value={settings.schedule_time}
+                  onChange={(e) => save({ schedule_time: e.target.value })}
+                  className={field}
+                />
+              </div>
             </div>
 
-            <div className={barDivider} />
-
             {/* Discord */}
-            <div className="flex items-center gap-2 px-4 py-1.5">
-              <span className={groupLabel}>Discord</span>
-              <MiniToggle
-                checked={settings.discord_enabled}
-                onChange={(v) => save({ discord_enabled: v })}
-              />
-              <button
-                type="button"
-                aria-label="Send test message"
-                title="Send test message"
-                onClick={testWebhook}
-                disabled={testing}
-                className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
-              >
-                <PaperPlaneIcon className="text-sm" />
-              </button>
+            <div className={tile}>
+              <span className={tileLabel}>Discord</span>
+              <div className="flex items-center gap-2.5">
+                <MiniToggle
+                  checked={settings.discord_enabled}
+                  onChange={(v) => save({ discord_enabled: v })}
+                />
+                <button
+                  type="button"
+                  aria-label="Send test message"
+                  title="Send test message"
+                  onClick={testWebhook}
+                  disabled={testing}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
+                >
+                  <PaperPlaneIcon className="text-sm" />
+                </button>
+              </div>
               {webhookSent && (
                 <span className="text-[11px] font-bold text-cream">
                   Sent &#10003;
@@ -775,13 +806,11 @@ function FaucetControls({
               )}
             </div>
 
-            <div className={barDivider} />
-
             {/* Pause */}
-            <div className="flex items-center gap-2 px-4 py-1.5">
-              <span className={groupLabel}>Pause</span>
+            <div className={tile}>
+              <span className={tileLabel}>Pause</span>
               {isPaused ? (
-                <>
+                <div className="flex flex-wrap items-center justify-center gap-2">
                   <span className="inline-flex items-center rounded-full bg-rose/60 px-2.5 py-1 text-xs font-bold text-cream">
                     until{" "}
                     {new Date(settings.paused_until!).toLocaleDateString(
@@ -791,11 +820,11 @@ function FaucetControls({
                   <button
                     type="button"
                     onClick={onResume}
-                    className="flex items-center gap-1 rounded-lg bg-cream px-3 py-1.5 text-xs font-bold text-teal transition hover:bg-white"
+                    className="flex items-center gap-1 rounded-xl bg-cream px-3 py-1.5 text-xs font-bold text-teal transition hover:bg-white"
                   >
                     <PlayIcon /> Resume
                   </button>
-                </>
+                </div>
               ) : (
                 <select
                   value={0}
@@ -813,28 +842,9 @@ function FaucetControls({
                 </select>
               )}
             </div>
-
-            <div className={barDivider} />
-
-            {/* Saved flag + close */}
-            <div className="flex items-center gap-2 py-1.5 pl-2 pr-2.5">
-              {saved && (
-                <span className="inline-flex items-center rounded-full bg-cream/90 px-2.5 py-1 text-[11px] font-bold text-teal">
-                  Saved &#10003;
-                </span>
-              )}
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={onClose}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-cream/15 text-cream transition hover:bg-cream/30"
-              >
-                <XIcon className="text-sm" />
-              </button>
-            </div>
-          </>
+          </div>
         ) : (
-          <div className="px-4 py-3 text-xs font-bold text-cream/70">
+          <div className="px-4 py-3 text-center text-xs font-bold text-cream/70">
             Loading settings…
           </div>
         )}

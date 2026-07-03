@@ -178,12 +178,33 @@ body {
   }
 }
 
+@keyframes bubble-tall {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.65;
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-340px) scale(0.3);
+    opacity: 0;
+  }
+}
+
 .animate-bubble {
   animation: bubble 6.5s ease-in infinite;
 }
 
 .animate-bubble-short {
   animation: bubble-short 5s ease-in infinite;
+}
+
+.animate-bubble-tall {
+  animation: bubble-tall 7.5s ease-in infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -194,7 +215,8 @@ body {
   .animate-wave-fast,
   .animate-swell,
   .animate-bubble,
-  .animate-bubble-short {
+  .animate-bubble-short,
+  .animate-bubble-tall {
     animation: none;
   }
 }
