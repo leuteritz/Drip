@@ -14,7 +14,7 @@ from sqlmodel import Session
 from . import scheduler
 from .config import STATIC_DIR
 from .database import engine, init_db, load_settings
-from .routers import bot, market, purchases, settings, simulate, stats
+from .routers import account, bot, market, purchases, settings, simulate, stats
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,6 +33,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Drip", version="1.0.0", lifespan=lifespan)
 
+app.include_router(account.router)
 app.include_router(settings.router)
 app.include_router(purchases.router)
 app.include_router(market.router)

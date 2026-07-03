@@ -7,7 +7,7 @@ from .. import scheduler
 from ..bot import is_paused
 from ..config import config
 from ..database import get_session, load_settings
-from ..schemas import RunRequest
+from ..schemas import ManualBuyRequest, RunRequest
 
 router = APIRouter(prefix="/api/bot", tags=["bot"])
 
@@ -31,6 +31,20 @@ def run_now(request: RunRequest):
     try:
         return bot_runner.run_purchase(
             dry_run_override=request.dry_run, triggered_by="manual"
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+
+@router.post("/buy")
+def buy_now(request: ManualBuyRequest):
+    """Manual buy with a fixed EUR amount. Respects the stored dry_run
+    setting unless explicitly overridden."""
+    try:
+        return bot_runner.run_purchase(
+            dry_run_override=request.dry_run,
+            triggered_by="manual",
+            amount_eur_override=request.amount_eur,
         )
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc))

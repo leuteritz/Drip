@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   api,
+  type AccountBalance,
   type BotSettings,
   type BotStatus,
   type Indicators,
@@ -21,7 +22,9 @@ export default function App() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [performance, setPerformance] = useState<Performance | null>(null);
   const [includeDryRun, setIncludeDryRun] = useState(true);
+  const [balance, setBalance] = useState<AccountBalance | null>(null);
   const [running, setRunning] = useState(false);
+  const [buying, setBuying] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showSim, setShowSim] = useState(false);
 
@@ -33,6 +36,9 @@ export default function App() {
   }, []);
   const loadPerformance = useCallback((dry: boolean) => {
     api.getPerformance(dry).then(setPerformance).catch(() => {});
+  }, []);
+  const reloadBalance = useCallback(() => {
+    api.getBalance().then(setBalance).catch(() => {});
   }, []);
 
   const onToggleDryRun = useCallback(
@@ -107,6 +113,26 @@ export default function App() {
     }
   }, [includeDryRun, loadPerformance, reloadPurchases]);
 
+  // Manual buy from the header's Well card; respects the stored dry_run
+  // setting (the dialog only reflects it). Refresh the balance afterwards —
+  // a real buy drains the Coinbase well.
+  const buyNow = useCallback(
+    async (amountEur: number) => {
+      setBuying(true);
+      setRunResult(null);
+      try {
+        const result = await api.buyNow(amountEur);
+        setRunResult(result);
+        reloadPurchases();
+        loadPerformance(includeDryRun);
+        reloadBalance();
+      } finally {
+        setBuying(false);
+      }
+    },
+    [includeDryRun, loadPerformance, reloadBalance, reloadPurchases],
+  );
+
   useEffect(() => {
     (async () => {
       const [st, set, purch] = await Promise.all([
@@ -118,10 +144,11 @@ export default function App() {
       if (set) setSettings(set);
       setPurchases(purch);
       loadPerformance(true);
+      reloadBalance();
       // Indicators last: the first call may fetch 350 days of candles.
       api.getIndicators().then(setIndicators).catch(() => {});
     })();
-  }, [loadPerformance]);
+  }, [loadPerformance, reloadBalance]);
 
   return (
     <div className="h-full bg-cream">
@@ -135,9 +162,12 @@ export default function App() {
           settings={settings}
           indicators={indicators}
           performance={performance}
+          balance={balance}
           scrollRef={scrollRef}
           onSimulate={() => setShowSim(true)}
           onTestBuy={testBuy}
+          onBuyNow={buyNow}
+          buying={buying}
           onSetDryRun={setDryRun}
           onSaveSettings={saveSettings}
           onPause={pause}

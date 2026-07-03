@@ -82,6 +82,13 @@ export interface ComparisonPoint {
   dca_invested: number;
 }
 
+export interface AccountBalance {
+  configured: boolean;
+  eur_available: number | null;
+  btc_available: number | null;
+  error: string | null;
+}
+
 export interface RunResult {
   skipped: boolean;
   reason?: string;
@@ -144,6 +151,14 @@ export const api = {
     request<RunResult>("/api/bot/run", {
       method: "POST",
       body: JSON.stringify({ dry_run: dryRun }),
+    }),
+  getBalance: () => request<AccountBalance>("/api/account/balance"),
+  // Manual buy with a fixed amount; dry_run stays null so the stored
+  // setting decides — going live only happens via the LiveModeDialog flow.
+  buyNow: (amountEur: number) =>
+    request<RunResult>("/api/bot/buy", {
+      method: "POST",
+      body: JSON.stringify({ amount_eur: amountEur, dry_run: null }),
     }),
   getPurchases: () => request<Purchase[]>("/api/purchases"),
   getIndicators: () => request<Indicators>("/api/market/indicators"),

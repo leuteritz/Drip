@@ -5,6 +5,7 @@ API key, so the dashboard and dry runs work without credentials.
 Only real orders require the authenticated SDK client.
 """
 import logging
+import time as time_module
 import uuid
 from datetime import datetime, time, timedelta, timezone
 
@@ -96,9 +97,8 @@ def ensure_candles(session: Session, days: int) -> list[Candle]:
     return list(result)
 
 
-def place_market_buy(amount_eur: float) -> tuple[str, str]:
-    """Places a real market buy. Returns (order_id, status).
-    Raises CoinbaseError on failure."""
+def _rest_client():
+    """Authenticated SDK client. Raises CoinbaseError without credentials."""
     if not config.has_coinbase_credentials:
         raise CoinbaseError(
             "No Coinbase credentials configured in backend/.env "
@@ -107,10 +107,70 @@ def place_market_buy(amount_eur: float) -> tuple[str, str]:
 
     from coinbase.rest import RESTClient
 
-    client = RESTClient(
+    return RESTClient(
         api_key=config.coinbase_api_key,
         api_secret=config.api_secret_normalized,
     )
+
+
+def _balance_value(account) -> float:
+    balance = getattr(account, "available_balance", None)
+    if balance is None:
+        return 0.0
+    value = balance.get("value") if isinstance(balance, dict) else getattr(balance, "value", None)
+    return float(value) if value is not None else 0.0
+
+
+def get_balances() -> dict:
+    """Available EUR and BTC balances on the Coinbase account.
+    Raises CoinbaseError without credentials or on API failure."""
+    client = _rest_client()
+    balances = {"eur_available": 0.0, "btc_available": 0.0}
+    wanted = {"EUR": "eur_available", "BTC": "btc_available"}
+
+    try:
+        cursor = None
+        while wanted:
+            resp = client.get_accounts(limit=250, cursor=cursor)
+            for account in getattr(resp, "accounts", []) or []:
+                key = wanted.pop(getattr(account, "currency", None), None)
+                if key:
+                    balances[key] = _balance_value(account)
+            cursor = getattr(resp, "cursor", None)
+            if not getattr(resp, "has_next", False) or not cursor:
+                break
+    except CoinbaseError:
+        raise
+    except Exception as exc:
+        raise CoinbaseError(f"Balance fetch failed: {exc}")
+
+    return balances
+
+
+_balance_cache: tuple[float, dict] | None = None
+
+
+def get_balances_cached(max_age: float = 30.0) -> dict:
+    """get_balances with a short TTL cache so header refreshes don't
+    hammer the authenticated endpoint."""
+    global _balance_cache
+    now = time_module.monotonic()
+    if _balance_cache is not None and now - _balance_cache[0] < max_age:
+        return _balance_cache[1]
+    data = get_balances()
+    _balance_cache = (now, data)
+    return data
+
+
+def invalidate_balance_cache() -> None:
+    global _balance_cache
+    _balance_cache = None
+
+
+def place_market_buy(amount_eur: float) -> tuple[str, str]:
+    """Places a real market buy. Returns (order_id, status).
+    Raises CoinbaseError on failure."""
+    client = _rest_client()
     order = client.market_order_buy(
         client_order_id=str(uuid.uuid4()),
         product_id=PRODUCT_ID,
@@ -119,6 +179,7 @@ def place_market_buy(amount_eur: float) -> tuple[str, str]:
 
     # CreateOrderResponse is an object, not a dict
     if getattr(order, "success", False):
+        invalidate_balance_cache()
         success = order.success_response
         order_id = getattr(success, "order_id", None) or (
             success.get("order_id") if isinstance(success, dict) else "unknown"

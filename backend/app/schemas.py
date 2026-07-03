@@ -20,3 +20,8 @@ class PauseRequest(BaseModel):
 
 class RunRequest(BaseModel):
     dry_run: Optional[bool] = None  # None = use the stored setting
+
+
+class ManualBuyRequest(BaseModel):
+    amount_eur: float = Field(ge=1, le=10_000)  # Coinbase min order ~1 EUR
+    dry_run: Optional[bool] = None  # None = use the stored setting

@@ -1,7 +1,9 @@
 import { useEffect, useState, type ReactNode, type RefObject } from "react";
 import CaretDownIcon from "~icons/ph/caret-down";
 import ChartLineUpIcon from "~icons/ph/chart-line-up";
+import CoinsIcon from "~icons/ph/coins";
 import DropFillIcon from "~icons/ph/drop-fill";
+import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
 import DropSlashIcon from "~icons/ph/drop-slash";
 import FlaskIcon from "~icons/ph/flask";
 import KeyIcon from "~icons/ph/key";
@@ -17,6 +19,7 @@ import {
   fmtEur,
   fmtPct,
   WEEKDAYS,
+  type AccountBalance,
   type BotSettings,
   type Indicators,
   type Performance,
@@ -25,6 +28,7 @@ import {
 } from "../api/client";
 import { potencyFromMultiplier } from "./drops";
 import LiveModeDialog from "./LiveModeDialog";
+import ManualBuyDialog from "./ManualBuyDialog";
 
 export type Section = "overview" | "history";
 
@@ -79,35 +83,42 @@ export default function SiteHeader({
   settings,
   indicators,
   performance,
+  balance,
   scrollRef,
   onSimulate,
   onTestBuy,
+  onBuyNow,
   onSetDryRun,
   onSaveSettings,
   onPause,
   onResume,
   onTestWebhook,
   running,
+  buying,
   runResult,
 }: {
   status: BotStatus | null;
   settings: BotSettings | null;
   indicators: Indicators | null;
   performance: Performance | null;
+  balance: AccountBalance | null;
   scrollRef: RefObject<HTMLDivElement | null>;
   onSimulate: () => void;
   onTestBuy: () => void;
+  onBuyNow: (amountEur: number) => Promise<void>;
   onSetDryRun: (dry: boolean) => void;
   onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
   running: boolean;
+  buying: boolean;
   runResult: RunResult | null;
 }) {
   const active = useScrollSpy(scrollRef);
   const scrolled = useScrolled(scrollRef);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [buyOpen, setBuyOpen] = useState(false);
 
   const jumpTo = (id: Section) => {
     document
@@ -284,6 +295,13 @@ export default function SiteHeader({
               </>
             )}
             <BtcReadout indicators={indicators} performance={performance} />
+            <WellReadout
+              balance={balance}
+              settings={settings}
+              indicators={indicators}
+              status={status}
+              onOpenBuy={() => setBuyOpen(true)}
+            />
             <NextBuyActions
               indicators={indicators}
               settings={settings}
@@ -311,13 +329,27 @@ export default function SiteHeader({
           {runResult?.analysis && (
             <div className="mt-5 flex justify-center">
               <div className="rounded-lg bg-cream/85 px-3 py-1.5 text-xs font-bold text-teal shadow-sm">
-                {runResult.analysis.signal} &middot; would buy{" "}
+                {runResult.analysis.signal} &middot;{" "}
+                {runResult.purchase && !runResult.purchase.dry_run
+                  ? "bought"
+                  : "would buy"}{" "}
                 {fmtEur(runResult.purchase?.amount_eur ?? 0)}
               </div>
             </div>
           )}
         </div>
       </section>
+
+      {buyOpen && settings && status && (
+        <ManualBuyDialog
+          settings={settings}
+          status={status}
+          balance={balance}
+          buying={buying}
+          onCancel={() => setBuyOpen(false)}
+          onConfirm={onBuyNow}
+        />
+      )}
     </>
   );
 }
@@ -560,6 +592,103 @@ function BtcReadout({
           ? `350‑day avg ${fmtEur(indicators.ma_350, 0)} · ${fmtPct(indicators.ma_distance_pct)}`
           : "—"}
       </div>
+    </div>
+  );
+}
+
+/**
+ * The Coinbase "well" — the source that feeds the reservoir. Shows the EUR
+ * balance available for buying, the BTC held on Coinbase, and a water-level
+ * runway bar: how many scheduled drips the well still covers at today's
+ * potency. "Pour now" opens the manual buy dialog.
+ */
+function WellReadout({
+  balance,
+  settings,
+  indicators,
+  status,
+  onOpenBuy,
+}: {
+  balance: AccountBalance | null;
+  settings: BotSettings | null;
+  indicators: Indicators | null;
+  status: BotStatus | null;
+  onOpenBuy: () => void;
+}) {
+  const eur = balance?.configured ? balance.eur_available : null;
+  const nextAmount =
+    settings && indicators
+      ? settings.base_amount_eur * indicators.multiplier
+      : null;
+  const buysLeft =
+    eur != null && nextAmount != null && nextAmount > 0
+      ? Math.floor(eur / nextAmount)
+      : null;
+  const runningDry = buysLeft != null && buysLeft <= 2;
+  // Water level: full when the well covers ~10 base buys.
+  const level =
+    eur != null && settings
+      ? Math.max(0, Math.min(1, eur / (settings.base_amount_eur * 10)))
+      : 0;
+  // A dry-run pour works without API keys; live pours need them.
+  const canPour = status != null && (status.dry_run || status.has_credentials);
+
+  return (
+    <div className={`${FROST_CARD} w-[210px]`}>
+      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.13em] text-cream/72">
+        <CoinsIcon className="text-xs" /> Coinbase well
+      </div>
+      {balance === null ? (
+        <>
+          <div className="mt-2 h-7 w-24 animate-pulse rounded-lg bg-cream/20" />
+          <div className="mt-2 h-3 w-32 animate-pulse rounded bg-cream/15" />
+        </>
+      ) : balance.configured && eur != null ? (
+        <>
+          <div className="mt-1 font-display text-3xl font-semibold leading-none">
+            {fmtEur(eur)}
+          </div>
+          <div className="mt-1.5 text-[11px] font-semibold text-cream/80">
+            {fmtBtc(balance.btc_available ?? 0)} on Coinbase
+          </div>
+          <div className="relative mt-2.5 h-2 w-full self-stretch rounded-full bg-cream/22">
+            <div
+              className={`absolute inset-y-0 left-0 rounded-full ${runningDry ? "bg-rose-soft" : "bg-cream"}`}
+              style={{ width: `${level * 100}%` }}
+            />
+          </div>
+          <div
+            className={`mt-1.5 text-[10px] font-semibold ${runningDry ? "text-rose-soft" : "text-cream/60"}`}
+          >
+            {buysLeft == null
+              ? " "
+              : runningDry
+                ? `Well running dry · ~${buysLeft} ${buysLeft === 1 ? "buy" : "buys"} left`
+                : `Feeds ~${buysLeft} more buys`}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="mt-1 font-display text-3xl font-semibold leading-none text-cream/60">
+            —
+          </div>
+          <div className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-cream/60">
+            <KeyIcon className="text-xs" />
+            {balance.configured
+              ? "Balance unavailable"
+              : "No API keys — add them in backend/.env"}
+          </div>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={onOpenBuy}
+        disabled={!canPour}
+        className="mt-2.5 flex items-center justify-center gap-1.5 self-stretch rounded-full bg-cream/20 py-[7px] text-[11px] font-bold text-cream transition hover:bg-cream/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream disabled:opacity-50"
+      >
+        <DropHalfBottomIcon />
+        {status?.dry_run ? "Test pour" : "Pour now"}
+      </button>
     </div>
   );
 }
