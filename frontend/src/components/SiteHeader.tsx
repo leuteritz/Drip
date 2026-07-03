@@ -217,18 +217,38 @@ export default function SiteHeader({
             preserveAspectRatio="none"
             className="animate-swell absolute inset-x-0 -top-[60px] h-[120px] w-full"
           >
+            {/* Each layer's fill fades to transparent toward the svg bottom so the
+                surface melts into the tank-water gradient — no hard seam, even
+                while the swell bobs. */}
+            <defs>
+              <linearGradient id="waveFillBack" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#57929c" stopOpacity="0.35" />
+                <stop offset="0.55" stopColor="#57929c" stopOpacity="0.35" />
+                <stop offset="1" stopColor="#57929c" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="waveFillMid" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#57929c" stopOpacity="0.55" />
+                <stop offset="0.55" stopColor="#57929c" stopOpacity="0.55" />
+                <stop offset="1" stopColor="#57929c" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="waveFillFront" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#5c939d" stopOpacity="1" />
+                <stop offset="0.6" stopColor="#5c939d" stopOpacity="1" />
+                <stop offset="1" stopColor="#5c939d" stopOpacity="0" />
+              </linearGradient>
+            </defs>
             {/* Back — faint, slow, gentle uneven swell */}
             <g className="animate-wave-slow">
               <path
                 d="M-120 60 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 q15 -18 30 0 q15 14 30 0 q15 -24 30 0 q15 12 30 0 V120 H-120 Z"
-                fill="rgba(87,146,156,.35)"
+                fill="url(#waveFillBack)"
               />
             </g>
             {/* Mid — phase-offset so the layers never align */}
             <g className="animate-wave">
               <path
                 d="M-120 60 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 q15 20 30 0 q15 -28 30 0 q15 16 30 0 q15 -22 30 0 V120 H-120 Z"
-                fill="rgba(87,146,156,.55)"
+                fill="url(#waveFillMid)"
               />
             </g>
             {/* Front — solid rolling swell (fill matches the water's top stop) with a
@@ -236,7 +256,7 @@ export default function SiteHeader({
             <g className="animate-wave-fast">
               <path
                 d="M-120 60 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 V120 H-120 Z"
-                fill="#5c939d"
+                fill="url(#waveFillFront)"
               />
               <path
                 d="M-120 60 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0 q15 -34 30 0 q15 22 30 0 q15 -26 30 0 q15 18 30 0"
@@ -579,21 +599,9 @@ function NextBuyActions({
 
   return (
     <div className="flex w-[210px] flex-col items-center rounded-[18px] bg-cream px-[18px] py-[15px] text-center shadow-[0_18px_38px_-16px_rgba(0,0,0,.55)]">
-      <button
-        type="button"
-        onClick={onTogglePanel}
-        aria-expanded={panelOpen}
-        aria-label="Adjust the next buy"
-        className="flex items-center justify-center gap-1.5 rounded-md text-[10px] font-bold uppercase tracking-[0.1em] text-[#5c8a91] transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
-      >
-        <span className="whitespace-nowrap">Next buy &middot; {nextWhen}</span>
-        <span className="rounded-full bg-teal px-1.5 py-px text-[8px] tracking-[0.05em] text-cream">
-          ADJUST
-        </span>
-        <CaretDownIcon
-          className={`text-sm transition-transform duration-300 ${panelOpen ? "rotate-180" : ""}`}
-        />
-      </button>
+      <div className="whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.1em] text-[#5c8a91]">
+        Next buy &middot; {nextWhen}
+      </div>
       <div className="mt-1 font-display text-3xl font-semibold leading-none text-[#2f5a63]">
         {nextAmount}
       </div>
@@ -610,6 +618,18 @@ function NextBuyActions({
           className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal/14 py-[7px] text-[11px] font-bold text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
         >
           <ChartLineUpIcon /> Sim
+        </button>
+        <button
+          type="button"
+          onClick={onTogglePanel}
+          aria-expanded={panelOpen}
+          aria-label="Adjust the next buy"
+          title="Adjust"
+          className="flex w-8 flex-none items-center justify-center rounded-full bg-teal/14 text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+        >
+          <CaretDownIcon
+            className={`text-sm transition-transform duration-300 ${panelOpen ? "rotate-180" : ""}`}
+          />
         </button>
       </div>
     </div>
@@ -650,6 +670,8 @@ function FaucetControls({
   const [saved, setSaved] = useState(false);
   const [webhookSent, setWebhookSent] = useState(false);
   const [testing, setTesting] = useState(false);
+  // Draft for the typed amount; committed (clamped 5-500) on blur or Enter.
+  const [amountDraft, setAmountDraft] = useState<string | null>(null);
 
   const flashSaved = () => {
     setSaved(true);
@@ -672,6 +694,17 @@ function FaucetControls({
     }
   };
 
+  const commitAmount = () => {
+    if (amountDraft == null || !settings) return;
+    const parsed = Number(amountDraft);
+    setAmountDraft(null);
+    if (!Number.isFinite(parsed)) return;
+    const clamped = Math.round(Math.max(5, Math.min(500, parsed)));
+    if (clamped !== settings.base_amount_eur) {
+      save({ base_amount_eur: clamped });
+    }
+  };
+
   const isPaused =
     settings?.paused_until != null &&
     new Date(settings.paused_until) >= new Date(new Date().toDateString());
@@ -691,7 +724,7 @@ function FaucetControls({
         open ? "mt-4 max-h-[640px] opacity-100" : "mt-0 max-h-0 opacity-0"
       }`}
     >
-      <div className="mx-auto max-w-[880px] rounded-3xl border border-cream/20 bg-teal/95 p-4 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md md:p-5">
+      <div className="mx-auto max-w-[720px] rounded-3xl border border-cream/20 bg-teal/95 p-4 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md md:p-5">
         {/* Header: title · saved feedback · close */}
         <div className="mb-3.5 flex items-center gap-2.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-cream/70">
@@ -713,37 +746,50 @@ function FaucetControls({
         </div>
 
         {settings ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Amount */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {/* Amount & Discord */}
             <div className={tile}>
               <span className={tileLabel}>Amount</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   aria-label="Less"
-                  onClick={() =>
+                  onClick={() => {
+                    setAmountDraft(null);
                     save({
                       base_amount_eur: Math.max(5, settings.base_amount_eur - 5),
-                    })
-                  }
+                    });
+                  }}
                   className={stepBtn}
                 >
                   &minus;
                 </button>
-                <span className="min-w-[64px] text-center font-display text-2xl font-semibold">
-                  {fmtEur(settings.base_amount_eur, 0)}
-                </span>
+                <input
+                  type="number"
+                  min={5}
+                  max={500}
+                  step={5}
+                  aria-label="Amount in euros"
+                  value={amountDraft ?? settings.base_amount_eur}
+                  onChange={(e) => setAmountDraft(e.target.value)}
+                  onBlur={commitAmount}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                  }}
+                  className={`${field} w-[76px] text-center font-display text-lg [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                />
                 <button
                   type="button"
                   aria-label="More"
-                  onClick={() =>
+                  onClick={() => {
+                    setAmountDraft(null);
                     save({
                       base_amount_eur: Math.min(
                         500,
                         settings.base_amount_eur + 5,
                       ),
-                    })
-                  }
+                    });
+                  }}
                   className={stepBtn}
                 >
                   +
@@ -757,9 +803,32 @@ function FaucetControls({
                   </b>
                 </span>
               )}
+              <div className="h-px w-full bg-cream/15" />
+              <div className="flex items-center gap-2.5">
+                <span className={tileLabel}>Discord</span>
+                <MiniToggle
+                  checked={settings.discord_enabled}
+                  onChange={(v) => save({ discord_enabled: v })}
+                />
+                <button
+                  type="button"
+                  aria-label="Send test message"
+                  title="Send test message"
+                  onClick={testWebhook}
+                  disabled={testing}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
+                >
+                  <PaperPlaneIcon className="text-sm" />
+                </button>
+                {webhookSent && (
+                  <span className="text-[11px] font-bold text-cream">
+                    Sent &#10003;
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* Schedule */}
+            {/* Schedule & Pause */}
             <div className={tile}>
               <span className={tileLabel}>Schedule</span>
               <div className="flex flex-wrap items-center justify-center gap-2">
@@ -784,69 +853,42 @@ function FaucetControls({
                   className={field}
                 />
               </div>
-            </div>
-
-            {/* Discord */}
-            <div className={tile}>
-              <span className={tileLabel}>Discord</span>
-              <div className="flex items-center gap-2.5">
-                <MiniToggle
-                  checked={settings.discord_enabled}
-                  onChange={(v) => save({ discord_enabled: v })}
-                />
-                <button
-                  type="button"
-                  aria-label="Send test message"
-                  title="Send test message"
-                  onClick={testWebhook}
-                  disabled={testing}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
-                >
-                  <PaperPlaneIcon className="text-sm" />
-                </button>
-              </div>
-              {webhookSent && (
-                <span className="text-[11px] font-bold text-cream">
-                  Sent &#10003;
-                </span>
-              )}
-            </div>
-
-            {/* Pause */}
-            <div className={tile}>
-              <span className={tileLabel}>Pause</span>
-              {isPaused ? (
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-rose/60 px-2.5 py-1 text-xs font-bold text-cream">
-                    until{" "}
-                    {new Date(settings.paused_until!).toLocaleDateString(
-                      "en-GB",
-                    )}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={onResume}
-                    className="flex items-center gap-1 rounded-xl bg-cream px-3 py-1.5 text-xs font-bold text-teal transition hover:bg-white"
+              <div className="h-px w-full bg-cream/15" />
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                <span className={tileLabel}>Pause</span>
+                {isPaused ? (
+                  <>
+                    <span className="inline-flex items-center rounded-full bg-rose/60 px-2.5 py-1 text-xs font-bold text-cream">
+                      until{" "}
+                      {new Date(settings.paused_until!).toLocaleDateString(
+                        "en-GB",
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onResume}
+                      className="flex items-center gap-1 rounded-xl bg-cream px-3 py-1.5 text-xs font-bold text-teal transition hover:bg-white"
+                    >
+                      <PlayIcon /> Resume
+                    </button>
+                  </>
+                ) : (
+                  <select
+                    value={0}
+                    onChange={(e) => {
+                      const days = Number(e.target.value);
+                      if (days > 0) onPause(days);
+                    }}
+                    className={`${field} faucet-select cursor-pointer`}
                   >
-                    <PlayIcon /> Resume
-                  </button>
-                </div>
-              ) : (
-                <select
-                  value={0}
-                  onChange={(e) => {
-                    const days = Number(e.target.value);
-                    if (days > 0) onPause(days);
-                  }}
-                  className={`${field} faucet-select cursor-pointer`}
-                >
-                  {PAUSE_OPTIONS.map((p) => (
-                    <option key={p.days} value={p.days}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-              )}
+                    {PAUSE_OPTIONS.map((p) => (
+                      <option key={p.days} value={p.days}>
+                        {p.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
           </div>
         ) : (
