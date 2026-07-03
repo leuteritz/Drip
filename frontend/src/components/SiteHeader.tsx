@@ -162,21 +162,20 @@ export default function SiteHeader({
         </div>
       </header>
 
-      {/* Hero "tank": a light sky (dark-teal type) over a body of water. Pulled up
-          under the transparent bar (-mt-16) with pt-16 reserving its height so the
-          reservoir clears it. The bottom padding keeps the stat cards straddling
-          the waterline while the panel is closed. */}
-      <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-[150px] pt-16 text-ink md:px-10 md:pb-[172px]">
-        {/* Water body pinned to the floor: waterline waves at its top edge, rising
-            bubbles within. Purely decorative — content rides above on z-10. */}
+      {/* Hero "tank": the water fills almost the whole hero, its surface waving just
+          below the sticky bar; every bit of data lives submerged on the water in cream.
+          A thin light-sky strip at the very top lets the crests break the surface. */}
+      <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-16 pt-16 text-cream md:px-10 md:pb-20">
+        {/* Body of water filling from just under the bar to the floor: waving surface
+            at its top edge, rising bubbles within. Decorative — content rides on z-10. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[210px] md:h-[230px]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 top-[88px] z-0"
         >
           <svg
             viewBox="0 0 1080 130"
             preserveAspectRatio="none"
-            className="absolute inset-x-0 -top-[92px] h-[150px] w-full"
+            className="animate-swell absolute inset-x-0 -top-[74px] h-[150px] w-full"
           >
             {/* Back — faint, slow, wide rounded swells */}
             <g className="animate-wave-slow">
@@ -192,11 +191,18 @@ export default function SiteHeader({
                 fill="rgba(87,146,156,.55)"
               />
             </g>
-            {/* Front — solid, fast, tall spiky crests of varied height */}
+            {/* Front — solid, fast, rounded rolling swells with a sunlit foam crest */}
             <g className="animate-wave-fast">
               <path
-                d="M-120 95 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 q20 -72 40 0 q20 -32 40 0 q20 -50 40 0 V130 H-120 Z"
+                d="M-120 95 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 V130 H-120 Z"
                 fill="#57929c"
+              />
+              <path
+                d="M-120 95 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0 q30 -66 60 0 q30 -40 60 0"
+                fill="none"
+                stroke="rgba(241,255,250,.4)"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </g>
           </svg>
@@ -283,30 +289,30 @@ function Reservoir({ performance }: { performance: Performance | null }) {
   const valueCents = dot >= 0 ? value.slice(dot) : "";
 
   return (
-    <div className="mt-6 text-center">
-      <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c8a91]">
+    <div className="mt-[72px] text-center">
+      <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-cream/80">
         Your reservoir
       </div>
       {performance ? (
         <>
-          <div className="mt-1.5 font-display text-6xl font-semibold leading-[0.9] tracking-tight text-[#2f5a63] md:text-[78px]">
+          <div className="mt-1.5 font-display text-6xl font-semibold leading-[0.9] tracking-tight text-cream md:text-[78px]">
             {valueMain}
-            <span className="text-[#6ba0a8]">{valueCents}</span>
+            <span className="text-cream/70">{valueCents}</span>
           </div>
           <div className="mt-3.5 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1 text-[15px] font-bold md:text-[17px]">
             <span
-              className={`inline-flex items-center gap-1.5 ${profitable ? "text-teal" : "text-rose"}`}
+              className={`inline-flex items-center gap-1.5 ${profitable ? "text-cream" : "text-rose"}`}
             >
               {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
               {profitable ? "+" : ""}
               {fmtEur(performance.profit_eur)}
             </span>
-            <span className="text-[#a9c4c8]">&middot;</span>
-            <span className={`font-semibold ${profitable ? "text-teal" : "text-rose"}`}>
+            <span className="text-cream/40">&middot;</span>
+            <span className="font-semibold text-cream/80">
               {fmtPct(performance.profit_pct)}
             </span>
-            <span className="text-[#a9c4c8] max-sm:hidden">&middot;</span>
-            <span className="text-[13px] font-medium text-[#6f8f95] max-sm:w-full">
+            <span className="text-cream/40 max-sm:hidden">&middot;</span>
+            <span className="text-[13px] font-medium text-cream/70 max-sm:w-full">
               {fmtEur(performance.invested_eur)} invested &middot;{" "}
               {performance.purchase_count} buys &middot;{" "}
               {fmtBtc(performance.btc_total)}
@@ -315,8 +321,8 @@ function Reservoir({ performance }: { performance: Performance | null }) {
         </>
       ) : (
         <>
-          <div className="mx-auto mt-3 h-16 w-64 animate-pulse rounded-xl bg-teal/15" />
-          <div className="mx-auto mt-4 h-5 w-80 max-w-full animate-pulse rounded-lg bg-teal/10" />
+          <div className="mx-auto mt-3 h-16 w-64 animate-pulse rounded-xl bg-cream/20" />
+          <div className="mx-auto mt-4 h-5 w-80 max-w-full animate-pulse rounded-lg bg-cream/15" />
         </>
       )}
     </div>
@@ -382,7 +388,7 @@ function ModeToggle({
 
 /** Shared frosted-glass chip that floats the stat read-outs on the waterline. */
 const FROST_CARD =
-  "flex flex-col rounded-[18px] border border-cream/35 bg-cream/16 px-[18px] py-[15px] text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-[9px]";
+  "flex flex-col rounded-[18px] border border-cream/40 bg-cream/[0.18] px-[18px] py-[15px] text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-[9px]";
 
 /** Score: five potency drops, the score fraction, and the buy multiplier. */
 function ScoreReadout({ indicators }: { indicators: Indicators }) {
