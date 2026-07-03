@@ -10,14 +10,17 @@ built to run on a Raspberry Pi.
 - Buys bitcoin automatically every week through the Coinbase Advanced Trade API
 - Sizes every buy to the market: fear and oversold conditions increase the amount,
   greed decreases it (0.5x to 1.5x of your base amount)
-- Web dashboard with the price chart, your buys on the curve, live indicator gauges
-  and a profit/loss summary
-- Strategy comparison chart: Drip's weighted buying vs. plain DCA over time
-- Everything configurable in the browser: amount, buy day and time, pause for any
-  number of days or weeks, dry-run or live mode, Discord notifications
+- Web dashboard with live indicator gauges, the price chart with your buys on the
+  curve, and a profit/loss summary
+- Strategy comparison: Drip's weighted buying vs. plain DCA, as a chart over time
+  and as a backtest simulation over 1 month to 2 years
+- Manual buys at any amount, on top of the schedule
+- Everything configurable in the browser: base amount, buy day and time, pause for
+  1-4 weeks, dry-run or live mode, Discord notifications
 - Dry run is the default; live trading must be enabled explicitly and asks for
   confirmation
-- Full buy history with score, RSI, Fear & Greed and order id per buy
+- Full buy history with score, RSI, Fear & Greed and order id per buy - importable
+  and exportable as CSV
 
 ## Installation: Docker on a Raspberry Pi
 
