@@ -8,11 +8,12 @@ from datetime import datetime
 
 from sqlmodel import Session, select
 
+from .constants import ORDER_ID_DRY_RUN, ORDER_ID_ERROR, STATUS_SUCCESS, STATUS_TEST
 from .models import Purchase
 from .strategy import determine_purchase_strategy
 
 # The legacy bot logged German status values
-STATUS_MAP = {"Erfolgreich": "Success", "Test": "Test"}
+STATUS_MAP = {"Erfolgreich": STATUS_SUCCESS, "Test": STATUS_TEST}
 
 
 def import_purchases_csv(session: Session, text: str, include_errors: bool) -> dict:
@@ -49,7 +50,7 @@ def import_purchases_csv(session: Session, text: str, include_errors: bool) -> d
 
         (ts, price, amount, btc, fng, rsi, ma, score, order_id, status) = row[:10]
 
-        if order_id == "ERROR" and not include_errors:
+        if order_id == ORDER_ID_ERROR and not include_errors:
             skipped += 1
             continue
 
@@ -81,7 +82,8 @@ def import_purchases_csv(session: Session, text: str, include_errors: bool) -> d
                 multiplier=determine_purchase_strategy(score_int)["multiplier"],
                 order_id=order_id,
                 status=STATUS_MAP.get(status.strip(), status.strip()),
-                dry_run=(status.strip().lower() == "test" or order_id == "DRY_RUN"),
+                dry_run=(status.strip().lower() == STATUS_TEST.lower()
+                         or order_id == ORDER_ID_DRY_RUN),
             )
         except ValueError as exc:
             errors.append({"line": line_no, "message": f"Could not parse numbers: {exc}"})

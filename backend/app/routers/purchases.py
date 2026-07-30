@@ -8,11 +8,12 @@ from sqlmodel import Session, select
 from .. import csv_import
 from ..database import get_session
 from ..models import Purchase
+from ..schemas import DeleteResponse, ImportResponse, PurchaseResponse
 
 router = APIRouter(prefix="/api/purchases", tags=["purchases"])
 
 
-@router.get("")
+@router.get("", response_model=list[PurchaseResponse])
 def list_purchases(session: Session = Depends(get_session)):
     stmt = select(Purchase).order_by(Purchase.timestamp.desc())
     return session.exec(stmt).all()
@@ -48,7 +49,7 @@ def export_purchases(session: Session = Depends(get_session)):
     )
 
 
-@router.post("/import")
+@router.post("/import", response_model=ImportResponse)
 async def import_purchases(
     file: UploadFile = File(...),
     include_errors: bool = Form(True),
@@ -63,27 +64,30 @@ async def import_purchases(
     return csv_import.import_purchases_csv(session, text, include_errors)
 
 
-@router.delete("")
+def _delete_matching(session: Session, stmt) -> dict:
+    """Deletes every Purchase the statement selects and reports the count."""
+    rows = session.exec(stmt).all()
+    for row in rows:
+        session.delete(row)
+    session.commit()
+    return {"deleted": len(rows)}
+
+
+@router.delete("", response_model=DeleteResponse)
 def delete_all_purchases(session: Session = Depends(get_session)):
     """Delete every entry from the history."""
-    rows = session.exec(select(Purchase)).all()
-    for row in rows:
-        session.delete(row)
-    session.commit()
-    return {"deleted": len(rows)}
+    return _delete_matching(session, select(Purchase))
 
 
-@router.delete("/test-runs")
+@router.delete("/test-runs", response_model=DeleteResponse)
 def delete_test_runs(session: Session = Depends(get_session)):
     """Delete every dry-run entry from the history."""
-    rows = session.exec(select(Purchase).where(Purchase.dry_run == True)).all()  # noqa: E712
-    for row in rows:
-        session.delete(row)
-    session.commit()
-    return {"deleted": len(rows)}
+    return _delete_matching(
+        session, select(Purchase).where(Purchase.dry_run == True)  # noqa: E712
+    )
 
 
-@router.delete("/{purchase_id}")
+@router.delete("/{purchase_id}", response_model=DeleteResponse)
 def delete_purchase(purchase_id: int, session: Session = Depends(get_session)):
     """Delete a single history entry."""
     purchase = session.get(Purchase, purchase_id)

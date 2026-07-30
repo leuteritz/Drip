@@ -12,8 +12,6 @@ class AppConfig(BaseSettings):
     coinbase_api_key: str = ""
     coinbase_api_secret: str = ""
     discord_webhook_url: str = ""
-    host: str = "0.0.0.0"
-    port: int = 8000
 
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",

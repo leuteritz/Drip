@@ -8,6 +8,7 @@ computation, so it never pollutes the real purchase history.
 
 DCA baseline: the same base amount is invested at every purchase date (as if
 the multiplier were always 1.0), matching the convention in `analytics.py`.
+The portfolio arithmetic is shared with it via `portfolio.py`.
 """
 import bisect
 from datetime import date, timedelta
@@ -15,8 +16,56 @@ from datetime import date, timedelta
 from sqlmodel import Session
 
 from . import indicators, strategy
-from .coinbase_client import ensure_candles
+from .market_data import ensure_candles
 from .models import BotSettings
+from .portfolio import InvestmentEvent, build_series, side_summary
+
+NEUTRAL_FNG = 50  # used for dates the Fear & Greed history doesn't cover
+
+
+def _purchase_days(start: date, end: date, weekday: int) -> list[date]:
+    """Every `weekday` within [start, end] - the simulated buy schedule."""
+    first = start + timedelta(days=(weekday - start.weekday()) % 7)
+    days: list[date] = []
+    day = first
+    while day <= end:
+        days.append(day)
+        day += timedelta(days=7)
+    return days
+
+
+def _simulate_events(days: list[date], day_list: list[date], closes: list[float],
+                     base_amount: float, fng_hist: dict[date, int]) -> list[InvestmentEvent]:
+    """Scores each purchase day against the candles available up to that day."""
+    events: list[InvestmentEvent] = []
+    for day in days:
+        pos = bisect.bisect_right(day_list, day) - 1  # last candle on/before day
+        if pos < strategy.RSI_PERIOD:
+            continue  # not enough history to score this date
+
+        price = closes[pos]
+        if not price:
+            continue
+
+        rsi_window = closes[max(0, pos - (strategy.RSI_PERIOD + 7) + 1): pos + 1]
+        analysis = strategy.score_indicators(
+            fear_greed=fng_hist.get(day, NEUTRAL_FNG),
+            fng_classification="",
+            rsi=indicators.calculate_rsi_wilder(rsi_window, period=strategy.RSI_PERIOD),
+            current_price=price,
+            ma_350=indicators.moving_average(
+                closes[max(0, pos - strategy.MA_DAYS + 1): pos + 1]
+            ),
+        )
+        amount = round(base_amount * analysis.multiplier, 2)
+        events.append(InvestmentEvent(
+            day=day,
+            bot_eur=amount,
+            bot_btc=amount / price,
+            dca_eur=base_amount,
+            dca_btc=base_amount / price,
+        ))
+    return events
 
 
 def backtest(session: Session, days: int, settings: BotSettings) -> dict:
@@ -25,94 +74,43 @@ def backtest(session: Session, days: int, settings: BotSettings) -> dict:
 
     # Fetch enough lookback that RSI-14 and the 350-day MA are valid even at the
     # very start of the window. ensure_candles caches, so this is cheap on reuse.
-    candles = ensure_candles(session, days=days + strategy.MA_DAYS + 10)
-    ordered = sorted(candles, key=lambda c: c.day)
-    day_list = [c.day for c in ordered]
-    closes = [c.close for c in ordered]
+    candles = sorted(ensure_candles(session, days=days + strategy.MA_DAYS + 10),
+                     key=lambda c: c.day)
+    day_list = [c.day for c in candles]
+    closes = [c.close for c in candles]
 
-    fng_hist = indicators.get_fear_and_greed_history()
+    events = _simulate_events(
+        _purchase_days(start, end, settings.schedule_weekday),
+        day_list,
+        closes,
+        settings.base_amount_eur,
+        indicators.get_fear_and_greed_history(),
+    )
 
-    weekday = settings.schedule_weekday
-    base_amount = settings.base_amount_eur
-
-    # Weekly purchases on the configured weekday within [start, end].
-    trades: list[dict] = []
-    d = start
-    while d <= end:
-        if d.weekday() == weekday:
-            pos = bisect.bisect_right(day_list, d) - 1  # last candle on/before d
-            if pos >= strategy.RSI_PERIOD:
-                price = closes[pos]
-                rsi_window = closes[max(0, pos - (strategy.RSI_PERIOD + 7) + 1): pos + 1]
-                rsi = indicators.calculate_rsi_wilder(rsi_window, period=strategy.RSI_PERIOD)
-                ma_350 = indicators.moving_average(
-                    closes[max(0, pos - strategy.MA_DAYS + 1): pos + 1]
-                )
-                fng = fng_hist.get(d, 50)
-                analysis = strategy.score_indicators(
-                    fear_greed=fng,
-                    fng_classification="",
-                    rsi=rsi,
-                    current_price=price,
-                    ma_350=ma_350,
-                )
-                amount = round(base_amount * analysis.multiplier, 2)
-                trades.append({
-                    "day": d,
-                    "amount": amount,
-                    "btc": amount / price if price else 0.0,
-                    "dca_amount": base_amount,
-                    "dca_btc": base_amount / price if price else 0.0,
-                })
-        d += timedelta(days=1)
-
-    # Daily portfolio-value series across the display window.
-    series: list[dict] = []
-    bot_btc = bot_invested = dca_btc = dca_invested = 0.0
-    idx = 0
-    window = [c for c in ordered if start - timedelta(days=1) <= c.day <= end]
-    for candle in window:
-        while idx < len(trades) and trades[idx]["day"] <= candle.day:
-            t = trades[idx]
-            bot_btc += t["btc"]
-            bot_invested += t["amount"]
-            dca_btc += t["dca_btc"]
-            dca_invested += t["dca_amount"]
-            idx += 1
-        series.append({
-            "date": candle.day.isoformat(),
-            "price": candle.close,
-            "bot_value": bot_btc * candle.close,
-            "bot_invested": bot_invested,
-            "dca_value": dca_btc * candle.close,
-            "dca_invested": dca_invested,
-        })
+    window = [(c.day, c.close) for c in candles
+              if start - timedelta(days=1) <= c.day <= end]
+    series = build_series(window, events)
 
     current_price = closes[-1] if closes else 0.0
-    bot_value = bot_btc * current_price
-    dca_value = dca_btc * current_price
-
     return {
         "summary": {
             "days": days,
-            "purchase_count": len(trades),
+            "purchase_count": len(events),
             "current_price": current_price,
             "start_date": start.isoformat(),
             "end_date": end.isoformat(),
-            "weekday": weekday,
-            "base_amount_eur": base_amount,
-            "bot": _side(bot_invested, bot_btc, bot_value),
-            "dca": _side(dca_invested, dca_btc, dca_value),
+            "weekday": settings.schedule_weekday,
+            "base_amount_eur": settings.base_amount_eur,
+            "bot": side_summary(
+                sum(e.bot_eur for e in events),
+                sum(e.bot_btc for e in events),
+                current_price,
+            ),
+            "dca": side_summary(
+                sum(e.dca_eur for e in events),
+                sum(e.dca_btc for e in events),
+                current_price,
+            ),
         },
         "series": series,
-    }
-
-
-def _side(invested: float, btc: float, value: float) -> dict:
-    return {
-        "invested_eur": invested,
-        "btc_total": btc,
-        "value_eur": value,
-        "profit_eur": value - invested,
-        "profit_pct": ((value - invested) / invested * 100) if invested else 0.0,
     }

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from sqlmodel import Session
 
-from . import coinbase_client, indicators
+from . import indicators, market_data
 
 # Thresholds (kept as constants so they can become configurable later)
 FNG_STRONG_FEAR = 25
@@ -130,9 +130,9 @@ def score_indicators(
 def analyze(session: Session) -> Analysis:
     """Computes the score and multiplier from live market data."""
     fng = indicators.get_fear_and_greed()
-    current_price = coinbase_client.get_current_price()
+    current_price = market_data.get_current_price()
 
-    candles = coinbase_client.ensure_candles(session, days=MA_DAYS + 5)
+    candles = market_data.ensure_candles(session, days=MA_DAYS + 5)
     closes = [c.close for c in candles]
     rsi = indicators.calculate_rsi_wilder(closes[-(RSI_PERIOD + 7):], period=RSI_PERIOD)
     ma_350 = indicators.moving_average(closes[-MA_DAYS:])
