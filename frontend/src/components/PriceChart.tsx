@@ -10,13 +10,16 @@ import {
 } from "recharts";
 import type { Candle, Purchase } from "../api/client";
 import {
+  AXIS_TICK,
   CHART_COLORS,
   CHART_MARGIN,
+  CURSOR_PROPS,
   DATE_AXIS_PROPS,
   GRID_PROPS,
+  Y_AXIS_WIDTH,
   fmtThousands,
 } from "../lib/chart";
-import { fmtEur } from "../lib/format";
+import { fmtEur, formatDayMonth } from "../lib/format";
 import {
   ChartTooltipCard,
   PurchaseDrop,
@@ -68,13 +71,13 @@ export default function PriceChart({
         <XAxis {...DATE_AXIS_PROPS} />
         <YAxis
           domain={["auto", "auto"]}
-          tick={{ fill: CHART_COLORS.inkSoft, fontSize: 11 }}
+          tick={AXIS_TICK}
           tickFormatter={fmtThousands}
           axisLine={false}
           tickLine={false}
-          width={40}
+          width={Y_AXIS_WIDTH}
         />
-        <Tooltip content={<PriceTooltip />} />
+        <Tooltip content={<PriceTooltip />} cursor={CURSOR_PROPS} />
         <Area
           type="monotone"
           dataKey="close"
@@ -95,7 +98,7 @@ function PriceTooltip({ active, payload }: any) {
   const point: Point = payload[0].payload;
   return (
     <ChartTooltipCard>
-      <div className="font-bold text-ink">{point.date}</div>
+      <div className="font-bold text-ink">{formatDayMonth(point.date)}</div>
       <div className="text-teal">{fmtEur(point.close, 0)}</div>
       {point.purchase && <PurchaseTooltipRow purchase={point.purchase} />}
     </ChartTooltipCard>

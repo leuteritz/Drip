@@ -121,15 +121,11 @@ export default function Overview({
             </div>
           </div>
           {hasStrategy && latest && <StrategyKpis latest={latest} />}
-          <div className="h-[380px] md:h-[440px]">
+          <div className="h-[520px] md:h-[640px]">
             {!compLoaded || (!hasStrategy && !candlesLoaded) ? (
               <Spinner />
             ) : hasStrategy ? (
-              <ComparisonChart
-                data={strategySeries}
-                purchases={markerPurchases}
-                height="100%"
-              />
+              <ComparisonChart data={strategySeries} purchases={markerPurchases} />
             ) : candles.length ? (
               <PriceChart candles={candles} purchases={purchases} height="100%" />
             ) : (
@@ -140,16 +136,19 @@ export default function Overview({
             )}
           </div>
           {hasStrategy ? (
-            <p className="mt-3 flex items-start gap-1.5 text-xs text-ink-soft">
+            <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-ink-soft">
               <InfoIcon className="mt-0.5 shrink-0" aria-hidden="true" />
               <span>
-                <strong className="font-semibold text-ink">Plain DCA</strong> is the same
-                schedule and base amount, but without Drip&apos;s 0.5&times;&ndash;1.5&times;
-                score multiplier &mdash; the multiplier is the only difference between the
-                two lines. Shaded areas show where your strategy is in profit (teal) or at
-                a loss (rose) versus what you invested &mdash; not versus DCA. The light
-                blue backdrop is the BTC price (right axis); each drop is a buy, sized by
-                its multiplier.
+                Both lines run the same schedule and the same base amount. The only
+                difference is Drip&apos;s 0.5&times;&ndash;1.5&times; score multiplier: it
+                buys more when the indicators say cheap, less when they say expensive.
+                Each line is <strong className="font-semibold text-ink">profit</strong>{" "}
+                &mdash; how far that side is above or below the money it paid in &mdash;
+                because plain DCA puts in less, so its portfolio would be the smaller
+                number either way. Measured this way the gap between the two lines is
+                what the multiplier actually earned or cost you. The panel underneath
+                shows the BTC price on its own scale, with every buy marked; hover
+                anywhere to read both at the same day.
               </span>
             </p>
           ) : (

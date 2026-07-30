@@ -4,6 +4,8 @@
 // index.css stays the single source of truth for the palette — SVG resolves
 // var() in stroke/fill just like CSS does. Never inline a hex here.
 
+import { formatDayMonth } from "./format";
+
 export const CHART_COLORS = {
   water: "var(--color-water)",
   teal: "var(--color-teal)",
@@ -14,7 +16,20 @@ export const CHART_COLORS = {
   paper: "var(--color-paper)",
 };
 
-export const CHART_MARGIN = { top: 10, right: 8, left: 8, bottom: 0 };
+export const CHART_MARGIN = { top: 10, right: 12, left: 8, bottom: 0 };
+
+/**
+ * Width reserved for the value axis. The overview stacks two charts that share
+ * one x-axis, so their plot areas only line up while this (and the left/right
+ * margins) is identical in both — change it in one place or not at all.
+ */
+export const Y_AXIS_WIDTH = 68;
+
+/** Recharts links charts with the same syncId: one hover moves both cursors. */
+export const SYNC_ID = "drip-overview";
+
+/** One tick size for every chart — big enough to read on the wall-mounted Pi. */
+export const AXIS_TICK = { fill: CHART_COLORS.inkSoft, fontSize: 12 };
 
 export const GRID_PROPS = {
   stroke: CHART_COLORS.sand,
@@ -23,14 +38,64 @@ export const GRID_PROPS = {
   opacity: 0.6,
 };
 
-/** Shared date axis: "2026-07-30" is shown as "07-30" to keep ticks short. */
+/** Shared date axis: "2026-07-30" is shown as "30 Jul". */
 export const DATE_AXIS_PROPS = {
   dataKey: "date",
-  tick: { fill: CHART_COLORS.inkSoft, fontSize: 11 },
-  tickFormatter: (d: string) => d.slice(5),
+  tick: AXIS_TICK,
+  tickFormatter: formatDayMonth,
   axisLine: { stroke: CHART_COLORS.sand },
   tickLine: false,
-  minTickGap: 40,
+  minTickGap: 48,
+};
+
+/** The dashed crosshair both overview charts drop under the pointer. */
+export const CURSOR_PROPS = {
+  stroke: CHART_COLORS.ink,
+  strokeWidth: 1,
+  strokeDasharray: "4 4",
+  opacity: 0.35,
+};
+
+/**
+ * The two compared lines, described once so the chart and the legend swatches
+ * beside it can never drift apart. `dash` undefined means solid.
+ *
+ * Both are profit, not portfolio value, and that is deliberate: plain DCA
+ * deploys only the base amount (see portfolio.py) so its *value* is a smaller
+ * number for a reason that has nothing to do with which strategy did better.
+ * Measured from what each side paid in, the two are comparable, and the gap
+ * between them is exactly the "vs. plain DCA" figure above the chart.
+ *
+ * Rose is deliberately absent here: in the overview it means "at a loss" and
+ * marks a buy, and nothing else, so no line competes for that meaning.
+ */
+export const SERIES = {
+  drip: {
+    key: "bot_profit",
+    label: "Drip strategy",
+    color: CHART_COLORS.teal,
+    width: 3,
+    dash: undefined as string | undefined,
+  },
+  dca: {
+    key: "dca_profit",
+    label: "Plain DCA",
+    color: CHART_COLORS.inkSoft,
+    width: 2,
+    dash: "7 5" as string | undefined,
+  },
+};
+
+/**
+ * Not a series, but drawn and listed like one: the zero line both are read
+ * from. Its dash is deliberately longer than GRID_PROPS' — at zero it sits on
+ * a grid line, and the two must not read as the same thing.
+ */
+export const BREAK_EVEN = {
+  label: "Break-even",
+  color: CHART_COLORS.water,
+  width: 2,
+  dash: "9 4" as string | undefined,
 };
 
 /** BTC prices are plotted in thousands to keep the axis narrow. */

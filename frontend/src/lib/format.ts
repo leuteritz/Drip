@@ -9,6 +9,10 @@ export const fmtEur = (v: number, digits = 2) =>
     minimumFractionDigits: digits > 2 ? 2 : digits,
   }).format(v);
 
+/** "+€12.00" / "-€12.00" — wherever the sign is the point, as in a P&L. */
+export const fmtEurSigned = (v: number, digits = 2) =>
+  `${v > 0 ? "+" : ""}${fmtEur(v, digits)}`;
+
 export const fmtBtc = (v: number) => `${v.toFixed(8)} BTC`;
 
 export const fmtPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;

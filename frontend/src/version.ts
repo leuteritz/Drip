@@ -17,6 +17,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.1",
+    date: "2026-07-30",
+    changes: [
+      "Overview chart split in two: euros on top, BTC price and your buys below",
+      "Taller chart with bigger labels and a legend that matches the lines",
+      "Dropped the second price axis that made the old chart hard to read",
+      "Hovering either half reads out the same day in both",
+    ],
+  },
+  {
     version: "1.0",
     date: "2026-07-30",
     changes: [
