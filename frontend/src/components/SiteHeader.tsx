@@ -24,6 +24,7 @@ import {
 } from "./header/Readouts";
 import Reservoir from "./header/Reservoir";
 import TankBackdrop from "./header/TankBackdrop";
+import VersionBadge from "./header/VersionBadge";
 import ManualBuyDialog from "./ManualBuyDialog";
 
 /**
@@ -96,6 +97,7 @@ export default function SiteHeader({
           <div className="flex items-center gap-2.5">
             <DropFillIcon className="text-2xl leading-none" />
             <span className="font-display text-xl font-bold leading-none">Drip</span>
+            <VersionBadge />
           </div>
           <div className="flex items-center gap-2.5 md:gap-3.5">
             {status && (

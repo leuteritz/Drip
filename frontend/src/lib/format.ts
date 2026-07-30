@@ -31,6 +31,14 @@ export const formatDayMonth = (iso: string) =>
 export const formatDateNumeric = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB");
 
+/** "30 Jul 2026" — release dates in the version popover. */
+export const formatDayMonthYear = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
 /** "4 Aug 2026, 09:00" — the history table's full timestamp. */
 export const formatTimestamp = (iso: string) =>
   new Date(iso).toLocaleString("en-GB", {
