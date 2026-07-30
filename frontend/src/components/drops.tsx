@@ -1,5 +1,5 @@
-// The drop is Drip's signature: score shown as filled drops (like hearts
-// in a game) and an ambient dripping animation in the dashboard hero.
+// The drop is Drip's signature: the score shown as filled drops, like hearts
+// in a game.
 import DropFill from "~icons/ph/drop-fill";
 import DropOutline from "~icons/ph/drop";
 
@@ -12,63 +12,44 @@ export function potencyFromMultiplier(multiplier: number): number {
   return 1;
 }
 
+/**
+ * The five potency drops.
+ *
+ * `outline` is the default on paper surfaces (teal drops, sand outlines);
+ * `solid` is the submerged variant for the header's frosted cards, where an
+ * outline would disappear against the water.
+ */
 export function ScoreDrops({
   multiplier,
   size = "text-2xl",
+  variant = "outline",
+  className = "",
 }: {
   multiplier: number;
   size?: string;
+  variant?: "outline" | "solid";
+  className?: string;
 }) {
   const potency = potencyFromMultiplier(multiplier);
   return (
     <div
-      className={`flex items-center gap-1 ${size}`}
+      className={`flex items-center gap-1 ${size} ${className}`}
       role="img"
       aria-label={`Buy strength ${potency} of 5`}
     >
-      {[1, 2, 3, 4, 5].map((i) =>
-        i <= potency ? (
+      {[1, 2, 3, 4, 5].map((i) => {
+        const on = i <= potency;
+        if (variant === "solid") {
+          return (
+            <DropFill key={i} className={on ? "text-cream" : "text-cream/25"} />
+          );
+        }
+        return on ? (
           <DropFill key={i} className="text-teal" />
         ) : (
           <DropOutline key={i} className="text-sand" />
-        )
-      )}
+        );
+      })}
     </div>
-  );
-}
-
-/** Ambient hero animation: a drop swells, falls into a rippling pool. */
-export function DripAnimation() {
-  return (
-    <svg viewBox="0 0 80 96" className="h-24 w-20" aria-hidden="true">
-      {/* faucet mouth */}
-      <rect x="30" y="0" width="20" height="10" rx="4" fill="var(--color-sand)" />
-      {/* the falling drop */}
-      <g className="animate-drip">
-        <path
-          d="M40 14 C34 24 28 30 28 38 a12 12 0 0 0 24 0 c0-8-6-14-12-24Z"
-          fill="var(--color-water)"
-        />
-      </g>
-      {/* pool + ripple */}
-      <ellipse
-        cx="40"
-        cy="82"
-        rx="26"
-        ry="7"
-        fill="var(--color-water)"
-        opacity="0.35"
-      />
-      <ellipse
-        className="animate-ripple"
-        cx="40"
-        cy="82"
-        rx="18"
-        ry="4.5"
-        fill="none"
-        stroke="var(--color-teal)"
-        strokeWidth="2"
-      />
-    </svg>
   );
 }

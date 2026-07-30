@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, type DragEvent, type MouseEvent } from "react";
+import { useRef, useState, type DragEvent } from "react";
 import XIcon from "~icons/ph/x";
 import UploadSimpleIcon from "~icons/ph/upload-simple";
 import FileCsvIcon from "~icons/ph/file-csv";
 import CheckCircleIcon from "~icons/ph/check-circle-fill";
 import WarningIcon from "~icons/ph/warning-fill";
 import { api, type ImportResult } from "../api/client";
-import { Card, Spinner, Toggle } from "./ui";
+import { Modal, Spinner, Toggle } from "./ui";
 
 const EXPECTED_HEADER =
   "Timestamp,BTC_Preis_EUR,Betrag_EUR,BTC_Menge,Fear_Greed,RSI,MA_350d,Score,Order_ID,Status";
@@ -30,12 +30,6 @@ export default function ImportModal({
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   const inspect = async (file: File) => {
     setError(null);
@@ -78,15 +72,12 @@ export default function ImportModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
-      onClick={onClose}
+    <Modal
+      onClose={onClose}
+      closeOnBackdrop
+      className="max-h-[92dvh] w-full max-w-xl overflow-y-auto"
     >
-      <Card
-        className="max-h-[92dvh] w-full max-w-xl overflow-y-auto"
-        onClick={(e: MouseEvent) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-semibold">Import buy history</h2>
             <p className="mt-1 text-sm text-ink-soft">
@@ -259,8 +250,7 @@ export default function ImportModal({
             </div>
           </>
         )}
-      </Card>
-    </div>
+    </Modal>
   );
 }
 

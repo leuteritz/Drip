@@ -1,124 +1,33 @@
-// Typed client for the backend API
+// The only place that talks to the backend. Response shapes live in ./types,
+// display formatting in ../lib/format.
 
-export interface BotSettings {
-  id: number;
-  base_amount_eur: number;
-  schedule_weekday: number;
-  schedule_time: string;
-  dry_run: boolean;
-  paused_until: string | null;
-  discord_enabled: boolean;
-}
+import type {
+  AccountBalance,
+  BotSettings,
+  BotStatus,
+  Candle,
+  ComparisonPoint,
+  ImportResult,
+  Indicators,
+  Performance,
+  Purchase,
+  RunResult,
+  SimulationResult,
+} from "./types";
 
-export interface BotStatus {
-  dry_run: boolean;
-  paused: boolean;
-  paused_until: string | null;
-  next_run: string | null;
-  has_credentials: boolean;
-  discord_configured: boolean;
-}
+export type * from "./types";
+export { ORDER_ID_ERROR } from "./types";
 
-export interface Purchase {
-  id: number;
-  timestamp: string;
-  price_eur: number;
-  amount_eur: number;
-  btc_amount: number;
-  fear_greed: number;
-  rsi: number;
-  ma_350: number;
-  score: number;
-  multiplier: number;
-  order_id: string;
-  status: string;
-  dry_run: boolean;
-}
-
-export interface Indicators {
-  score: number;
-  score_max: number;
-  factors: string[];
-  current_price: number;
-  fear_greed: number;
-  fng_classification: string;
-  rsi: number;
-  ma_350: number;
-  ma_distance_pct: number;
-  multiplier: number;
-  signal: string;
-}
-
-export interface Candle {
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-}
-
-export interface PerformanceSide {
-  invested_eur: number;
-  btc_total: number;
-  value_eur: number;
-  profit_eur: number;
-  profit_pct: number;
-}
-
-export interface Performance extends PerformanceSide {
-  current_price: number;
-  purchase_count: number;
-  dca: PerformanceSide;
-  include_dry_run: boolean;
-}
-
-export interface ComparisonPoint {
-  date: string;
-  price: number;
-  bot_value: number;
-  bot_invested: number;
-  dca_value: number;
-  dca_invested: number;
-}
-
-export interface AccountBalance {
-  configured: boolean;
-  eur_available: number | null;
-  btc_available: number | null;
-  error: string | null;
-}
-
-export interface RunResult {
-  skipped: boolean;
-  reason?: string;
-  purchase?: Purchase;
-  analysis?: Indicators;
-  error?: string | null;
-}
-
-export interface SimulationSummary {
-  days: number;
-  purchase_count: number;
-  current_price: number;
-  start_date: string;
-  end_date: string;
-  weekday: number;
-  base_amount_eur: number;
-  bot: PerformanceSide;
-  dca: PerformanceSide;
-}
-
-export interface SimulationResult {
-  summary: SimulationSummary;
-  series: ComparisonPoint[];
-}
-
-export interface ImportResult {
-  imported: number;
-  skipped: number;
-  total: number;
-  errors: { line: number; message: string }[];
+/** Pulls FastAPI's `detail` out of an error body so users see the message,
+ *  not the raw JSON envelope. */
+function describeError(status: number, body: string): string {
+  try {
+    const parsed = JSON.parse(body);
+    if (typeof parsed?.detail === "string") return parsed.detail;
+  } catch {
+    // not JSON - fall through to the raw body
+  }
+  return body ? `API error ${status}: ${body}` : `API error ${status}`;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -127,8 +36,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   if (!resp.ok) {
-    const body = await resp.text();
-    throw new Error(`API error ${resp.status}: ${body}`);
+    throw new Error(describeError(resp.status, await resp.text()));
   }
   return resp.json() as Promise<T>;
 }
@@ -182,7 +90,7 @@ export const api = {
     fd.append("include_errors", String(includeErrors));
     // No Content-Type header: the browser sets the multipart boundary itself.
     const resp = await fetch("/api/purchases/import", { method: "POST", body: fd });
-    if (!resp.ok) throw new Error(`API error ${resp.status}: ${await resp.text()}`);
+    if (!resp.ok) throw new Error(describeError(resp.status, await resp.text()));
     return resp.json() as Promise<ImportResult>;
   },
   testNotification: () =>
@@ -190,25 +98,3 @@ export const api = {
       method: "POST",
     }),
 };
-
-export const fmtEur = (v: number, digits = 2) =>
-  new Intl.NumberFormat("en-IE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: digits,
-    minimumFractionDigits: digits > 2 ? 2 : digits,
-  }).format(v);
-
-export const fmtBtc = (v: number) => `${v.toFixed(8)} BTC`;
-
-export const fmtPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
-
-export const WEEKDAYS = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];

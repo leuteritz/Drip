@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from "react";
+import { useEffect, type MouseEvent, type ReactNode } from "react";
 
 export function Card({
   children,
@@ -72,28 +72,13 @@ export function Badge({
   );
 }
 
-export function StatCard({
-  label,
-  value,
-  sub,
-  tone,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  tone?: "up" | "down";
-}) {
-  const valueColor =
-    tone === "up" ? "text-teal" : tone === "down" ? "text-rose" : "text-ink";
-  return (
-    <Card className="flex flex-col gap-1.5">
-      <span className="text-xs font-bold uppercase tracking-[0.14em] text-ink-soft">
-        {label}
-      </span>
-      <span className={`font-display text-3xl font-semibold ${valueColor}`}>{value}</span>
-      {sub && <span className="text-sm text-ink-soft">{sub}</span>}
-    </Card>
-  );
+export type Tone = "up" | "down" | "plain";
+
+/** Profit/loss colouring, shared by every number that can go either way. */
+export function toneText(tone?: Tone): string {
+  if (tone === "up") return "text-teal";
+  if (tone === "down") return "text-rose";
+  return "text-ink";
 }
 
 export function Toggle({
@@ -129,6 +114,45 @@ export function Spinner() {
   return (
     <div className="flex items-center justify-center py-12">
       <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-sand border-t-teal" />
+    </div>
+  );
+}
+
+/**
+ * The shared overlay for every dialog in the app.
+ *
+ * Escape always closes — that is the one interaction users expect from any
+ * modal. Dismissing by clicking the backdrop is opt-in via `closeOnBackdrop`,
+ * so a confirmation ("delete everything", "trade live") can't be dismissed by
+ * a stray click while the browsing dialogs still feel light.
+ */
+export function Modal({
+  children,
+  onClose,
+  className = "",
+  closeOnBackdrop = false,
+}: {
+  children: ReactNode;
+  onClose: () => void;
+  className?: string;
+  closeOnBackdrop?: boolean;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
+      onClick={closeOnBackdrop ? onClose : undefined}
+    >
+      <Card className={className} onClick={(e) => e.stopPropagation()}>
+        {children}
+      </Card>
     </div>
   );
 }

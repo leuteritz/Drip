@@ -9,7 +9,19 @@ import {
   YAxis,
 } from "recharts";
 import type { Candle, Purchase } from "../api/client";
-import { fmtEur } from "../api/client";
+import {
+  CHART_COLORS,
+  CHART_MARGIN,
+  DATE_AXIS_PROPS,
+  GRID_PROPS,
+  fmtThousands,
+} from "../lib/chart";
+import { fmtEur } from "../lib/format";
+import {
+  ChartTooltipCard,
+  PurchaseDrop,
+  PurchaseTooltipRow,
+} from "./charts/PurchaseDrop";
 
 interface Point {
   date: string;
@@ -18,6 +30,7 @@ interface Point {
   purchaseY?: number;
 }
 
+/** Price-only fallback, shown until there are enough buys to chart a strategy. */
 export default function PriceChart({
   candles,
   purchases,
@@ -44,26 +57,19 @@ export default function PriceChart({
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <ComposedChart data={data} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
+      <ComposedChart data={data} margin={CHART_MARGIN}>
         <defs>
           <linearGradient id="waterGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#93b7be" stopOpacity={0.45} />
-            <stop offset="100%" stopColor="#93b7be" stopOpacity={0.04} />
+            <stop offset="0%" stopColor={CHART_COLORS.water} stopOpacity={0.45} />
+            <stop offset="100%" stopColor={CHART_COLORS.water} stopOpacity={0.04} />
           </linearGradient>
         </defs>
-        <CartesianGrid stroke="#d5c7bc" strokeDasharray="3 5" vertical={false} opacity={0.6} />
-        <XAxis
-          dataKey="date"
-          tick={{ fill: "#6f6f6f", fontSize: 11 }}
-          tickFormatter={(d: string) => d.slice(5)}
-          axisLine={{ stroke: "#d5c7bc" }}
-          tickLine={false}
-          minTickGap={40}
-        />
+        <CartesianGrid {...GRID_PROPS} />
+        <XAxis {...DATE_AXIS_PROPS} />
         <YAxis
           domain={["auto", "auto"]}
-          tick={{ fill: "#6f6f6f", fontSize: 11 }}
-          tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
+          tick={{ fill: CHART_COLORS.inkSoft, fontSize: 11 }}
+          tickFormatter={fmtThousands}
           axisLine={false}
           tickLine={false}
           width={40}
@@ -72,7 +78,7 @@ export default function PriceChart({
         <Area
           type="monotone"
           dataKey="close"
-          stroke="#45818c"
+          stroke={CHART_COLORS.teal}
           strokeWidth={2.5}
           fill="url(#waterGradient)"
           dot={false}
@@ -84,39 +90,14 @@ export default function PriceChart({
   );
 }
 
-// Buys are drawn as little drops on the price line
-function PurchaseDrop(props: any) {
-  const { cx, cy, payload } = props;
-  if (cx == null || cy == null || !payload?.purchase) return null;
-  return (
-    <g transform={`translate(${cx - 6} ${cy - 14})`}>
-      <path
-        d="M6 0 C4.2 3.2 2 5.4 2 8 a4 4 0 0 0 8 0 c0-2.6-2.2-4.8-4-8Z"
-        fill="#785964"
-        stroke="#fbfffd"
-        strokeWidth="1.2"
-      />
-    </g>
-  );
-}
-
 function PriceTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const point: Point = payload[0].payload;
   return (
-    <div className="rounded-xl border-2 border-sand bg-paper px-3 py-2 text-xs shadow-puff">
+    <ChartTooltipCard>
       <div className="font-bold text-ink">{point.date}</div>
       <div className="text-teal">{fmtEur(point.close, 0)}</div>
-      {point.purchase && (
-        <div className="mt-1 border-t border-sand pt-1 text-rose">
-          <div className="font-bold">
-            {point.purchase.dry_run ? "Dry run" : "Buy"}: {fmtEur(point.purchase.amount_eur)}
-          </div>
-          <div className="text-ink-soft">
-            Score {point.purchase.score} at x{point.purchase.multiplier}
-          </div>
-        </div>
-      )}
-    </div>
+      {point.purchase && <PurchaseTooltipRow purchase={point.purchase} />}
+    </ChartTooltipCard>
   );
 }

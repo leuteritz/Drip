@@ -4,15 +4,14 @@ import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
 import {
   api,
-  fmtEur,
-  fmtPct,
   type Candle,
   type ComparisonPoint,
   type Purchase,
 } from "../api/client";
+import { fmtEur, fmtPct } from "../lib/format";
 import ComparisonChart from "../components/ComparisonChart";
 import PriceChart from "../components/PriceChart";
-import { Card, CardTitle, Spinner, Toggle } from "../components/ui";
+import { Card, CardTitle, Spinner, Toggle, toneText, type Tone } from "../components/ui";
 
 const RANGES = [
   { label: "30d", days: 30 },
@@ -210,15 +209,15 @@ function Kpi({
   children,
 }: {
   label: string;
-  tone: "up" | "down" | "plain";
+  tone: Tone;
   children: ReactNode;
 }) {
-  const toneClass =
-    tone === "up" ? "text-teal" : tone === "down" ? "text-rose" : "text-ink";
   return (
     <dl className="min-w-[130px] flex-1 rounded-xl bg-sand-soft/60 px-4 py-2.5">
       <dt className="text-xs font-medium text-ink-soft">{label}</dt>
-      <dd className={`font-display text-xl font-semibold ${toneClass}`}>{children}</dd>
+      <dd className={`font-display text-xl font-semibold ${toneText(tone)}`}>
+        {children}
+      </dd>
     </dl>
   );
 }

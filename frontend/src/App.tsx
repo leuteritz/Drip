@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import WarningIcon from "~icons/ph/warning-fill";
+import XIcon from "~icons/ph/x";
 import {
   api,
   type AccountBalance,
@@ -27,19 +29,29 @@ export default function App() {
   const [buying, setBuying] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showSim, setShowSim] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Background refreshes used to fail silently, which left the header showing
+  // empty skeletons whenever the backend was down. They now surface here.
+  const report = useCallback((e: unknown) => {
+    setApiError(e instanceof Error ? e.message : String(e));
+  }, []);
 
   const reloadPurchases = useCallback(() => {
-    api.getPurchases().then(setPurchases).catch(() => {});
-  }, []);
+    api.getPurchases().then(setPurchases).catch(report);
+  }, [report]);
   const reloadStatus = useCallback(() => {
-    api.getStatus().then(setStatus).catch(() => {});
-  }, []);
-  const loadPerformance = useCallback((dry: boolean) => {
-    api.getPerformance(dry).then(setPerformance).catch(() => {});
-  }, []);
+    api.getStatus().then(setStatus).catch(report);
+  }, [report]);
+  const loadPerformance = useCallback(
+    (dry: boolean) => {
+      api.getPerformance(dry).then(setPerformance).catch(report);
+    },
+    [report],
+  );
   const reloadBalance = useCallback(() => {
-    api.getBalance().then(setBalance).catch(() => {});
-  }, []);
+    api.getBalance().then(setBalance).catch(report);
+  }, [report]);
 
   const onToggleDryRun = useCallback(
     (v: boolean) => {
@@ -54,14 +66,13 @@ export default function App() {
   const setDryRun = useCallback(
     async (dry: boolean) => {
       try {
-        const next = await api.updateSettings({ dry_run: dry });
-        setSettings(next);
+        setSettings(await api.updateSettings({ dry_run: dry }));
         reloadStatus();
-      } catch {
-        // Header stays quiet; the Settings page surfaces mode errors.
+      } catch (e) {
+        report(e);
       }
     },
-    [reloadStatus],
+    [reloadStatus, report],
   );
 
   // Persist a settings change (amount, schedule, Discord) from the header's
@@ -70,8 +81,7 @@ export default function App() {
   // backend (routers/settings.py).
   const saveSettings = useCallback(
     async (update: Partial<BotSettings>) => {
-      const next = await api.updateSettings(update);
-      setSettings(next);
+      setSettings(await api.updateSettings(update));
       reloadStatus();
     },
     [reloadStatus],
@@ -79,16 +89,14 @@ export default function App() {
 
   const pause = useCallback(
     async (days: number) => {
-      const next = await api.pause(days);
-      setSettings(next);
+      setSettings(await api.pause(days));
       reloadStatus();
     },
     [reloadStatus],
   );
 
   const resume = useCallback(async () => {
-    const next = await api.resume();
-    setSettings(next);
+    setSettings(await api.resume());
     reloadStatus();
   }, [reloadStatus]);
 
@@ -102,16 +110,15 @@ export default function App() {
     setRunning(true);
     setRunResult(null);
     try {
-      const result = await api.runNow(true);
-      setRunResult(result);
+      setRunResult(await api.runNow(true));
       reloadPurchases();
       loadPerformance(includeDryRun);
-    } catch {
-      // Errors surface in the dashboard body; keep the header quiet.
+    } catch (e) {
+      report(e);
     } finally {
       setRunning(false);
     }
-  }, [includeDryRun, loadPerformance, reloadPurchases]);
+  }, [includeDryRun, loadPerformance, reloadPurchases, report]);
 
   // Manual buy from the header's Well card; respects the stored dry_run
   // setting (the dialog only reflects it). Refresh the balance afterwards —
@@ -121,8 +128,7 @@ export default function App() {
       setBuying(true);
       setRunResult(null);
       try {
-        const result = await api.buyNow(amountEur);
-        setRunResult(result);
+        setRunResult(await api.buyNow(amountEur));
         reloadPurchases();
         loadPerformance(includeDryRun);
         reloadBalance();
@@ -136,19 +142,19 @@ export default function App() {
   useEffect(() => {
     (async () => {
       const [st, set, purch] = await Promise.all([
-        api.getStatus().catch(() => null),
-        api.getSettings().catch(() => null),
-        api.getPurchases().catch(() => [] as Purchase[]),
+        api.getStatus().catch(report),
+        api.getSettings().catch(report),
+        api.getPurchases().catch(report),
       ]);
       if (st) setStatus(st);
       if (set) setSettings(set);
-      setPurchases(purch);
+      if (purch) setPurchases(purch);
       loadPerformance(true);
       reloadBalance();
       // Indicators last: the first call may fetch 350 days of candles.
-      api.getIndicators().then(setIndicators).catch(() => {});
+      api.getIndicators().then(setIndicators).catch(report);
     })();
-  }, [loadPerformance, reloadBalance]);
+  }, [loadPerformance, reloadBalance, report]);
 
   return (
     <div className="h-full bg-cream">
@@ -187,9 +193,42 @@ export default function App() {
         </main>
       </div>
 
+      {apiError && (
+        <ErrorToast message={apiError} onDismiss={() => setApiError(null)} />
+      )}
+
       {showSim && settings && (
         <SimulationModal settings={settings} onClose={() => setShowSim(false)} />
       )}
+    </div>
+  );
+}
+
+/** Surfaces a failed background request without interrupting the dashboard. */
+function ErrorToast({
+  message,
+  onDismiss,
+}: {
+  message: string;
+  onDismiss: () => void;
+}) {
+  return (
+    <div
+      role="status"
+      className="fixed bottom-4 right-4 z-40 flex max-w-md items-start gap-3 rounded-card border-2 border-rose/50 bg-paper px-4 py-3 shadow-puff"
+    >
+      <WarningIcon className="mt-0.5 shrink-0 text-rose" aria-hidden="true" />
+      <div className="min-w-0">
+        <div className="text-sm font-bold text-rose">Backend unreachable</div>
+        <div className="mt-0.5 break-words text-xs text-ink-soft">{message}</div>
+      </div>
+      <button
+        onClick={onDismiss}
+        aria-label="Dismiss"
+        className="-mr-1 -mt-1 shrink-0 rounded-full p-1.5 text-ink-soft transition hover:text-ink"
+      >
+        <XIcon className="text-sm" />
+      </button>
     </div>
   );
 }

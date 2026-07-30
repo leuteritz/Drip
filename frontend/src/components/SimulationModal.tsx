@@ -1,17 +1,11 @@
-import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
 import XIcon from "~icons/ph/x";
 import TrendUpIcon from "~icons/ph/trend-up";
 import TrendDownIcon from "~icons/ph/trend-down";
-import {
-  api,
-  fmtEur,
-  fmtPct,
-  WEEKDAYS,
-  type BotSettings,
-  type SimulationResult,
-} from "../api/client";
+import { api, type BotSettings, type SimulationResult } from "../api/client";
+import { fmtEur, fmtPct, WEEKDAYS } from "../lib/format";
 import ComparisonChart from "./ComparisonChart";
-import { Card, Spinner } from "./ui";
+import { Modal, Spinner, toneText, type Tone } from "./ui";
 
 const PERIODS = [
   { label: "1m", days: 30 },
@@ -50,25 +44,16 @@ export default function SimulationModal({
     run(days);
   }, [days, run]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   const s = result?.summary;
   const botWins = s ? s.bot.profit_pct >= s.dca.profit_pct : true;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
-      onClick={onClose}
+    <Modal
+      onClose={onClose}
+      closeOnBackdrop
+      className="max-h-[92dvh] w-full max-w-4xl overflow-y-auto"
     >
-      <Card
-        className="max-h-[92dvh] w-full max-w-4xl overflow-y-auto"
-        onClick={(e: MouseEvent) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-semibold">Backtest simulation</h2>
             <p className="mt-1 text-sm text-ink-soft">
@@ -156,8 +141,7 @@ export default function SimulationModal({
             )}
           </>
         )}
-      </Card>
-    </div>
+    </Modal>
   );
 }
 
@@ -171,11 +155,9 @@ function SimStat({
   label: string;
   value: string;
   sub?: string;
-  tone?: "up" | "down";
+  tone?: Tone;
   highlight?: boolean;
 }) {
-  const valueColor =
-    tone === "up" ? "text-teal" : tone === "down" ? "text-rose" : "text-ink";
   return (
     <div
       className={`rounded-xl border-2 p-3 ${
@@ -185,7 +167,7 @@ function SimStat({
       <div className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">
         {label}
       </div>
-      <div className={`mt-1 font-display text-2xl font-semibold ${valueColor}`}>
+      <div className={`mt-1 font-display text-2xl font-semibold ${toneText(tone)}`}>
         {value}
       </div>
       {sub && <div className="text-xs text-ink-soft">{sub}</div>}

@@ -4,10 +4,11 @@ import ListDashesIcon from "~icons/ph/list-dashes";
 import TrashIcon from "~icons/ph/trash";
 import UploadSimpleIcon from "~icons/ph/upload-simple";
 import WarningIcon from "~icons/ph/warning-fill";
-import { api, fmtBtc, fmtEur, type Purchase } from "../api/client";
+import { api, ORDER_ID_ERROR, type Purchase } from "../api/client";
+import { fmtBtc, fmtEur, formatTimestamp } from "../lib/format";
 import { ScoreDrops } from "../components/drops";
 import ImportModal from "../components/ImportModal";
-import { Badge, Card, SectionHeading } from "../components/ui";
+import { Badge, Card, Modal, SectionHeading } from "../components/ui";
 
 type SortKey = "timestamp" | "price_eur" | "amount_eur" | "score";
 
@@ -78,7 +79,7 @@ export default function HistorySection({
   }, [purchases, sortKey, sortDesc]);
 
   const totals = useMemo(() => {
-    const ok = purchases.filter((p) => p.order_id !== "ERROR");
+    const ok = purchases.filter((p) => p.order_id !== ORDER_ID_ERROR);
     return {
       count: ok.length,
       eur: ok.reduce((s, p) => s + p.amount_eur, 0),
@@ -184,10 +185,7 @@ export default function HistorySection({
                     className={`border-b border-sand/50 ${i % 2 ? "bg-sand-soft/30" : ""}`}
                   >
                     <td className="whitespace-nowrap px-4 py-3 text-ink">
-                      {new Date(p.timestamp).toLocaleString("en-GB", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
+                      {formatTimestamp(p.timestamp)}
                     </td>
                     <td className="px-4 py-3 text-right">{fmtEur(p.price_eur, 0)}</td>
                     <td className="px-4 py-3 text-right font-bold">
@@ -205,7 +203,7 @@ export default function HistorySection({
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      {p.order_id === "ERROR" ? (
+                      {p.order_id === ORDER_ID_ERROR ? (
                         <Badge tone="rose">Error</Badge>
                       ) : p.dry_run ? (
                         <Badge tone="neutral">Dry run</Badge>
@@ -258,31 +256,29 @@ export default function HistorySection({
       )}
 
       {confirmWipe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
-          <Card className="max-w-md border-rose/60">
-            <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
-              <WarningIcon /> Delete the entire history?
-            </h3>
-            <p className="text-sm text-ink">
-              This permanently removes <b>all {purchases.length} entries</b> — real buys and test
-              runs alike. Export a CSV first if you want a backup. This cannot be undone.
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setConfirmWipe(false)}
-                className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={deleteAll}
-                className="rounded-full bg-rose px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
-              >
-                Delete everything
-              </button>
-            </div>
-          </Card>
-        </div>
+        <Modal onClose={() => setConfirmWipe(false)} className="max-w-md border-rose/60">
+          <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
+            <WarningIcon /> Delete the entire history?
+          </h3>
+          <p className="text-sm text-ink">
+            This permanently removes <b>all {purchases.length} entries</b> — real buys and test
+            runs alike. Export a CSV first if you want a backup. This cannot be undone.
+          </p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              onClick={() => setConfirmWipe(false)}
+              className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={deleteAll}
+              className="rounded-full bg-rose px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
+            >
+              Delete everything
+            </button>
+          </div>
+        </Modal>
       )}
     </section>
   );
