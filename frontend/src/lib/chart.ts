@@ -103,3 +103,23 @@ export const fmtThousands = (v: number) => `${Math.round(v / 1000)}k`;
 
 /** The teardrop marking a buy on the price line. */
 export const DROP_PATH = "M6 0 C4.2 3.2 2 5.4 2 8 a4 4 0 0 0 8 0 c0-2.6-2.2-4.8-4-8Z";
+
+/**
+ * A cell tint from the fixed palette: teal for good, rose for bad, mixed into
+ * the paper surface by magnitude. `color-mix` on the CSS custom properties
+ * keeps the `@theme` block the single source of truth — no hex reaches here.
+ *
+ * The mix tops out well short of the full hue on purpose. Both teal and rose
+ * land mid-tone, where neither ink nor paper text has much contrast left, so
+ * the scale stays light enough for ink to stay readable in every cell rather
+ * than flipping to paper at the dark end and being worse at both.
+ */
+export function tintFor(value: number, maxAbs: number) {
+  const share = maxAbs > 0 ? Math.min(Math.abs(value) / maxAbs, 1) : 0;
+  const strength = Math.round(8 + share * 52);
+  const hue = value >= 0 ? "var(--color-teal)" : "var(--color-rose)";
+  return {
+    background: `color-mix(in srgb, ${hue} ${strength}%, var(--color-paper))`,
+    color: "var(--color-ink)",
+  };
+}

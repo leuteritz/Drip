@@ -223,6 +223,53 @@ export interface ScorePoint {
   multiplier: number;
 }
 
+export interface SignalQuintile {
+  quintile: number;
+  from_value: number;
+  to_value: number;
+  n: number;
+  median_pct: number;
+}
+
+export interface SignalScreenRow {
+  key: string;
+  label: string;
+  in_score: boolean;
+  current: number;
+  current_quintile: number;
+  quintiles: SignalQuintile[];
+  /** Cheapest fifth minus most expensive fifth. Positive means it works. */
+  spread_pct: number;
+}
+
+export interface CandidateSignals {
+  days: number;
+  horizon: number;
+  quintiles: number;
+  sample_size: number;
+  baseline_median_pct: number;
+  signals: SignalScreenRow[];
+}
+
+export interface ScoringVariant {
+  key: string;
+  label: string;
+  description: string;
+  windows: number;
+  win_rate: number;
+  median_pp: number;
+  worst_pp: number;
+  best_pp: number;
+  invested_eur: number;
+}
+
+export interface ScoringVariants {
+  window_days: number;
+  weekday: number;
+  dca_invested_eur: number;
+  variants: ScoringVariant[];
+}
+
 export interface CostBasis {
   purchase_count: number;
   btc_total: number;

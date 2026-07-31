@@ -3,9 +3,11 @@ import FlaskIcon from "~icons/ph/flask";
 import {
   api,
   type Attribution,
+  type CandidateSignals,
   type ForwardReturns,
   type RollingWindows,
   type ScorePoint,
+  type ScoringVariants as ScoringVariantsData,
   type StrategyGrid,
 } from "../api/client";
 import AttributionWaterfall from "../components/research/AttributionWaterfall";
@@ -13,6 +15,8 @@ import EdgeDistribution from "../components/research/EdgeDistribution";
 import ForwardReturnsTable from "../components/research/ForwardReturnsTable";
 import { useNearViewport } from "../components/research/hooks";
 import ScoreHistory from "../components/research/ScoreHistory";
+import ScoringVariants from "../components/research/ScoringVariants";
+import SignalScreen from "../components/research/SignalScreen";
 import WeekdayGrid from "../components/research/WeekdayGrid";
 import { Card, SectionHeading } from "../components/ui";
 
@@ -42,6 +46,8 @@ export default function Research({
   const [forwardDays, setForwardDays] = useState(1095);
   const [gridDays, setGridDays] = useState(365);
   const [scoreDays, setScoreDays] = useState(365);
+  const [candidateDays, setCandidateDays] = useState(1095);
+  const [variantDays, setVariantDays] = useState(365);
   const [windowDays, setWindowDays] = useState(365);
 
   const [attribution, setAttribution] = useState<Attribution | null>(null);
@@ -49,6 +55,8 @@ export default function Research({
   const [rolling, setRolling] = useState<RollingWindows | null>(null);
   const [grid, setGrid] = useState<StrategyGrid | null>(null);
   const [scores, setScores] = useState<ScorePoint[] | null>(null);
+  const [candidates, setCandidates] = useState<CandidateSignals | null>(null);
+  const [variants, setVariants] = useState<ScoringVariantsData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fail = (e: unknown) =>
@@ -79,6 +87,16 @@ export default function Research({
     api.getScoreHistory(scoreDays).then(setScores).catch(fail);
   }, [wanted, scoreDays]);
 
+  useEffect(() => {
+    if (!wanted) return;
+    api.getCandidateSignals(candidateDays).then(setCandidates).catch(fail);
+  }, [wanted, candidateDays]);
+
+  useEffect(() => {
+    if (!wanted) return;
+    api.getScoringVariants(variantDays).then(setVariants).catch(fail);
+  }, [wanted, variantDays]);
+
   return (
     <section
       ref={sectionRef}
@@ -88,7 +106,7 @@ export default function Research({
       <SectionHeading
         icon={<FlaskIcon />}
         title="Research"
-        subtitle="Five ways of asking whether the score is worth its multiplier"
+        subtitle="Seven ways of asking whether the score is worth its multiplier"
       />
 
       {error && (
@@ -116,6 +134,16 @@ export default function Research({
         data={forward}
         days={forwardDays}
         onDays={setForwardDays}
+      />
+      <SignalScreen
+        data={candidates}
+        days={candidateDays}
+        onDays={setCandidateDays}
+      />
+      <ScoringVariants
+        data={variants}
+        windowDays={variantDays}
+        onWindowDays={setVariantDays}
       />
       <WeekdayGrid data={grid} days={gridDays} onDays={setGridDays} />
     </section>

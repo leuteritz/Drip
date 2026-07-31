@@ -7,6 +7,7 @@ import type {
   BotSettings,
   BotStatus,
   Candle,
+  CandidateSignals,
   ComparisonPoint,
   ForwardReturns,
   Holdings,
@@ -17,6 +18,7 @@ import type {
   RollingWindows,
   RunResult,
   ScorePoint,
+  ScoringVariants,
   SimulationResult,
   StrategyGrid,
 } from "./types";
@@ -93,6 +95,10 @@ export const api = {
     request<RollingWindows>(`/api/research/rolling?window_days=${windowDays}`),
   getStrategyGrid: (days: number) =>
     request<StrategyGrid>(`/api/research/grid?days=${days}`),
+  getCandidateSignals: (days: number) =>
+    request<CandidateSignals>(`/api/research/candidates?days=${days}`),
+  getScoringVariants: (windowDays: number) =>
+    request<ScoringVariants>(`/api/research/scoring-variants?window_days=${windowDays}`),
   getScoreHistory: (days: number) =>
     request<ScorePoint[]>(`/api/research/score-history?days=${days}`),
   getHoldings: (includeDryRun: boolean) =>

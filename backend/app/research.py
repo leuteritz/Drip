@@ -19,6 +19,7 @@ about how a score or a profit is computed.
 import bisect
 import statistics
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, timedelta
 from itertools import combinations
@@ -26,7 +27,7 @@ from math import factorial
 
 from sqlmodel import Session
 
-from . import indicators, strategy
+from . import indicators, signals, strategy
 from .market_data import ensure_candles
 from .models import BotSettings
 from .portfolio import side_summary
@@ -41,6 +42,7 @@ NEUTRAL_FNG = 50
 NEUTRAL_RSI = 50.0
 
 INDICATORS = ("fng", "rsi", "ma")
+ALL_INDICATORS = frozenset(INDICATORS)
 INDICATOR_LABELS = {
     "fng": "Fear & Greed",
     "rsi": "RSI",
@@ -57,14 +59,24 @@ CURRENT_SPREAD = 1.0
 WINDOW_STEP = 7  # a rolling window starts every week
 MIN_WINDOW_BUYS = 4  # below this a window says nothing
 
+# Any rule that turns one scored day into a multiplier: the live ladder, a
+# restricted coalition, a re-spread ladder, or a whole alternative scoring.
+MultiplierFn = Callable[["ScoredDay"], float]
+
 
 @dataclass
 class ScoredDay:
-    """One candle day, with each indicator's points kept apart."""
+    """One candle day, with each indicator's points kept apart.
+
+    `readings` carries the raw values behind those points plus the candidate
+    signals that are not in the score at all — the screening and the scoring
+    variants both work off these rather than recomputing anything.
+    """
 
     day: date
     close: float
     points: dict[str, int]
+    readings: dict[str, float]
 
     @property
     def score(self) -> int:
@@ -121,9 +133,22 @@ def _build_table(session: Session) -> ScoreTable:
     for close in closes:
         prefix.append(prefix[-1] + close)
 
+    # Running maximum, never the maximum of the whole series: scoring a past day
+    # against a peak that had not happened yet is lookahead, and it would make
+    # the drawdown signal look clairvoyant.
+    high_water: list[float] = []
+    peak = 0.0
+    for close in closes:
+        peak = max(peak, close)
+        high_water.append(peak)
+
     fng_hist = indicators.get_fear_and_greed_history()
     window_start = date.today() - timedelta(days=RESEARCH_DAYS)
     rsi_lookback = strategy.RSI_PERIOD + 7  # the same slice the live bot scores
+
+    def mean(idx: int, length: int) -> float:
+        low = max(0, idx - length + 1)
+        return (prefix[idx + 1] - prefix[low]) / (idx + 1 - low)
 
     rows: list[ScoredDay] = []
     for idx, day in enumerate(days):
@@ -132,19 +157,24 @@ def _build_table(session: Session) -> ScoreTable:
         price = closes[idx]
         if not price:
             continue
-        low = max(0, idx - strategy.MA_DAYS + 1)
+        fng = fng_hist.get(day, NEUTRAL_FNG)
+        rsi = indicators.calculate_rsi_wilder(
+            closes[max(0, idx - rsi_lookback + 1): idx + 1],
+            period=strategy.RSI_PERIOD,
+        )
+        ma_350 = mean(idx, strategy.MA_DAYS)
         rows.append(ScoredDay(
             day=day,
             close=price,
-            points=_indicator_points(
-                fng=fng_hist.get(day, NEUTRAL_FNG),
-                rsi=indicators.calculate_rsi_wilder(
-                    closes[max(0, idx - rsi_lookback + 1): idx + 1],
-                    period=strategy.RSI_PERIOD,
-                ),
-                price=price,
-                ma=(prefix[idx + 1] - prefix[low]) / (idx + 1 - low),
-            ),
+            points=_indicator_points(fng=fng, rsi=rsi, price=price, ma=ma_350),
+            readings={
+                "fng": float(fng),
+                "rsi": rsi,
+                "ma_dist": (price - ma_350) / ma_350 * 100 if ma_350 else 0.0,
+                "mayer": signals.mayer_multiple(price, mean(idx, signals.MAYER_MA_DAYS)),
+                "drawdown": signals.drawdown_pct(price, high_water[idx]),
+                "cycle": signals.cycle_phase(day),
+            },
         ))
 
     return ScoreTable(days=days, closes=closes, rows=rows)
@@ -162,20 +192,30 @@ def score_table(session: Session) -> ScoreTable:
 
 # --- shared helpers ---------------------------------------------------------
 
-def _simulate(rows: list[ScoredDay], active: frozenset[str], base: float,
-              price: float, spread: float = CURRENT_SPREAD) -> dict:
-    """Buys `base * multiplier` on every row, against a plain-DCA twin.
+def _coalition(active: frozenset[str], spread: float = CURRENT_SPREAD) -> MultiplierFn:
+    """The live rule, restricted to `active` and optionally re-spread.
 
     Only the indicators in `active` count towards the score, which is how the
-    attribution builds its coalitions; `spread` rescales the multiplier ladder
-    for the grid. The DCA side is identical in every variant, so any difference
-    in the edge comes from the multiplier alone.
+    attribution builds its coalitions; `spread` rescales the ladder for the grid.
+    """
+    def multiplier_of(row: ScoredDay) -> float:
+        score = sum(row.points[key] for key in active)
+        return strategy.determine_purchase_strategy(score)["multiplier"] ** spread
+
+    return multiplier_of
+
+
+def _simulate(rows: list[ScoredDay], multiplier_of: MultiplierFn, base: float,
+              price: float) -> dict:
+    """Buys `base * multiplier_of(day)` on every row, against a plain-DCA twin.
+
+    The DCA side is identical whatever the rule, so any difference in the edge
+    comes from the multiplier alone — which is what makes coalitions, spreads
+    and whole alternative scorings comparable through this one function.
     """
     bot_eur = bot_btc = dca_eur = dca_btc = 0.0
     for row in rows:
-        score = sum(row.points[key] for key in active)
-        multiplier = strategy.determine_purchase_strategy(score)["multiplier"] ** spread
-        amount = round(base * multiplier, 2)
+        amount = round(base * multiplier_of(row), 2)
         bot_eur += amount
         bot_btc += amount / row.close
         dca_eur += base
@@ -255,7 +295,7 @@ def attribution(session: Session, days: int, settings: BotSettings) -> dict:
     base = settings.base_amount_eur
 
     values = {
-        frozenset(combo): _simulate(rows, frozenset(combo), base, price)
+        frozenset(combo): _simulate(rows, _coalition(frozenset(combo)), base, price)
         for size in range(len(INDICATORS) + 1)
         for combo in combinations(INDICATORS, size)
     }
@@ -368,7 +408,7 @@ def rolling_windows(session: Session, window_days: int, settings: BotSettings) -
             idx = bisect.bisect_right(table.days, end) - 1
             price = table.closes[idx] if idx >= 0 else 0.0
             if len(chunk) >= MIN_WINDOW_BUYS and price:
-                run = _simulate(chunk, frozenset(INDICATORS), base, price)
+                run = _simulate(chunk, _coalition(ALL_INDICATORS), base, price)
                 windows.append({
                     "start": start.isoformat(),
                     "end": end.isoformat(),
@@ -393,6 +433,251 @@ def rolling_windows(session: Session, window_days: int, settings: BotSettings) -
         "best_pp": edges[-1] if edges else 0.0,
         "worst_pp": edges[0] if edges else 0.0,
         "windows": windows,
+    }
+
+
+# --- candidate signals and alternative scorings -----------------------------
+
+# Screened with the same forward-return test the live indicators get. All of
+# these read "lower is cheaper", which is what makes one shared quintile table
+# meaningful across them; `cycle` is the deliberate exception and claims no
+# direction at all.
+SCREEN_SIGNALS = (
+    ("fng", "Fear & Greed", True),
+    ("rsi", "RSI", True),
+    ("ma_dist", f"Price vs {strategy.MA_DAYS}d MA", True),
+    ("mayer", "Mayer Multiple", False),
+    ("drawdown", "Drawdown from high", False),
+    ("cycle", "Cycle position", False),
+)
+QUINTILES = 5
+SCREEN_HORIZON = 90
+
+
+def _soft_score(readings: dict[str, float]) -> float:
+    """The same three indicators without the cliffs.
+
+    Every threshold in `score_indicators` is a step: RSI 44.9 scores +1 and RSI
+    45.1 scores 0, on a reading that is noisy to well beyond that. These are the
+    same anchor points joined by straight lines, so the total keeps the original
+    -4..8 range and only the edges soften.
+    """
+    fng = readings["fng"]
+    if fng <= strategy.FNG_FEAR:
+        fng_points = 3 * min((strategy.FNG_FEAR - fng) / strategy.FNG_FEAR, 1.0)
+    elif fng >= strategy.FNG_NEUTRAL:
+        fng_points = -2 * min((fng - strategy.FNG_NEUTRAL) / 45, 1.0)
+    else:
+        fng_points = 0.0
+
+    rsi = readings["rsi"]
+    if rsi <= 50:
+        rsi_points = 3 * min((50 - rsi) / 25, 1.0)
+    else:
+        rsi_points = -2 * min((rsi - 50) / 25, 1.0)
+
+    # The live rule pays the full +2 for being a hair below the average; this
+    # pays it for being 20% below and scales down to nothing at the average.
+    below = max(-readings["ma_dist"], 0.0)
+    ma_points = 2 * min(below / 20.0, 1.0)
+
+    return fng_points + rsi_points + ma_points
+
+
+def _soft_multiplier(row: ScoredDay) -> float:
+    """Soft score mapped straight onto 0.5x-1.5x, without the five-rung ladder.
+
+    Smoothing the points and then rounding them back onto the ladder would put
+    the cliffs straight back, so this variant replaces both at once. That is
+    also its honest weakness: it differs from the live rule in two ways, and the
+    comparison cannot say which of the two did the work.
+    """
+    return 0.5 + max(min((_soft_score(row.readings) + 4) / 12, 1.0), 0.0)
+
+
+def _drawdown_points(readings: dict[str, float]) -> int:
+    below = -readings["drawdown"]
+    if below >= 40:
+        return 3
+    if below >= 20:
+        return 2
+    if below >= 10:
+        return 1
+    return -1 if below < 5 else 0
+
+
+def _mayer_points(readings: dict[str, float]) -> int:
+    mayer = readings["mayer"]
+    if mayer < 0.8:
+        return 3
+    if mayer < 1.0:
+        return 1
+    if mayer > 2.4:
+        return -2
+    return -1 if mayer > 1.5 else 0
+
+
+def _plus(extra) -> MultiplierFn:
+    """The live rule with one more points block bolted on."""
+    def multiplier_of(row: ScoredDay) -> float:
+        score = row.score + extra(row.readings)
+        return strategy.determine_purchase_strategy(score)["multiplier"]
+
+    return multiplier_of
+
+
+VARIANTS: tuple[tuple[str, str, str], ...] = (
+    ("current", "Current scoring", "The three indicators and the five-rung ladder."),
+    ("soft", "Soft scoring", "Same indicators, no thresholds and no ladder."),
+    ("plus_drawdown", "Plus drawdown", "Current scoring, plus points for being far below the high."),
+    ("plus_mayer", "Plus Mayer", "Current scoring, plus points for a low Mayer Multiple."),
+)
+
+
+def _variant(key: str) -> MultiplierFn:
+    if key == "soft":
+        return _soft_multiplier
+    if key == "plus_drawdown":
+        return _plus(_drawdown_points)
+    if key == "plus_mayer":
+        return _plus(_mayer_points)
+    return _coalition(ALL_INDICATORS)
+
+
+def candidates(session: Session, days: int) -> dict:
+    """Screens every signal, live and candidate, by the same forward-return test.
+
+    Days are sorted by the signal and cut into fifths; each fifth reports what
+    the price did over the next 90 days. A signal that reads the market has a
+    cheap fifth that beats its expensive fifth by more than the all-days
+    baseline moves — that gap is the `spread`, and it is what ranks them.
+    """
+    table = score_table(session)
+    rows = _window_rows(table, days)
+
+    forward: dict[date, float] = {}
+    for row in rows:
+        target = row.day + timedelta(days=SCREEN_HORIZON)
+        idx = bisect.bisect_left(table.days, target)
+        if idx >= len(table.days) or (table.days[idx] - target).days > 3:
+            continue
+        later = table.closes[idx]
+        if later and row.close:
+            forward[row.day] = (later - row.close) / row.close * 100
+
+    usable = [row for row in rows if row.day in forward]
+    baseline = statistics.median(forward.values()) if forward else 0.0
+
+    out = []
+    for key, label, in_score in SCREEN_SIGNALS:
+        ordered = sorted(usable, key=lambda r: r.readings[key])
+        size = len(ordered) // QUINTILES
+        if size == 0:
+            continue
+        quintiles = []
+        for q in range(QUINTILES):
+            start = q * size
+            end = len(ordered) if q == QUINTILES - 1 else start + size
+            chunk = ordered[start:end]
+            values = [forward[r.day] for r in chunk]
+            quintiles.append({
+                "quintile": q + 1,
+                "from_value": chunk[0].readings[key],
+                "to_value": chunk[-1].readings[key],
+                "n": len(chunk),
+                "median_pct": statistics.median(values) if values else 0.0,
+            })
+
+        current = rows[-1].readings[key] if rows else 0.0
+        position = sum(1 for r in ordered if r.readings[key] <= current)
+        out.append({
+            "key": key,
+            "label": label,
+            "in_score": in_score,
+            "current": current,
+            "current_quintile": min(
+                QUINTILES, max(1, (position * QUINTILES - 1) // len(ordered) + 1)
+            ),
+            "quintiles": quintiles,
+            # Cheap fifth minus expensive fifth. Positive means low readings did
+            # precede better returns, which is the whole claim being tested.
+            "spread_pct": quintiles[0]["median_pct"] - quintiles[-1]["median_pct"],
+        })
+
+    out.sort(key=lambda s: s["spread_pct"], reverse=True)
+    return {
+        "days": days,
+        "horizon": SCREEN_HORIZON,
+        "quintiles": QUINTILES,
+        "sample_size": len(usable),
+        "baseline_median_pct": baseline,
+        "signals": out,
+    }
+
+
+def scoring_variants(session: Session, window_days: int, settings: BotSettings) -> dict:
+    """Alternative scorings, each put through the same rolling-window test.
+
+    A single backtest would rank these by whichever happened to fit the window;
+    a hundred overlapping ones at least show whether a variant wins broadly or
+    only in one stretch. Nothing here touches `strategy.py` — these are
+    proposals with evidence attached, not settings.
+    """
+    table = score_table(session)
+    weekday = settings.schedule_weekday
+    base = settings.base_amount_eur
+    buys = [row for row in table.rows if row.day.weekday() == weekday]
+
+    starts: list[tuple[date, date, float]] = []
+    if buys and table.days:
+        last = table.days[-1]
+        start = table.rows[0].day
+        while start + timedelta(days=window_days) <= last:
+            end = start + timedelta(days=window_days)
+            idx = bisect.bisect_right(table.days, end) - 1
+            price = table.closes[idx] if idx >= 0 else 0.0
+            if price:
+                starts.append((start, end, price))
+            start += timedelta(days=WINDOW_STEP)
+
+    # Every figure in a row is per window, the stake included. Showing an edge
+    # measured over one window beside a stake measured over three years would
+    # invite exactly the misreading the stake column exists to prevent.
+    dca_stakes: list[float] = []
+    results = []
+    for key, label, description in VARIANTS:
+        rule = _variant(key)
+        edges: list[float] = []
+        stakes: list[float] = []
+        for start, end, price in starts:
+            chunk = [row for row in buys if start <= row.day <= end]
+            if len(chunk) < MIN_WINDOW_BUYS:
+                continue
+            run = _simulate(chunk, rule, base, price)
+            edges.append(run["edge_pp"])
+            stakes.append(run["bot"]["invested_eur"])
+            if key == VARIANTS[0][0]:
+                dca_stakes.append(run["dca"]["invested_eur"])
+
+        ordered = sorted(edges)
+        results.append({
+            "key": key,
+            "label": label,
+            "description": description,
+            "windows": len(ordered),
+            "win_rate": (sum(1 for e in ordered if e > 0) / len(ordered) * 100)
+            if ordered else 0.0,
+            "median_pp": statistics.median(ordered) if ordered else 0.0,
+            "worst_pp": ordered[0] if ordered else 0.0,
+            "best_pp": ordered[-1] if ordered else 0.0,
+            "invested_eur": (sum(stakes) / len(stakes)) if stakes else 0.0,
+        })
+
+    return {
+        "window_days": window_days,
+        "weekday": weekday,
+        "dca_invested_eur": (sum(dca_stakes) / len(dca_stakes)) if dca_stakes else 0.0,
+        "variants": results,
     }
 
 
@@ -426,13 +711,11 @@ def grid(session: Session, days: int, settings: BotSettings) -> dict:
     rows = _window_rows(table, days)
     price = _last_price(table)
     base = settings.base_amount_eur
-    active = frozenset(INDICATORS)
-
     cells = []
     for weekday in range(7):
         day_rows = [row for row in rows if row.day.weekday() == weekday]
         for spread in SPREADS:
-            run = _simulate(day_rows, active, base, price, spread)
+            run = _simulate(day_rows, _coalition(ALL_INDICATORS, spread), base, price)
             cells.append({
                 "weekday": weekday,
                 "spread": spread,

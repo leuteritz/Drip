@@ -1,6 +1,7 @@
 import WarningIcon from "~icons/ph/warning";
 import type { StrategyGrid } from "../../api/client";
 import { fmtPp, WEEKDAYS } from "../../lib/format";
+import { tintFor } from "../../lib/chart";
 import { Card, CardHeader, Note, RangePills } from "../ui";
 
 /**
@@ -134,24 +135,4 @@ export default function WeekdayGrid({
       )}
     </Card>
   );
-}
-
-/**
- * A cell tint from the fixed palette: teal for good, rose for bad, mixed into
- * the paper surface by magnitude. `color-mix` on the CSS custom properties
- * keeps the `@theme` block the single source of truth — no hex reaches here.
- *
- * The mix tops out well short of the full hue on purpose. Both teal and rose
- * land mid-tone, where neither ink nor paper text has much contrast left, so
- * the scale stays light enough for ink to stay readable in every cell rather
- * than flipping to paper at the dark end and being worse at both.
- */
-function tintFor(value: number, maxAbs: number) {
-  const share = maxAbs > 0 ? Math.min(Math.abs(value) / maxAbs, 1) : 0;
-  const strength = Math.round(8 + share * 52);
-  const hue = value >= 0 ? "var(--color-teal)" : "var(--color-rose)";
-  return {
-    background: `color-mix(in srgb, ${hue} ${strength}%, var(--color-paper))`,
-    color: "var(--color-ink)",
-  };
 }

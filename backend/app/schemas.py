@@ -207,6 +207,52 @@ class GridResponse(BaseModel):
     cells: list[GridCell]
 
 
+class SignalQuintile(BaseModel):
+    quintile: int
+    from_value: float
+    to_value: float
+    n: int
+    median_pct: float
+
+
+class SignalScreen(BaseModel):
+    key: str
+    label: str
+    in_score: bool
+    current: float
+    current_quintile: int
+    quintiles: list[SignalQuintile]
+    spread_pct: float
+
+
+class CandidatesResponse(BaseModel):
+    days: int
+    horizon: int
+    quintiles: int
+    sample_size: int
+    baseline_median_pct: float
+    signals: list[SignalScreen]
+
+
+class ScoringVariant(BaseModel):
+    key: str
+    label: str
+    description: str
+    windows: int
+    win_rate: float
+    median_pp: float
+    worst_pp: float
+    best_pp: float
+    invested_eur: float
+
+
+class ScoringVariantsResponse(BaseModel):
+    window_days: int
+    weekday: int
+    dca_invested_eur: float
+    variants: list[ScoringVariant]
+
+
 class ScorePoint(BaseModel):
     date: str
     close: float

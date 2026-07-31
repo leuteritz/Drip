@@ -17,6 +17,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.7",
+    date: "2026-07-31",
+    changes: [
+      "Research screens six signals by one test — the three in your score and three that are not",
+      "New candidates measured before anything is changed: Mayer Multiple, drawdown from the high, cycle position",
+      "A side-by-side of what a softer scoring, or an extra indicator, would have done over 105 windows",
+      "Each variant shows its stake next to its edge, so buying more is not mistaken for buying better",
+      "Nothing about your bot changed — every one of these is read-only",
+    ],
+  },
+  {
     version: "1.6",
     date: "2026-07-31",
     changes: [

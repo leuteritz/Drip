@@ -11,10 +11,12 @@ from .. import research
 from ..database import get_session, load_settings
 from ..schemas import (
     AttributionResponse,
+    CandidatesResponse,
     ForwardReturnsResponse,
     GridResponse,
     RollingWindowsResponse,
     ScorePoint,
+    ScoringVariantsResponse,
 )
 
 router = APIRouter(prefix="/api/research", tags=["research"])
@@ -42,6 +44,23 @@ def rolling(
 ):
     """The backtest repeated from every start date a week apart."""
     return research.rolling_windows(
+        session, window_days=window_days, settings=load_settings(session)
+    )
+
+
+@router.get("/candidates", response_model=CandidatesResponse)
+def candidates(days: int = DaysQuery, session: Session = Depends(get_session)):
+    """Every signal, live and candidate, screened by the same forward-return test."""
+    return research.candidates(session, days=days)
+
+
+@router.get("/scoring-variants", response_model=ScoringVariantsResponse)
+def scoring_variants(
+    window_days: int = Query(default=365, ge=90, le=730),
+    session: Session = Depends(get_session),
+):
+    """Alternative scorings over the rolling windows. Changes nothing."""
+    return research.scoring_variants(
         session, window_days=window_days, settings=load_settings(session)
     )
 
