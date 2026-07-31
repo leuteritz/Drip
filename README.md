@@ -3,115 +3,61 @@
 Stack sats on a slow drip. A self-hosted bitcoin savings bot with a web dashboard,
 built to run on a Raspberry Pi.
 
+It buys BTC-EUR every week through the Coinbase Advanced Trade API and sizes each buy
+to the market: fear and oversold conditions buy more, greed buys less. It **always
+buys** - the score only sets the amount. Dry run is the default; live trading is an
+explicit, confirmed opt-in.
+
 ![Drip dashboard](docs/screenshot-dashboard.png)
 
-## Features
+*Example history, not a real account.*
 
-- Buys bitcoin automatically every week through the Coinbase Advanced Trade API
-- Sizes every buy to the market: fear and oversold conditions increase the amount,
-  greed decreases it (0.5x to 1.5x of your base amount)
-- Web dashboard with live indicator gauges, the price chart with your buys on the
-  curve, and a profit/loss summary
-- Strategy comparison: Drip's weighted buying vs. plain DCA, as a chart over time
-  and as a backtest simulation over 1 month to 2 years
-- Manual buys at any amount, on top of the schedule
-- Everything configurable in the browser: base amount, buy day and time, pause for
-  1-4 weeks, dry-run or live mode, Discord notifications
-- Dry run is the default; live trading must be enabled explicitly and asks for
-  confirmation
-- Full buy history with score, RSI, Fear & Greed and order id per buy - importable
-  and exportable as CSV
+The dashboard also researches its own strategy - what each indicator contributed,
+whether the score predicts anything, and what a different scoring would have done -
+and reports your cost basis against the market and how old each lot is.
 
-## Installation: Docker on a Raspberry Pi
+## Install
 
-Requires a 64-bit Raspberry Pi OS with [Docker and the compose plugin](https://docs.docker.com/engine/install/debian/) installed.
+Requires 64-bit Raspberry Pi OS with [Docker and the compose plugin](https://docs.docker.com/engine/install/debian/).
 
 ```bash
 git clone https://github.com/leuteritz/Drip.git
 cd Drip
-
-# Create your environment file (see below; can stay empty for dry-run mode)
-cp backend/.env.example backend/.env
-nano backend/.env
-
-# Build and start both containers
+cp backend/.env.example backend/.env   # can stay empty for dry-run mode
 docker compose up -d --build
 ```
 
-The dashboard is now available at `http://<pi-address>:8080`.
+The dashboard is then at `http://<pi-address>:8080`. To update:
+`git pull && docker compose up -d --build`. SQLite lives in the `drip-data` volume and
+survives updates.
 
-If port 8080 is already taken on your Pi, pick another one via the root `.env`
-(this file is separate from `backend/.env`):
-
-```bash
-echo "DRIP_PORT=8081" > .env
-docker compose up -d
-```
-
-Two containers run behind the scenes: `drip-frontend` (nginx, serves the UI and
-proxies API calls) and `drip-backend` (FastAPI, scheduler and trading logic). The
-SQLite database lives in the `drip-data` volume and survives updates.
-
-To update after pulling new code:
-
-```bash
-git pull
-docker compose up -d --build
-```
-
-The API has no authentication - keep it inside your home network and do not forward
-the port to the internet.
+The API has **no authentication** - keep it inside your home network and do not
+forward the port to the internet.
 
 ## Strategy
 
-Drip always buys; the score only sizes the amount. It is smart DCA, not market
-timing. Once a week, three indicators are combined into a score:
+Three indicators are scored once a week, and the total picks the multiplier applied to
+your base amount.
 
-| Indicator | Condition | Points |
-|---|---|---|
-| Fear & Greed | below 25 (extreme fear) | +3 |
-| | below 45 (fear) | +2 |
-| | 55 or above (greed) | -2 |
-| RSI (14, Wilder) | below 30 (strongly oversold) | +3 |
-| | below 45 (slightly oversold) | +1 |
-| | above 70 (overbought) | -2 |
-| Price vs. 350-day MA | price below the average | +2 |
+- **Fear & Greed** - below 25: `+3` · below 45: `+2` · 55 or above: `-2`
+- **RSI (14, Wilder)** - below 30: `+3` · below 45: `+1` · above 70: `-2`
+- **Price vs. 350-day MA** - below the average: `+2`
 
-The score picks the multiplier applied to your base amount:
+| Score | 5 or more | 3 to 4 | 1 to 2 | -1 to 0 | below -1 |
+|---|---|---|---|---|---|
+| **Buy** | 1.5x | 1.25x | 1.0x | 0.75x | 0.5x |
 
-| Score | Multiplier | Signal |
-|---|---|---|
-| 5 or more | 1.5x | Strong buy signal |
-| 3 to 4 | 1.25x | Good buy signal |
-| 1 to 2 | 1.0x | Normal buy signal |
-| -1 to 0 | 0.75x | Weak buy signal |
-| below -1 | 0.5x | Minimum buy |
+## Environment
 
-## Environment variables
-
-All secrets live in `backend/.env` (never committed). Without Coinbase keys the app
-still works fully in dry-run mode - market data comes from public endpoints.
+Secrets live in `backend/.env`, which is never committed. Without Coinbase keys
+everything still works in dry-run mode - market data comes from public endpoints.
 
 | Variable | Required | Description |
 |---|---|---|
 | `COINBASE_API_KEY` | for live trading | Key name from your CDP key file, e.g. `organizations/xxx/apiKeys/yyy`. Create one at https://portal.cdp.coinbase.com/access/api with the Trade permission. |
 | `COINBASE_API_SECRET` | for live trading | The EC private key from the same file, on one line with line breaks written as `\n`. |
-| `DISCORD_WEBHOOK_URL` | optional | Webhook for buy notifications. Leave empty to disable. |
-
-One more variable lives in the **root** `.env` (read by Docker Compose, not by the
-backend):
-
-| Variable | Required | Description |
-|---|---|---|
-| `DRIP_PORT` | optional | Host port for the web dashboard. Defaults to 8080. |
-
-Example:
-
-```env
-COINBASE_API_KEY=organizations/xxxx/apiKeys/yyyy
-COINBASE_API_SECRET=-----BEGIN EC PRIVATE KEY-----\nMHcC...\n-----END EC PRIVATE KEY-----\n
-DISCORD_WEBHOOK_URL=
-```
+| `DISCORD_WEBHOOK_URL` | optional | Webhook for buy notifications and the weekly digest. |
+| `DRIP_PORT` | optional | Host port for the dashboard, default 8080. Lives in the **root** `.env`. |
 
 ## License
 

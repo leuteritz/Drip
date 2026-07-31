@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.9",
+    date: "2026-07-31",
+    changes: [
+      "Shorter README with a fresh dashboard screenshot — no change to the bot itself",
+    ],
+  },
+  {
     version: "1.8",
     date: "2026-07-31",
     changes: [
