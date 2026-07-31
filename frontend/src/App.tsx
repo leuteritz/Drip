@@ -56,6 +56,18 @@ export default function App() {
   const reloadBalance = useCallback(() => {
     api.getBalance().then(setBalance).catch(report);
   }, [report]);
+  const reloadDigest = useCallback(() => {
+    api.getDigest().then(setDigest).catch(report);
+  }, [report]);
+
+  // A key or webhook saved in Setup changes what the rest of the page may
+  // claim: whether the header can show a balance, whether the report can be
+  // sent at all. Everything that reads a `configured` flag is refetched.
+  const credentialsChanged = useCallback(() => {
+    reloadStatus();
+    reloadBalance();
+    reloadDigest();
+  }, [reloadBalance, reloadDigest, reloadStatus]);
 
   const onToggleDryRun = useCallback(
     (v: boolean) => {
@@ -200,6 +212,8 @@ export default function App() {
           onTestWebhook={testWebhook}
           onSaveDigest={saveDigest}
           onSendDigest={sendDigest}
+          onCredentialsChanged={credentialsChanged}
+          onHistoryChanged={reloadPurchases}
           running={running}
           runResult={runResult}
         />

@@ -190,6 +190,21 @@ def score_table(session: Session) -> ScoreTable:
     return table
 
 
+def cache_age() -> float | None:
+    """Seconds since the scoring table was last built, or None while cold."""
+    return time.time() - _CACHE[0] if _CACHE else None
+
+
+def clear_cache() -> None:
+    """Drops the scoring table so the next request rebuilds it from the candles.
+
+    The maintenance escape hatch behind Setup: the table is the one thing in the
+    app that can be up to an hour stale, and nothing else can force it early.
+    """
+    global _CACHE
+    _CACHE = None
+
+
 # --- shared helpers ---------------------------------------------------------
 
 def _coalition(active: frozenset[str], spread: float = CURRENT_SPREAD) -> MultiplierFn:

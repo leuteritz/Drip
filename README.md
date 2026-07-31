@@ -15,7 +15,9 @@ explicit, confirmed opt-in.
 The dashboard also researches its own strategy - what each indicator contributed,
 whether the score predicts anything, and what a different scoring would have done -
 and reports your cost basis against the market and how old each lot is. Once a week it
-sends you the whole thing on Discord.
+sends you the whole thing on Discord. Keys, the webhook and the state of the backend
+itself are all reachable from the gear in the top bar, so the Pi needs no shell after
+the first install.
 
 ## Install
 
@@ -28,7 +30,8 @@ cp backend/.env.example backend/.env   # can stay empty for dry-run mode
 docker compose up -d --build
 ```
 
-The dashboard is then at `http://<pi-address>:8080`. To update:
+The dashboard is then at `http://<pi-address>:8080`. Paste your Coinbase key and
+Discord webhook into **Setup** there - the file can stay empty. To update:
 `git pull && docker compose up -d --build`. SQLite lives in the `drip-data` volume and
 survives updates.
 
@@ -56,24 +59,26 @@ stands against plain DCA and against the market's own average price, what the si
 says now, your next sats milestone and how many weeks in a row you have bought.
 
 Twelve sections, each one switchable. Pick the day, the time and what the message
-carries from the dashboard - the preview beside it is built by the same code that
-builds the real message, so it is exactly what will arrive - and send it on demand
-whenever you want to see it now.
+carries - the preview beside it is built by the same code that builds the real message,
+so it is exactly what will arrive - and send it on demand whenever you want it now.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)
 
-Needs `DISCORD_WEBHOOK_URL`. Everything else works without it.
+Needs a Discord webhook. Everything else works without one.
 
 ## Environment
 
-Secrets live in `backend/.env`, which is never committed. Without Coinbase keys
-everything still works in dry-run mode - market data comes from public endpoints.
+Secrets go in under **Setup** in the dashboard, which stores them in Drip's own
+database, or in `backend/.env`, which is never committed. A value set in the dashboard
+wins; remove it and the file takes over again. Without Coinbase keys everything still
+works in dry-run mode - market data comes from public endpoints.
 
 | Variable | Required | Description |
 |---|---|---|
 | `COINBASE_API_KEY` | for live trading | Key name from your CDP key file, e.g. `organizations/xxx/apiKeys/yyy`. Create one at https://portal.cdp.coinbase.com/access/api with the Trade permission. |
 | `COINBASE_API_SECRET` | for live trading | The EC private key from the same file, on one line with line breaks written as `\n`. |
 | `DISCORD_WEBHOOK_URL` | optional | Webhook for buy notifications and the weekly report. |
+| `TZ` | optional | Timezone the scheduler runs in, set in `docker-compose.yml`. |
 | `DRIP_PORT` | optional | Host port for the dashboard, default 8080. Lives in the **root** `.env`. |
 
 ## License

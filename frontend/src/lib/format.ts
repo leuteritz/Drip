@@ -30,6 +30,23 @@ export const fmtPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 export const fmtPp = (v: number, digits = 2) =>
   `${v >= 0 ? "+" : ""}${v.toFixed(digits)} pp`;
 
+/** "4.2 MB" — file sizes, only ever shown about Drip's own database. */
+export const fmtBytes = (v: number) => {
+  const mb = v / 1_000_000;
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(v / 1000)} kB`;
+};
+
+/** "3d 4h" / "12m" — how long something has been running, at one unit of
+ *  precision below the largest: uptime is read for its order of magnitude. */
+export function fmtDuration(seconds: number): string {
+  if (seconds < 60) return `${Math.max(0, Math.round(seconds))}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ${minutes % 60}m`;
+  return `${Math.floor(hours / 24)}d ${hours % 24}h`;
+}
+
 export const WEEKDAYS = [
   "Monday",
   "Tuesday",

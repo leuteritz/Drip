@@ -57,6 +57,13 @@ def get_fear_and_greed() -> dict:
         return {"value": 50, "classification": "Neutral (fallback)"}
 
 
+def clear_fng_history_cache() -> None:
+    """Forces the next backtest to refetch the Fear & Greed series."""
+    global _FNG_HISTORY, _FNG_HISTORY_FETCHED_AT
+    _FNG_HISTORY = {}
+    _FNG_HISTORY_FETCHED_AT = 0.0
+
+
 def get_fear_and_greed_history() -> dict[date, int]:
     """Full daily Fear & Greed history (alternative.me), keyed by date.
 

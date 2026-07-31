@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.14",
+    date: "2026-07-31",
+    changes: [
+      "Setup, in the top bar: paste your Coinbase key and Discord webhook straight into the dashboard instead of editing a file on the Pi",
+      "The same dialog shows what the backend is actually doing — scheduler jobs, cached price history, database size — and can rebuild a cache or take a backup without a terminal",
+    ],
+  },
+  {
     version: "1.13",
     date: "2026-07-31",
     changes: [

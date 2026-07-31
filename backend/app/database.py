@@ -2,7 +2,7 @@
 from sqlmodel import Session, SQLModel, create_engine
 
 from .config import DATA_DIR
-from .models import BotSettings, DigestSettings
+from .models import BotSettings, Credentials, DigestSettings
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 engine = create_engine(
@@ -33,6 +33,21 @@ def load_settings(session: Session) -> BotSettings:
         session.commit()
         session.refresh(settings)
     return settings
+
+
+def load_credentials(session: Session) -> Credentials:
+    """The credentials singleton (id=1), created on first access.
+
+    Blank on a fresh row, which is what makes `backend/.env` the fallback rather
+    than something this row overrides — see `credentials.py`.
+    """
+    row = session.get(Credentials, 1)
+    if row is None:
+        row = Credentials(id=1)
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+    return row
 
 
 def load_digest_settings(session: Session) -> DigestSettings:

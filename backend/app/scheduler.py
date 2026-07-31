@@ -106,6 +106,30 @@ def _next_run(job_id: str) -> str | None:
     return None
 
 
+JOB_LABELS = {JOB_ID: "Weekly buy", DIGEST_JOB_ID: "Weekly report"}
+
+
+def job_overview() -> list[dict]:
+    """Every job the scheduler is actually holding, for the setup dialog.
+
+    Read out of APScheduler rather than derived from the settings rows: a job
+    that never got scheduled then shows up as missing, instead of being
+    advertised from the setting that was meant to create it.
+    """
+    return [
+        {
+            "id": job.id,
+            "label": JOB_LABELS.get(job.id, job.id),
+            "next_run": job.next_run_time.isoformat() if job.next_run_time else None,
+        }
+        for job in scheduler.get_jobs()
+    ]
+
+
+def is_running() -> bool:
+    return scheduler.running
+
+
 def next_run_time() -> str | None:
     return _next_run(JOB_ID)
 

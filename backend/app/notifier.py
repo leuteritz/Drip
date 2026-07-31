@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import requests
 
-from .config import config
+from . import credentials
 from .models import Purchase
 
 if TYPE_CHECKING:  # avoids importing the strategy module at runtime
@@ -25,7 +25,8 @@ COLOR_TEST = 0x45818C
 
 def send_notification(title: str, description: str, color: int = 0x93B7BE,
                       fields: list[dict] | None = None, enabled: bool = True) -> bool:
-    if not enabled or not config.discord_webhook_url:
+    webhook = credentials.current().discord_webhook
+    if not enabled or not webhook:
         return False
 
     embed = {
@@ -40,7 +41,7 @@ def send_notification(title: str, description: str, color: int = 0x93B7BE,
 
     try:
         response = requests.post(
-            config.discord_webhook_url,
+            webhook,
             json={"embeds": [embed], "username": "Drip"},
             timeout=10,
         )

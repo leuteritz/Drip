@@ -204,7 +204,7 @@ export function WellReadout({
             <KeyIcon className="text-xs" />
             {balance.configured
               ? "Balance unavailable"
-              : "No API keys — add them in backend/.env"}
+              : "No API keys — add them under Setup"}
           </div>
         </>
       )}

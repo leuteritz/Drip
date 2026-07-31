@@ -9,7 +9,9 @@ import type {
   Candle,
   CandidateSignals,
   ChartEvent,
+  CoinbaseTest,
   ComparisonPoint,
+  CredentialsUpdate,
   DigestPreview,
   DigestSettings,
   DigestUpdate,
@@ -17,12 +19,14 @@ import type {
   Holdings,
   ImportResult,
   Indicators,
+  Maintenance,
   Performance,
   Purchase,
   RollingWindows,
   RunResult,
   ScorePoint,
   ScoringVariants,
+  SetupInfo,
   SimulationResult,
   StrategyGrid,
 } from "./types";
@@ -140,6 +144,21 @@ export const api = {
     if (!resp.ok) throw new Error(describeError(resp.status, await resp.text()));
     return resp.json() as Promise<ImportResult>;
   },
+  // Setup: what is configured and how the install is doing, in one call.
+  // Secrets go in but never come back — the response only ever carries a mask.
+  getSetup: () => request<SetupInfo>("/api/setup"),
+  saveCredentials: (update: CredentialsUpdate) =>
+    request<SetupInfo>("/api/setup/credentials", {
+      method: "PUT",
+      body: JSON.stringify(update),
+    }),
+  testCoinbase: () =>
+    request<CoinbaseTest>("/api/setup/coinbase/test", { method: "POST" }),
+  clearCandleCache: () =>
+    request<Maintenance>("/api/setup/cache/candles", { method: "DELETE" }),
+  clearResearchCache: () =>
+    request<Maintenance>("/api/setup/cache/research", { method: "DELETE" }),
+  backupUrl: "/api/setup/backup",
   testNotification: () =>
     request<{ sent: boolean; reason?: string }>("/api/bot/test-notification", {
       method: "POST",

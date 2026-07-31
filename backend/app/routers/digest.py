@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
 from .. import digest as digest_service
-from .. import notifier, scheduler
-from ..config import config
+from .. import credentials, notifier, scheduler
 from ..database import get_session, load_digest_settings
 from ..models import DigestSettings
 from ..schemas import DigestPreviewResponse, DigestSettingsResponse, DigestUpdate, TestNotificationResponse
@@ -24,7 +23,7 @@ def _response(settings: DigestSettings) -> dict:
         "weekday": settings.weekday,
         "send_time": settings.send_time,
         "next_run": scheduler.next_digest_time(),
-        "discord_configured": bool(config.discord_webhook_url),
+        "discord_configured": bool(credentials.current().discord_webhook),
         "blocks": [
             {
                 "key": block.key,
@@ -72,6 +71,6 @@ def preview(session: Session = Depends(get_session)):
 @router.post("/send", response_model=TestNotificationResponse)
 def send_now(session: Session = Depends(get_session)):
     """Sends this week's report immediately, even while the schedule is off."""
-    if not config.discord_webhook_url:
-        return {"sent": False, "reason": "No Discord webhook configured in backend/.env"}
+    if not credentials.current().discord_webhook:
+        return {"sent": False, "reason": "No Discord webhook configured - add one under Setup"}
     return {"sent": digest_service.send(session, force=True)}

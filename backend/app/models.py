@@ -1,4 +1,5 @@
-"""SQLModel tables: purchases, bot settings, digest settings, candle cache."""
+"""SQLModel tables: purchases, bot settings, digest settings, credentials,
+candle cache."""
 from datetime import date, datetime
 from typing import Optional
 
@@ -49,6 +50,24 @@ class DigestSettings(SQLModel, table=True):
     weekday: int = 6  # 0 = Monday ... 6 = Sunday
     send_time: str = "18:00"
     blocks: str = "{}"
+
+
+class Credentials(SQLModel, table=True):
+    """The secrets the dashboard is allowed to set.
+
+    Its own table for the same reason `DigestSettings` is: there are no
+    migrations, and `create_all` will not add a column to an existing table but
+    does create a whole new one.
+
+    An empty string means "not set here" rather than "empty", so the value falls
+    back to whatever `backend/.env` provided. `credentials.py` owns that
+    resolution — never read these columns directly.
+    """
+
+    id: int = Field(default=1, primary_key=True)
+    coinbase_api_key: str = ""
+    coinbase_api_secret: str = ""
+    discord_webhook_url: str = ""
 
 
 class Candle(SQLModel, table=True):

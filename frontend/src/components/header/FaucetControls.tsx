@@ -1,5 +1,6 @@
 import { useState } from "react";
 import CaretRightIcon from "~icons/ph/caret-right";
+import GearIcon from "~icons/ph/gear-six";
 import NewspaperIcon from "~icons/ph/newspaper";
 import PaperPlaneIcon from "~icons/ph/paper-plane-tilt";
 import PlayIcon from "~icons/ph/play-fill";
@@ -28,6 +29,9 @@ const STEP_BUTTON =
 const TILE =
   "flex flex-col items-center gap-2.5 rounded-2xl border border-cream/15 bg-cream/10 p-4 text-center";
 const TILE_LABEL = "text-[10px] font-bold uppercase tracking-[0.14em] text-cream/60";
+/** The full-width rows at the foot of the Discord tile, each opening a dialog. */
+const DRAWER_ROW =
+  "flex w-full items-center gap-2 rounded-xl bg-cream/12 px-3 py-2 text-left text-xs font-bold text-cream transition hover:bg-cream/25";
 
 /** Mirrors the backend's `bot.is_paused`: a pause covers today as well. */
 function isPausedUntil(pausedUntil: string | null): boolean {
@@ -54,6 +58,7 @@ export default function FaucetControls({
   onResume,
   onTestWebhook,
   onOpenDigest,
+  onOpenSetup,
 }: {
   open: boolean;
   settings: BotSettings | null;
@@ -65,6 +70,7 @@ export default function FaucetControls({
   onResume: () => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
   onOpenDigest: () => void;
+  onOpenSetup: () => void;
 }) {
   const [saved, setSaved] = useState(false);
   const [sent, setSent] = useState(false);
@@ -110,7 +116,7 @@ export default function FaucetControls({
   return (
     <div
       className={`overflow-hidden transition-[max-height,opacity,margin-top] duration-400 ${
-        open ? "mt-4 max-h-[640px] opacity-100" : "mt-0 max-h-0 opacity-0"
+        open ? "mt-4 max-h-[720px] opacity-100" : "mt-0 max-h-0 opacity-0"
       }`}
     >
       <div className="mx-auto max-w-[940px] rounded-3xl border border-cream/20 bg-teal/95 p-4 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md md:p-5">
@@ -204,11 +210,7 @@ export default function FaucetControls({
               {/* The weekly report gets its own row rather than a bare icon:
                   its schedule is a second timetable next to the buy above, and
                   reading it here is half the reason to open this drawer. */}
-              <button
-                type="button"
-                onClick={onOpenDigest}
-                className="flex w-full items-center gap-2 rounded-xl bg-cream/12 px-3 py-2 text-left text-xs font-bold text-cream transition hover:bg-cream/25"
-              >
+              <button type="button" onClick={onOpenDigest} className={DRAWER_ROW}>
                 <NewspaperIcon className="text-sm" />
                 <span>Weekly report</span>
                 <span className="ml-auto font-semibold text-cream/70">
@@ -218,6 +220,15 @@ export default function FaucetControls({
                       : "Off"
                     : "…"}
                 </span>
+                <CaretRightIcon className="text-[11px] text-cream/60" />
+              </button>
+
+              {/* The keys themselves are a dialog away rather than in here: the
+                  drawer is for the weekly rhythm, Setup is for the install. */}
+              <button type="button" onClick={onOpenSetup} className={DRAWER_ROW}>
+                <GearIcon className="text-sm" />
+                <span>Keys &amp; system</span>
+                <span className="ml-auto font-semibold text-cream/70">Setup</span>
                 <CaretRightIcon className="text-[11px] text-cream/60" />
               </button>
             </div>

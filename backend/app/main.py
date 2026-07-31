@@ -22,6 +22,7 @@ from .routers import (
     purchases,
     research,
     settings,
+    setup,
     simulate,
     stats,
 )
@@ -45,6 +46,7 @@ app = FastAPI(title="Drip", version="1.0.0", lifespan=lifespan)
 
 app.include_router(account.router)
 app.include_router(settings.router)
+app.include_router(setup.router)
 app.include_router(purchases.router)
 app.include_router(market.router)
 app.include_router(bot.router)

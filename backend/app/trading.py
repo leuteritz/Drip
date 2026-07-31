@@ -1,15 +1,16 @@
 """Authenticated Coinbase access: account balances and real market orders.
 
-This is the only module that needs COINBASE_API_KEY / COINBASE_API_SECRET. It is
-kept apart from `market_data.py` on purpose: the SDK client is imported lazily
-inside `_rest_client`, so an installation without credentials never touches it
-and the rest of the app keeps working.
+This is the only module that needs the Coinbase key pair. It is kept apart from
+`market_data.py` on purpose: the SDK client is imported lazily inside
+`_rest_client`, so an installation without credentials never touches it and the
+rest of the app keeps working. Where the key pair comes from is `credentials.py`
+alone — dashboard first, `backend/.env` second.
 """
 import logging
 import time
 import uuid
 
-from .config import config
+from . import credentials
 from .constants import PRODUCT_ID, STATUS_SUCCESS
 
 logger = logging.getLogger(__name__)
@@ -22,18 +23,23 @@ class CoinbaseError(Exception):
 
 
 def _rest_client():
-    """Authenticated SDK client. Raises CoinbaseError without credentials."""
-    if not config.has_coinbase_credentials:
+    """Authenticated SDK client. Raises CoinbaseError without credentials.
+
+    Built fresh per call from `credentials.current()`, so a key pasted into the
+    dashboard is in effect on the next request rather than after a restart.
+    """
+    creds = credentials.current()
+    if not creds.has_coinbase:
         raise CoinbaseError(
-            "No Coinbase credentials configured in backend/.env "
-            "(COINBASE_API_KEY / COINBASE_API_SECRET)"
+            "No Coinbase credentials - add them under Setup in the dashboard, "
+            "or set COINBASE_API_KEY / COINBASE_API_SECRET in backend/.env"
         )
 
     from coinbase.rest import RESTClient
 
     return RESTClient(
-        api_key=config.coinbase_api_key,
-        api_secret=config.api_secret_normalized,
+        api_key=creds.coinbase_api_key.value,
+        api_secret=creds.api_secret_normalized,
     )
 
 

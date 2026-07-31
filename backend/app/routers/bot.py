@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
 from .. import bot as bot_runner
-from .. import notifier, scheduler
+from .. import credentials, notifier, scheduler
 from ..bot import is_paused
-from ..config import config
 from ..database import get_session, load_settings
 from ..schemas import (
     BotStatusResponse,
@@ -20,13 +19,14 @@ router = APIRouter(prefix="/api/bot", tags=["bot"])
 @router.get("/status", response_model=BotStatusResponse)
 def status(session: Session = Depends(get_session)):
     settings = load_settings(session)
+    creds = credentials.current()
     return {
         "dry_run": settings.dry_run,
         "paused": is_paused(settings.paused_until),
         "paused_until": settings.paused_until,
         "next_run": scheduler.next_run_time(),
-        "has_credentials": config.has_coinbase_credentials,
-        "discord_configured": bool(config.discord_webhook_url),
+        "has_credentials": creds.has_coinbase,
+        "discord_configured": bool(creds.discord_webhook),
     }
 
 
@@ -58,8 +58,8 @@ def buy_now(request: ManualBuyRequest):
 @router.post("/test-notification", response_model=TestNotificationResponse)
 def test_notification():
     """Send a test message to the configured Discord webhook."""
-    if not config.discord_webhook_url:
-        return {"sent": False, "reason": "No Discord webhook configured in backend/.env"}
+    if not credentials.current().discord_webhook:
+        return {"sent": False, "reason": "No Discord webhook configured - add one under Setup"}
     sent = notifier.send_notification(
         title="Drip - test",
         description="Your Discord webhook is working. This is only a test.",

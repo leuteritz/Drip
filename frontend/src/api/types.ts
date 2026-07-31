@@ -365,6 +365,71 @@ export interface Holdings {
   excluded: { count: number; btc: number; eur: number };
 }
 
+/** Where a secret in effect actually came from. */
+export type CredentialSource = "dashboard" | "env" | "none";
+
+/** One editable secret. Label, hint and placeholder arrive from the backend
+ *  (`credentials.FIELDS`), so the dialog renders whatever the install offers
+ *  rather than keeping a second copy of the list. `masked` is all that is ever
+ *  sent about a stored value — the value itself never leaves the Pi. */
+export interface CredentialField {
+  key: "coinbase_api_key" | "coinbase_api_secret" | "discord_webhook_url";
+  /** "coinbase" | "discord" — which tile the field belongs under. */
+  group: string;
+  label: string;
+  hint: string;
+  placeholder: string;
+  multiline: boolean;
+  configured: boolean;
+  source: CredentialSource;
+  masked: string;
+}
+
+export interface SchedulerJob {
+  id: string;
+  label: string;
+  next_run: string | null;
+}
+
+/** Read-only answer to "is my bot actually running?". */
+export interface SystemInfo {
+  now: string;
+  timezone: string;
+  uptime_seconds: number;
+  python_version: string;
+  scheduler_running: boolean;
+  jobs: SchedulerJob[];
+  database_bytes: number;
+  purchase_count: number;
+  candle_count: number;
+  candle_from: string | null;
+  candle_to: string | null;
+  research_cache_age_seconds: number | null;
+}
+
+export interface SetupInfo {
+  credentials: CredentialField[];
+  system: SystemInfo;
+}
+
+/** A partial edit of the stored secrets. An empty string clears a field, which
+ *  hands it back to whatever `backend/.env` provides. */
+export type CredentialsUpdate = Partial<
+  Record<CredentialField["key"], string>
+>;
+
+export interface CoinbaseTest {
+  ok: boolean;
+  detail: string;
+  eur_available: number | null;
+  btc_available: number | null;
+}
+
+export interface Maintenance {
+  ok: boolean;
+  detail: string;
+}
+
 export interface ImportResult {
   imported: number;
   skipped: number;

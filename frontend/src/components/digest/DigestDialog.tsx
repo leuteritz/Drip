@@ -206,8 +206,8 @@ export default function DigestDialog({
         <p className="mt-4 flex items-start gap-1.5 text-xs text-rose">
           <WarningIcon className="mt-0.5 shrink-0" />
           <span>
-            No <code>DISCORD_WEBHOOK_URL</code> in <code>backend/.env</code> —
-            nothing can be sent until one is configured.
+            No Discord webhook stored — add one under Setup, and nothing here
+            can be sent until you do.
           </span>
         </p>
       )}

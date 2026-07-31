@@ -31,6 +31,19 @@ class DigestUpdate(BaseModel):
     blocks: Optional[dict[str, bool]] = None
 
 
+class CredentialsUpdate(BaseModel):
+    """A partial edit of the stored secrets.
+
+    Only the fields actually sent are written, and an empty string clears one -
+    which hands it back to `backend/.env` if a value is configured there. The
+    keys mirror `credentials.FIELDS`; anything else is rejected by the router.
+    """
+
+    coinbase_api_key: Optional[str] = Field(default=None, max_length=4000)
+    coinbase_api_secret: Optional[str] = Field(default=None, max_length=8000)
+    discord_webhook_url: Optional[str] = Field(default=None, max_length=2000)
+
+
 class PauseRequest(BaseModel):
     days: int = Field(gt=0, le=365)
 
@@ -417,3 +430,64 @@ class DigestPreviewResponse(BaseModel):
     description: str
     color: int
     fields: list[DigestField]
+
+
+class CredentialField(BaseModel):
+    """One editable secret as the dashboard sees it.
+
+    Carries its own label, hint and placeholder so the client renders whatever
+    `credentials.FIELDS` offers instead of keeping a second copy of the list.
+    `masked` is the only thing ever sent about a value - never the value.
+    """
+
+    key: str
+    group: str
+    label: str
+    hint: str
+    placeholder: str
+    multiline: bool
+    configured: bool
+    source: str  # dashboard | env | none
+    masked: str
+
+
+class SchedulerJob(BaseModel):
+    id: str
+    label: str
+    next_run: Optional[str]
+
+
+class SystemInfo(BaseModel):
+    """Read-only answer to "is my bot actually running?"."""
+
+    now: str
+    timezone: str
+    uptime_seconds: int
+    python_version: str
+    scheduler_running: bool
+    jobs: list[SchedulerJob]
+    database_bytes: int
+    purchase_count: int
+    candle_count: int
+    candle_from: Optional[str]
+    candle_to: Optional[str]
+    research_cache_age_seconds: Optional[int]
+
+
+class SetupResponse(BaseModel):
+    credentials: list[CredentialField]
+    system: SystemInfo
+
+
+class CoinbaseTestResponse(BaseModel):
+    """Always 200: a rejected key is an answer, not a server error."""
+
+    ok: bool
+    detail: str
+    eur_available: Optional[float] = None
+    btc_available: Optional[float] = None
+
+
+class MaintenanceResponse(BaseModel):
+    ok: bool
+    detail: str

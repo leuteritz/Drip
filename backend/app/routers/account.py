@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter
 
-from ..config import config
+from .. import credentials
 from ..schemas import BalanceResponse
 from ..trading import CoinbaseError, get_balances_cached
 
@@ -21,7 +21,7 @@ def balance():
     Always returns 200 so the dashboard degrades gracefully: without
     credentials `configured` is false, on API failure `error` is set.
     """
-    if not config.has_coinbase_credentials:
+    if not credentials.current().has_coinbase:
         return {"configured": False, **_UNAVAILABLE, "error": None}
     try:
         balances = get_balances_cached()

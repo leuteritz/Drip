@@ -1,7 +1,6 @@
 import { useState, type ReactNode, type RefObject } from "react";
 import DropFillIcon from "~icons/ph/drop-fill";
 import DropSlashIcon from "~icons/ph/drop-slash";
-import KeyIcon from "~icons/ph/key";
 import type {
   AccountBalance,
   BotSettings,
@@ -27,9 +26,11 @@ import {
 } from "./header/Readouts";
 import ReportBadge from "./header/ReportBadge";
 import Reservoir from "./header/Reservoir";
+import SetupButton from "./header/SetupButton";
 import TankBackdrop from "./header/TankBackdrop";
 import VersionBadge from "./header/VersionBadge";
 import ManualBuyDialog from "./ManualBuyDialog";
+import SetupDialog, { type SetupTab } from "./setup/SetupDialog";
 
 /**
  * The signature gradient hero that opens the app — the whole command center.
@@ -57,6 +58,8 @@ export default function SiteHeader({
   onTestWebhook,
   onSaveDigest,
   onSendDigest,
+  onCredentialsChanged,
+  onHistoryChanged,
   running,
   buying,
   runResult,
@@ -78,6 +81,8 @@ export default function SiteHeader({
   onTestWebhook: () => Promise<boolean>;
   onSaveDigest: (update: DigestUpdate) => Promise<void>;
   onSendDigest: () => Promise<boolean>;
+  onCredentialsChanged: () => void;
+  onHistoryChanged: () => void;
   running: boolean;
   buying: boolean;
   runResult: RunResult | null;
@@ -87,6 +92,9 @@ export default function SiteHeader({
   const [panelOpen, setPanelOpen] = useState(false);
   const [buyOpen, setBuyOpen] = useState(false);
   const [digestOpen, setDigestOpen] = useState(false);
+  // Which tab Setup opens on - null while closed, so the credential pill can
+  // land straight on Coinbase.
+  const [setupTab, setSetupTab] = useState<SetupTab | null>(null);
 
   const jumpTo = (id: Section) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -126,11 +134,10 @@ export default function SiteHeader({
                 <DropSlashIcon /> Off until {formatDayMonth(status.paused_until)}
               </HeaderPill>
             )}
-            {status && !status.has_credentials && (
-              <HeaderPill>
-                <KeyIcon /> <span className="max-sm:hidden">No API keys</span>
-              </HeaderPill>
-            )}
+            <SetupButton
+              status={status}
+              onOpen={() => setSetupTab(status?.has_credentials ? "system" : "coinbase")}
+            />
             <nav className="flex gap-1.5">
               {NAV.map(({ id, label, Icon }) => {
                 const on = active === id;
@@ -207,6 +214,7 @@ export default function SiteHeader({
             onResume={onResume}
             onTestWebhook={onTestWebhook}
             onOpenDigest={() => setDigestOpen(true)}
+            onOpenSetup={() => setSetupTab("coinbase")}
           />
 
           {runResult?.analysis && (
@@ -222,6 +230,22 @@ export default function SiteHeader({
           )}
         </div>
       </section>
+
+      {setupTab && (
+        <SetupDialog
+          settings={settings}
+          initialTab={setupTab}
+          onSaveSettings={onSaveSettings}
+          onTestWebhook={onTestWebhook}
+          onCredentialsChanged={onCredentialsChanged}
+          onHistoryChanged={onHistoryChanged}
+          onOpenDigest={() => {
+            setSetupTab(null);
+            setDigestOpen(true);
+          }}
+          onClose={() => setSetupTab(null)}
+        />
+      )}
 
       {digestOpen && digest && (
         <DigestDialog
