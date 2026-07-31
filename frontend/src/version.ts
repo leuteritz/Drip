@@ -17,6 +17,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.4",
+    date: "2026-07-31",
+    changes: [
+      "Search bar above the buy history — press / from anywhere to jump into it",
+      "Search by date or status, or filter numbers: fg<30, rsi>70, x1.5, amount>=25",
+      "One-click chips for real buys, dry runs, errors, fear buys and full drops",
+      "The buy count and totals now follow whatever the search leaves on screen",
+    ],
+  },
+  {
     version: "1.3",
     date: "2026-07-31",
     changes: [

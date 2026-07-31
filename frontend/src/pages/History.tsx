@@ -4,9 +4,12 @@ import ListDashesIcon from "~icons/ph/list-dashes";
 import TrashIcon from "~icons/ph/trash";
 import UploadSimpleIcon from "~icons/ph/upload-simple";
 import WarningIcon from "~icons/ph/warning-fill";
+import XIcon from "~icons/ph/x";
 import { api, ORDER_ID_ERROR, type Purchase } from "../api/client";
 import { fmtBtc, fmtEur, formatTimestamp } from "../lib/format";
+import { buildFilter } from "../lib/query";
 import { ScoreDrops } from "../components/drops";
+import PurchaseSearch from "../components/history/PurchaseSearch";
 import ImportModal from "../components/ImportModal";
 import { Badge, Card, Modal, SectionHeading } from "../components/ui";
 
@@ -21,6 +24,7 @@ export default function HistorySection({
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDesc, setSortDesc] = useState(true);
+  const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
@@ -67,8 +71,16 @@ export default function HistorySection({
 
   const hasTestRuns = useMemo(() => purchases.some((p) => p.dry_run), [purchases]);
 
+  // The search narrows the table, and with it the totals below the heading —
+  // "12 of 48 buys" is the point of filtering, so the sums have to follow.
+  const filtered = useMemo(
+    () => purchases.filter(buildFilter(query)),
+    [purchases, query],
+  );
+  const filtering = query.trim().length > 0;
+
   const sorted = useMemo(() => {
-    const copy = [...purchases];
+    const copy = [...filtered];
     copy.sort((a, b) => {
       const av = a[sortKey];
       const bv = b[sortKey];
@@ -76,16 +88,21 @@ export default function HistorySection({
       return sortDesc ? -cmp : cmp;
     });
     return copy;
-  }, [purchases, sortKey, sortDesc]);
+  }, [filtered, sortKey, sortDesc]);
 
   const totals = useMemo(() => {
-    const ok = purchases.filter((p) => p.order_id !== ORDER_ID_ERROR);
+    const ok = filtered.filter((p) => p.order_id !== ORDER_ID_ERROR);
     return {
       count: ok.length,
       eur: ok.reduce((s, p) => s + p.amount_eur, 0),
       btc: ok.reduce((s, p) => s + p.btc_amount, 0),
     };
-  }, [purchases]);
+  }, [filtered]);
+
+  const allCount = useMemo(
+    () => purchases.filter((p) => p.order_id !== ORDER_ID_ERROR).length,
+    [purchases],
+  );
 
   const header = (label: string, key: SortKey, align = "text-left") => (
     <th
@@ -107,9 +124,9 @@ export default function HistorySection({
       <SectionHeading
         icon={<ListDashesIcon />}
         title="Buy history"
-        subtitle={`${totals.count} buys · ${fmtEur(totals.eur)} invested · ${fmtBtc(
-          totals.btc,
-        )} stacked`}
+        subtitle={`${filtering ? `${totals.count} of ${allCount}` : totals.count} buys · ${fmtEur(
+          totals.eur,
+        )} invested · ${fmtBtc(totals.btc)} stacked`}
         actions={
           <>
             <button
@@ -153,6 +170,14 @@ export default function HistorySection({
         <Card className="border-rose/50 font-bold text-rose">{error}</Card>
       ) : (
         <Card className="flex flex-col overflow-hidden p-0">
+          {purchases.length > 0 && (
+            <PurchaseSearch
+              purchases={purchases}
+              query={query}
+              onQuery={setQuery}
+              matched={filtered.length}
+            />
+          )}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead className="border-b-2 border-sand bg-sand-soft">
@@ -226,16 +251,32 @@ export default function HistorySection({
                 {sorted.length === 0 && (
                   <tr>
                     <td colSpan={9} className="px-4 py-12 text-center text-ink-soft">
-                      <p>
-                        No buys yet. Run a test buy from the overview, or wait for the first
-                        scheduled run.
-                      </p>
-                      <button
-                        onClick={() => setShowImport(true)}
-                        className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
-                      >
-                        <UploadSimpleIcon /> Import CSV history
-                      </button>
+                      {filtering ? (
+                        <>
+                          <p>
+                            No buy matches <b className="text-ink">{query.trim()}</b>.
+                          </p>
+                          <button
+                            onClick={() => setQuery("")}
+                            className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
+                          >
+                            <XIcon /> Clear the search
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <p>
+                            No buys yet. Run a test buy from the overview, or wait for the
+                            first scheduled run.
+                          </p>
+                          <button
+                            onClick={() => setShowImport(true)}
+                            className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
+                          >
+                            <UploadSimpleIcon /> Import CSV history
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 )}
