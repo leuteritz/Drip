@@ -17,8 +17,8 @@ import HoldingPeriods from "../components/stack/HoldingPeriods";
 import {
   Card,
   CardTitle,
+  Loading,
   RangePills,
-  Spinner,
   Stat,
   Toggle,
 } from "../components/ui";
@@ -129,7 +129,11 @@ export default function Overview({
           {hasStrategy && latest && <StrategyKpis latest={latest} />}
           <div className="h-[520px] md:h-[640px]">
             {!compLoaded || (!hasStrategy && !candlesLoaded) ? (
-              <Spinner />
+              <Loading
+                what="Charting your strategy against plain DCA"
+                why="Replaying every buy at the price of its day, and the same weeks bought at a flat amount."
+                slow="Still going — on a cold cache the price history is fetched from Coinbase 300 days at a time. After that it is served from the Pi."
+              />
             ) : hasStrategy ? (
               <ComparisonChart data={strategySeries} purchases={markerPurchases} />
             ) : candles.length ? (

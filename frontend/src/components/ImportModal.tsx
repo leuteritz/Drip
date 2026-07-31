@@ -5,7 +5,7 @@ import FileCsvIcon from "~icons/ph/file-csv";
 import CheckCircleIcon from "~icons/ph/check-circle-fill";
 import WarningIcon from "~icons/ph/warning-fill";
 import { api, type ImportResult } from "../api/client";
-import { Modal, Spinner, Toggle } from "./ui";
+import { Loading, Modal, Toggle } from "./ui";
 
 const EXPECTED_HEADER =
   "Timestamp,BTC_Preis_EUR,Betrag_EUR,BTC_Menge,Fear_Greed,RSI,MA_350d,Score,Order_ID,Status";
@@ -134,8 +134,10 @@ export default function ImportModal({
           </div>
         ) : uploading ? (
           <div className="mt-2">
-            <Spinner />
-            <p className="text-center text-sm text-ink-soft">Importing…</p>
+            <Loading
+              what="Importing your history"
+              why="Every row is checked against the buys already stored, and its multiplier is derived from the score the old bot logged — so imported weeks count exactly like Drip's own."
+            />
           </div>
         ) : (
           <>

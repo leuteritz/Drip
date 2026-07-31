@@ -5,7 +5,7 @@ import TrendDownIcon from "~icons/ph/trend-down";
 import { api, type BotSettings, type SimulationResult } from "../api/client";
 import { fmtEur, fmtPct, WEEKDAYS } from "../lib/format";
 import ComparisonChart from "./ComparisonChart";
-import { Modal, Spinner, toneText, type Tone } from "./ui";
+import { Loading, Modal, toneText, type Tone } from "./ui";
 
 const PERIODS = [
   { label: "1m", days: 30 },
@@ -95,7 +95,13 @@ export default function SimulationModal({
           </div>
         )}
 
-        {loading && <Spinner />}
+        {loading && (
+          <Loading
+            what={`Backtesting the last ${days} days`}
+            why={`Scoring every ${WEEKDAYS[settings.schedule_weekday]} in the window and buying it again at that day's price. Nothing is written to your history.`}
+            slow="Still going — the Fear & Greed readings for those weeks are fetched once, then cached for six hours."
+          />
+        )}
 
         {!loading && s && (
           <>

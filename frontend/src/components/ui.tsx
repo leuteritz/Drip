@@ -1,4 +1,4 @@
-import { useEffect, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import InfoIcon from "~icons/ph/info";
 
 export function Card({
@@ -193,10 +193,107 @@ export function Toggle({
   );
 }
 
-export function Spinner() {
+/** The bare ring. Reach for `Loading` instead unless there is genuinely
+ *  nothing to say about the wait. */
+export function Spinner({ className = "h-8 w-8" }: { className?: string }) {
   return (
-    <div className="flex items-center justify-center py-12">
-      <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-sand border-t-teal" />
+    <div
+      role="status"
+      aria-label="Loading"
+      className={`animate-spin rounded-full border-[3px] border-sand border-t-teal ${className}`}
+    />
+  );
+}
+
+/** Seconds since this mounted. Half-second ticks so the first "1s" is not a
+ *  whole second late; the value itself stays whole seconds. */
+function useElapsed(): number {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const started = Date.now();
+    const id = window.setInterval(
+      () => setSeconds(Math.floor((Date.now() - started) / 1000)),
+      500,
+    );
+    return () => window.clearInterval(id);
+  }, []);
+
+  return seconds;
+}
+
+/**
+ * A wait that explains itself.
+ *
+ * A bare spinner says "something is happening" and nothing more, which is the
+ * wrong answer here: Drip's slow calls are slow for a *reason* a saver can
+ * understand — a cold cache means Coinbase is being paged 300 days at a time,
+ * a backtest re-scores a thousand days. So every wait names what is being
+ * built, shows the seconds once there are enough of them to be worth reading,
+ * and says why it is taking its time when it drags on.
+ *
+ * `slow` is the escalation, not a second sentence: keep it for what only
+ * matters once the wait is already long.
+ */
+export function Loading({
+  what,
+  why,
+  slow,
+  slowAfter = 6,
+  compact = false,
+}: {
+  what: string;
+  why?: string;
+  slow?: string;
+  slowAfter?: number;
+  compact?: boolean;
+}) {
+  const seconds = useElapsed();
+  // Below two seconds the number is noise — most calls never reach it.
+  const clock = seconds >= 2 && (
+    <span className="ml-2 font-medium tabular-nums text-ink-soft">{seconds}s</span>
+  );
+  const hint = seconds >= slowAfter ? slow : undefined;
+
+  if (compact) {
+    return (
+      <div className="flex items-start gap-2.5 py-1">
+        <Spinner className="mt-0.5 h-4 w-4 border-2" />
+        <div className="min-w-0">
+          <p className="text-xs font-bold text-ink">
+            {what}
+            {clock}
+          </p>
+          {why && (
+            <p className="mt-0.5 text-xs leading-relaxed text-ink-soft">{why}</p>
+          )}
+          {hint && (
+            <p className="mt-0.5 text-xs leading-relaxed text-teal">{hint}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-3 py-12 text-center">
+      <Spinner />
+      <div>
+        <p className="text-sm font-bold text-ink">
+          {what}
+          {clock}
+        </p>
+        {why && (
+          <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-ink-soft">
+            {why}
+          </p>
+        )}
+        {hint && (
+          <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-teal">
+            {hint}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

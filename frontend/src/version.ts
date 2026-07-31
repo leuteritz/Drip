@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.12",
+    date: "2026-07-31",
+    changes: [
+      "Waiting now tells you something: every spinner says what is being built, counts the seconds, and explains itself when it takes a while",
+      "The Research section reports how many of its seven analyses are ready instead of showing seven silent placeholders",
+    ],
+  },
+  {
     version: "1.11",
     date: "2026-07-31",
     changes: [

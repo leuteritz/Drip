@@ -20,7 +20,7 @@ import ScoreHistory from "../components/research/ScoreHistory";
 import ScoringVariants from "../components/research/ScoringVariants";
 import SignalScreen from "../components/research/SignalScreen";
 import WeekdayGrid from "../components/research/WeekdayGrid";
-import { Card, SectionHeading } from "../components/ui";
+import { Card, Loading, SectionHeading } from "../components/ui";
 
 /**
  * The Research body: read-only analyses that audit the strategy instead of
@@ -64,6 +64,13 @@ export default function Research({
 
   const fail = (e: unknown) =>
     setError(e instanceof Error ? e.message : String(e));
+
+  // The seven analyses, for the progress line below the heading. This section
+  // is where waiting actually happens — a cold scoring table is three years of
+  // candles — so it says how far along it is instead of showing seven silent
+  // skeletons. `events` rides with the score history and is not counted.
+  const analyses = [attribution, rolling, scores, forward, candidates, variants, grid];
+  const ready = analyses.filter((a) => a != null).length;
 
   useEffect(() => {
     if (!wanted) return;
@@ -121,6 +128,18 @@ export default function Research({
           </a>
         }
       />
+
+      {wanted && !error && ready < analyses.length && (
+        <div className="rounded-card border-2 border-water/50 bg-water-soft/30 px-4 py-3">
+          <Loading
+            compact
+            what={`Auditing the strategy — ${ready} of ${analyses.length} analyses ready`}
+            why="They share one scoring table: three years of days, each scored the way the bot scores today."
+            slow="The first request builds that table, and on a cold cache fetches three years of candles from Coinbase. It is kept for an hour afterwards, so the rest of these arrive quickly."
+            slowAfter={4}
+          />
+        </div>
+      )}
 
       {error && (
         <Card className="border-rose/50">

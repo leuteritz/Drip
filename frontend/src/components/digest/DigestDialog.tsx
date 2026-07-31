@@ -5,7 +5,7 @@ import PaperPlaneIcon from "~icons/ph/paper-plane-tilt";
 import WarningIcon from "~icons/ph/warning-circle";
 import { api, type DigestPreview, type DigestSettings, type DigestUpdate } from "../../api/client";
 import { formatWeekdayTime, WEEKDAYS } from "../../lib/format";
-import { Modal, Spinner, Toggle } from "../ui";
+import { Loading, Modal, Toggle } from "../ui";
 import EmbedPreview from "./EmbedPreview";
 
 const SAVED_FLASH_MS = 2200;
@@ -193,7 +193,11 @@ export default function DigestDialog({
               Could not build the preview: {previewError}
             </p>
           ) : (
-            <Spinner />
+            <Loading
+              what="Building this week's report"
+              why="The same numbers the scheduled send gathers: your week, your whole stack, and the signal right now."
+              slow="Still going — after a restart this also warms the candle cache the price lines read."
+            />
           )}
         </div>
       </div>
