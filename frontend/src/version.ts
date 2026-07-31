@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.16",
+    date: "2026-08-01",
+    changes: [
+      "The next buy shows its own arithmetic: tap the drops under the amount, or the signal beside it, and Drip lists what each of the three indicators reads right now and the points it put in",
+    ],
+  },
+  {
     version: "1.15",
     date: "2026-08-01",
     changes: [

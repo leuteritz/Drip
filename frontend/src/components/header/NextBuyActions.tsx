@@ -3,6 +3,7 @@ import ChartLineUpIcon from "~icons/ph/chart-line-up";
 import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
 import PauseIcon from "~icons/ph/pause";
 import PlayIcon from "~icons/ph/play-fill";
+import QuestionIcon from "~icons/ph/question";
 import SlidersIcon from "~icons/ph/sliders-horizontal";
 import type { BotSettings, BotStatus, Indicators } from "../../api/client";
 import { fmtEur, formatDayMonth, formatWeekdayTime, WEEKDAYS } from "../../lib/format";
@@ -45,6 +46,7 @@ export default function NextBuyActions({
   onTestBuy,
   onSimulate,
   onBuy,
+  onExplain,
   onTogglePanel,
   panelOpen,
   running,
@@ -56,6 +58,7 @@ export default function NextBuyActions({
   onTestBuy: () => void;
   onSimulate: () => void;
   onBuy: () => void;
+  onExplain: () => void;
   onTogglePanel: () => void;
   panelOpen: boolean;
   running: boolean;
@@ -132,14 +135,23 @@ export default function NextBuyActions({
               <span className="text-teal/45">{amountCents}</span>
             </div>
 
+            {/* The line that already states the arithmetic is the way into the
+                whole of it — and unlike the Signal column it is on screen at
+                every width. */}
             {settings && indicators && (
-              <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-semibold text-teal/60">
+              <button
+                type="button"
+                onClick={onExplain}
+                title="What makes the next buy this size"
+                className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg text-[12px] font-semibold text-teal/60 transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+              >
                 <ScoreDrops multiplier={indicators.multiplier} size="text-[13px]" />
                 <span>
                   {fmtEur(settings.base_amount_eur, 0)} base &times;{" "}
                   {indicators.multiplier}
                 </span>
-              </div>
+                <QuestionIcon className="text-[13px] opacity-70" />
+              </button>
             )}
           </div>
         </div>
@@ -149,12 +161,17 @@ export default function NextBuyActions({
             longer "Paused until" caption from crowding the actions. */}
         {indicators && !paused && (
           <div className="hidden flex-1 justify-center text-center lg:flex">
-            <div>
+            <button
+              type="button"
+              onClick={onExplain}
+              title="What makes the next buy this size"
+              className="rounded-xl px-3 py-1 transition hover:bg-teal/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+            >
               <div className={CAPTION}>Signal</div>
               <div className="mt-1.5 whitespace-nowrap font-display text-[19px] font-semibold leading-tight text-teal">
                 {shortSignal(indicators.signal)}
               </div>
-            </div>
+            </button>
           </div>
         )}
 

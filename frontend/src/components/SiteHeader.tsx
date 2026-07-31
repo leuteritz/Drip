@@ -27,6 +27,7 @@ import {
 } from "./header/Readouts";
 import ReportBadge from "./header/ReportBadge";
 import Reservoir from "./header/Reservoir";
+import SignalBreakdown from "./header/SignalBreakdown";
 import SetupButton from "./header/SetupButton";
 import TankBackdrop from "./header/TankBackdrop";
 import ThemeToggle from "./header/ThemeToggle";
@@ -98,6 +99,7 @@ export default function SiteHeader({
   const [panelOpen, setPanelOpen] = useState(false);
   const [buyOpen, setBuyOpen] = useState(false);
   const [digestOpen, setDigestOpen] = useState(false);
+  const [explainOpen, setExplainOpen] = useState(false);
   // Which tab Setup opens on - null while closed, so the credential pill can
   // land straight on Coinbase.
   const [setupTab, setSetupTab] = useState<SetupTab | null>(null);
@@ -203,6 +205,7 @@ export default function SiteHeader({
             onTestBuy={onTestBuy}
             onSimulate={onSimulate}
             onBuy={() => setBuyOpen(true)}
+            onExplain={() => setExplainOpen(true)}
             onTogglePanel={() => setPanelOpen((v) => !v)}
             panelOpen={panelOpen}
             running={running}
@@ -260,6 +263,14 @@ export default function SiteHeader({
           onSave={onSaveDigest}
           onSend={onSendDigest}
           onClose={() => setDigestOpen(false)}
+        />
+      )}
+
+      {explainOpen && indicators && (
+        <SignalBreakdown
+          indicators={indicators}
+          settings={settings}
+          onClose={() => setExplainOpen(false)}
         />
       )}
 

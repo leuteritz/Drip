@@ -16,6 +16,11 @@ MA_DAYS = 350
 RSI_PERIOD = 14
 SCORE_MAX = 8
 
+# Inputs that score exactly zero points in their own block below. Isolating one
+# indicator means handing the other two these.
+NEUTRAL_FNG = 50
+NEUTRAL_RSI = 50.0
+
 
 @dataclass
 class Analysis:
@@ -34,6 +39,9 @@ class Analysis:
         return {
             "score": self.score,
             "score_max": SCORE_MAX,
+            "points": indicator_points(
+                self.fear_greed, self.rsi, self.current_price, self.ma_350
+            ),
             "factors": self.factors,
             "current_price": self.current_price,
             "fear_greed": self.fear_greed,
@@ -59,6 +67,35 @@ def determine_purchase_strategy(score: int) -> dict:
     if score >= -1:
         return {"multiplier": 0.75, "signal": "Weak buy signal", "color": 0x785964}
     return {"multiplier": 0.5, "signal": "Minimum buy", "color": 0x785964}
+
+
+def indicator_points(
+    fear_greed: int, rsi: float, current_price: float, ma_350: float
+) -> dict[str, int]:
+    """Each indicator's own contribution to the score.
+
+    `score_indicators` adds three independent blocks and every neutral input
+    scores 0 in its block, so scoring one indicator at a time against neutral
+    values isolates its points without restating a single threshold anywhere
+    else. That additivity is also what lets `research`'s coalitions be built by
+    plain summation — this lives here so both it and the live path get the
+    numbers from the one scoring function.
+    """
+
+    def only(**overrides) -> int:
+        return score_indicators(
+            fear_greed=overrides.get("fear_greed", NEUTRAL_FNG),
+            fng_classification="",
+            rsi=overrides.get("rsi", NEUTRAL_RSI),
+            current_price=current_price,
+            ma_350=overrides.get("ma_350", current_price),
+        ).score
+
+    return {
+        "fng": only(fear_greed=fear_greed),
+        "rsi": only(rsi=rsi),
+        "ma": only(ma_350=ma_350),
+    }
 
 
 def score_indicators(

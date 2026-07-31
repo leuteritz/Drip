@@ -91,6 +91,8 @@ export const ORDER_ID_ERROR = "ERROR";
 export interface Indicators {
   score: number;
   score_max: number;
+  /** Each indicator's own share of the score — the three always sum to it. */
+  points: { fng: number; rsi: number; ma: number };
   factors: string[];
   current_price: number;
   fear_greed: number;

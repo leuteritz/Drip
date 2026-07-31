@@ -52,6 +52,9 @@ your base amount.
 |---|---|---|---|---|---|
 | **Buy** | 1.5x | 1.25x | 1.0x | 0.75x | 0.5x |
 
+The dashboard shows this sum for the next buy - tap the drops under the amount and it
+lists what each indicator reads and the points it put in.
+
 ## Weekly report
 
 A single buy says nothing about whether the saving is going anywhere, so once a week
@@ -59,9 +62,8 @@ Drip reports itself to Discord: what you stacked, what the price did, how your s
 stands against plain DCA and against the market's own average, and what the signal
 says now.
 
-Twelve sections, each one switchable. Pick the day, the time and what the message
-carries - the preview beside it is built by the same code that builds the real message,
-so it is exactly what will arrive - and send it on demand whenever you want it now.
+Twelve sections, each one switchable. The preview beside them is built by the same code
+that builds the real message, so it is exactly what will arrive.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)
 

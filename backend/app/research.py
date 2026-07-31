@@ -38,8 +38,8 @@ RESEARCH_DAYS = 1095  # three years of scored days
 TABLE_TTL = 60 * 60  # 1 h - only the newest day can still change
 
 # Inputs that score exactly zero points in their block of `score_indicators`.
-NEUTRAL_FNG = 50
-NEUTRAL_RSI = 50.0
+NEUTRAL_FNG = strategy.NEUTRAL_FNG
+NEUTRAL_RSI = strategy.NEUTRAL_RSI
 
 INDICATORS = ("fng", "rsi", "ma")
 ALL_INDICATORS = frozenset(INDICATORS)
@@ -93,32 +93,6 @@ class ScoreTable:
 _CACHE: tuple[float, ScoreTable] | None = None
 
 
-def _indicator_points(fng: int, rsi: float, price: float, ma: float) -> dict[str, int]:
-    """Each indicator's own contribution to the score.
-
-    `score_indicators` adds three independent blocks and every neutral input
-    above scores 0 in its block, so scoring one indicator at a time against
-    neutral values isolates its points without restating a single threshold
-    here. That additivity is also what lets the coalitions below be built by
-    plain summation.
-    """
-
-    def only(**overrides) -> int:
-        return strategy.score_indicators(
-            fear_greed=overrides.get("fear_greed", NEUTRAL_FNG),
-            fng_classification="",
-            rsi=overrides.get("rsi", NEUTRAL_RSI),
-            current_price=price,
-            ma_350=overrides.get("ma_350", price),
-        ).score
-
-    return {
-        "fng": only(fear_greed=fng),
-        "rsi": only(rsi=rsi),
-        "ma": only(ma_350=ma),
-    }
-
-
 def _build_table(session: Session) -> ScoreTable:
     candles = sorted(
         ensure_candles(session, days=RESEARCH_DAYS + strategy.MA_DAYS + 10),
@@ -166,7 +140,9 @@ def _build_table(session: Session) -> ScoreTable:
         rows.append(ScoredDay(
             day=day,
             close=price,
-            points=_indicator_points(fng=fng, rsi=rsi, price=price, ma=ma_350),
+            points=strategy.indicator_points(
+                fear_greed=fng, rsi=rsi, current_price=price, ma_350=ma_350
+            ),
             readings={
                 "fng": float(fng),
                 "rsi": rsi,

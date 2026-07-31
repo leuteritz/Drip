@@ -73,6 +73,10 @@ class IndicatorsResponse(BaseModel):
 
     score: int
     score_max: int
+    # Each indicator's own share of the score, keyed "fng" / "rsi" / "ma" — the
+    # same isolation `research` uses, so the header can say why the amount is
+    # what it is without restating a threshold.
+    points: dict[str, int]
     factors: list[str]
     current_price: float
     fear_greed: int
