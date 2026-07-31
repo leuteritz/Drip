@@ -6,7 +6,8 @@ import UploadSimpleIcon from "~icons/ph/upload-simple";
 import WarningIcon from "~icons/ph/warning-fill";
 import XIcon from "~icons/ph/x";
 import { api, ORDER_ID_ERROR, type Purchase } from "../api/client";
-import { fmtBtc, fmtEur, formatTimestamp } from "../lib/format";
+import { fmtEur, formatTimestamp } from "../lib/format";
+import { useStackAmount } from "../lib/units";
 import { buildFilter } from "../lib/query";
 import { ScoreDrops } from "../components/drops";
 import PurchaseSearch from "../components/history/PurchaseSearch";
@@ -22,6 +23,7 @@ export default function HistorySection({
   purchases: Purchase[];
   onChanged: () => void;
 }) {
+  const stackAmount = useStackAmount();
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDesc, setSortDesc] = useState(true);
   const [query, setQuery] = useState("");
@@ -126,7 +128,7 @@ export default function HistorySection({
         title="Buy history"
         subtitle={`${filtering ? `${totals.count} of ${allCount}` : totals.count} buys · ${fmtEur(
           totals.eur,
-        )} invested · ${fmtBtc(totals.btc)} stacked`}
+        )} invested · ${stackAmount(totals.btc)} stacked`}
         actions={
           <>
             <button

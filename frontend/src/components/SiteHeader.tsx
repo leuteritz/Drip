@@ -27,8 +27,8 @@ import {
 } from "./header/Readouts";
 import ReportBadge from "./header/ReportBadge";
 import Reservoir from "./header/Reservoir";
-import SignalBreakdown from "./header/SignalBreakdown";
 import SetupButton from "./header/SetupButton";
+import SignalBreakdown from "./header/SignalBreakdown";
 import TankBackdrop from "./header/TankBackdrop";
 import ThemeToggle from "./header/ThemeToggle";
 import VersionBadge from "./header/VersionBadge";
@@ -53,6 +53,7 @@ export default function SiteHeader({
   themeChoice,
   scrollRef,
   onSetTheme,
+  onToggleUnit,
   onSimulate,
   onTestBuy,
   onBuyNow,
@@ -78,6 +79,7 @@ export default function SiteHeader({
   themeChoice: ThemeChoice;
   scrollRef: RefObject<HTMLDivElement | null>;
   onSetTheme: (choice: ThemeChoice) => void;
+  onToggleUnit: () => void;
   onSimulate: () => void;
   onTestBuy: () => void;
   onBuyNow: (amountEur: number) => Promise<void>;
@@ -178,7 +180,7 @@ export default function SiteHeader({
 
         <div className="relative z-10 mx-auto max-w-[1180px]">
           {/* Centered reservoir headline, fully submerged below the waterline */}
-          <Reservoir performance={performance} />
+          <Reservoir performance={performance} onToggleUnit={onToggleUnit} />
 
           {/* Submerged stat cards: Score · F&G · RSI · BTC · well (frosted glass) */}
           <div className="mt-8 flex flex-wrap items-stretch justify-center gap-4">

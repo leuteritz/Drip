@@ -13,6 +13,8 @@ export const fmtEur = (v: number, digits = 2) =>
 export const fmtEurSigned = (v: number, digits = 2) =>
   `${v > 0 ? "+" : ""}${fmtEur(v, digits)}`;
 
+export const SATS_PER_BTC = 100_000_000;
+
 export const fmtBtc = (v: number) => `${v.toFixed(8)} BTC`;
 
 /** "1,806 sats" — the unit that stays readable while a BTC amount is all zeroes. */

@@ -7,8 +7,7 @@
 // two numbers on one page start disagreeing.
 
 import { ORDER_ID_ERROR, type Purchase } from "../api/types";
-
-export const SATS_PER_BTC = 100_000_000;
+import { SATS_PER_BTC } from "./format";
 
 export interface SatsPoint {
   date: string;

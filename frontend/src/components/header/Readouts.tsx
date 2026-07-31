@@ -7,7 +7,8 @@ import type {
   Indicators,
   Performance,
 } from "../../api/client";
-import { fmtBtc, fmtEur, fmtPct } from "../../lib/format";
+import { fmtEur, fmtPct } from "../../lib/format";
+import { useStackAmount } from "../../lib/units";
 import { ScoreDrops } from "../drops";
 
 /** Shared frosted-glass chip that floats the stat read-outs on the waterline. */
@@ -152,6 +153,7 @@ export function WellReadout({
   settings: BotSettings | null;
   indicators: Indicators | null;
 }) {
+  const stackAmount = useStackAmount();
   const eur = balance?.configured ? balance.eur_available : null;
   const nextAmount =
     settings && indicators ? settings.base_amount_eur * indicators.multiplier : null;
@@ -179,7 +181,7 @@ export function WellReadout({
         <>
           <div className={`mt-1 ${BIG_NUMBER}`}>{fmtEur(eur)}</div>
           <div className="mt-1.5 text-[11px] font-semibold text-cream/80">
-            {fmtBtc(balance.btc_available ?? 0)} on Coinbase
+            {stackAmount(balance.btc_available ?? 0)} on Coinbase
           </div>
           <div className="relative mt-2.5 h-2 w-full self-stretch rounded-full bg-cream/22">
             <div

@@ -16,7 +16,8 @@ import {
   type CredentialsUpdate,
   type SetupInfo,
 } from "../../api/client";
-import { fmtBtc, fmtEur } from "../../lib/format";
+import { fmtEur } from "../../lib/format";
+import { useStackAmount } from "../../lib/units";
 import { Loading, Modal, Note, Toggle } from "../ui";
 import CredentialRow from "./CredentialRow";
 import Maintenance from "./Maintenance";
@@ -198,6 +199,7 @@ function CoinbaseTab({
   rows: SetupInfo["credentials"];
   onSave: (update: CredentialsUpdate) => Promise<void>;
 }) {
+  const stackAmount = useStackAmount();
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<CoinbaseTest | null>(null);
   const stored = rows.length > 0 && rows.every((f) => f.configured);
@@ -257,7 +259,7 @@ function CoinbaseTab({
           </span>
           {result.ok && (
             <span className="font-mono text-[11px] text-ink-soft">
-              {fmtEur(result.eur_available ?? 0)} · {fmtBtc(result.btc_available ?? 0)}
+              {fmtEur(result.eur_available ?? 0)} · {stackAmount(result.btc_available ?? 0)}
             </span>
           )}
         </div>

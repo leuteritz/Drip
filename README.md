@@ -18,7 +18,8 @@ and reports your cost basis against the market and how old each lot is. Once a w
 sends you the whole thing on Discord. Keys, the webhook and the state of the backend
 itself are all reachable from the gear in the top bar, so the Pi needs no shell after
 the first install. After dark the tank dims with the room - the theme follows your
-phone or laptop unless you tell it otherwise.
+phone or laptop unless you tell it otherwise - and clicking your stack figure reads
+every bitcoin amount in sats.
 
 ## Install
 
@@ -72,9 +73,8 @@ Needs a Discord webhook. Everything else works without one.
 ## Environment
 
 Secrets go in under **Setup** in the dashboard, which stores them in Drip's own
-database, or in `backend/.env`, which is never committed. A value set in the dashboard
-wins; remove it and the file takes over again. Without Coinbase keys everything still
-works in dry-run mode - market data comes from public endpoints.
+database, or in `backend/.env`. A value set in the dashboard wins. Without Coinbase
+keys everything still works in dry-run mode - market data comes from public endpoints.
 
 | Variable | Required | Description |
 |---|---|---|

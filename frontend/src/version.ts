@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.17",
+    date: "2026-08-01",
+    changes: [
+      "Click the stack figure in the header to read every bitcoin amount in sats instead of BTC — the Coinbase well, the history totals and the holding report all follow it",
+    ],
+  },
+  {
     version: "1.16",
     date: "2026-08-01",
     changes: [

@@ -1,6 +1,7 @@
 import WarningIcon from "~icons/ph/warning";
 import type { Holdings, RipeningMonth } from "../../api/client";
-import { fmtBtc, fmtEur, fmtEurSigned, formatDayMonthYear } from "../../lib/format";
+import { fmtEur, fmtEurSigned, formatDayMonthYear } from "../../lib/format";
+import { useStackAmount } from "../../lib/units";
 import { Card, CardHeader, Note, Stat } from "../ui";
 
 /**
@@ -17,6 +18,7 @@ import { Card, CardHeader, Note, Stat } from "../ui";
  * number nobody has yet.
  */
 export default function HoldingPeriods({ data }: { data: Holdings | null }) {
+  const stackAmount = useStackAmount();
   const free = data?.free;
   const locked = data?.locked;
   const excluded = data?.excluded;
@@ -48,7 +50,7 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                   tone={!free?.lots ? "plain" : free.gain_eur >= 0 ? "up" : "down"}
                   hint={
                     free
-                      ? `${free.lots} lots · ${fmtBtc(free.btc)} · ${fmtEurSigned(
+                      ? `${free.lots} lots · ${stackAmount(free.btc)} · ${fmtEurSigned(
                           free.gain_eur,
                         )} gain`
                       : undefined
@@ -61,7 +63,7 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                   tone={!locked?.lots ? "plain" : locked.gain_eur >= 0 ? "up" : "down"}
                   hint={
                     locked
-                      ? `${locked.lots} lots · ${fmtBtc(locked.btc)} · ${fmtEurSigned(
+                      ? `${locked.lots} lots · ${stackAmount(locked.btc)} · ${fmtEurSigned(
                           locked.gain_eur,
                         )} gain`
                       : undefined
@@ -101,7 +103,7 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                   {excluded.count} buys are not counted anywhere on this dashboard.
                 </strong>{" "}
                 They are recorded as failed orders &mdash; {fmtEur(excluded.eur)} and{" "}
-                {fmtBtc(excluded.btc)} between them &mdash; so every figure here and
+                {stackAmount(excluded.btc)} between them &mdash; so every figure here and
                 in the overview leaves them out. If those orders did go through at the
                 exchange, your real stack is larger than anything shown. Worth
                 checking against your Coinbase history.

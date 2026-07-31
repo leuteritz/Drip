@@ -1,14 +1,25 @@
 import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
 import type { Performance } from "../../api/client";
-import { fmtBtc, fmtEur, fmtPct } from "../../lib/format";
+import { fmtEur, fmtPct } from "../../lib/format";
+import { useStackAmount, useUnit } from "../../lib/units";
 
-/** The centered headline: portfolio value with the P&L on a single line. */
+/**
+ * The centered headline: portfolio value with the P&L on a single line.
+ *
+ * The stack figure at the end of that line is also the app's unit switch — you
+ * click the number you want to read differently, and every other bitcoin amount
+ * on the page follows it.
+ */
 export default function Reservoir({
   performance,
+  onToggleUnit,
 }: {
   performance: Performance | null;
+  onToggleUnit: () => void;
 }) {
+  const stackAmount = useStackAmount();
+  const unit = useUnit();
   const profitable = (performance?.profit_eur ?? 0) >= 0;
   // The cents are dimmed, so the value is split at its decimal separator.
   const value = performance ? fmtEur(performance.value_eur) : "";
@@ -43,7 +54,18 @@ export default function Reservoir({
             <span className="text-[13px] font-medium text-cream/70 max-sm:w-full">
               {fmtEur(performance.invested_eur)} invested &middot;{" "}
               {performance.purchase_count} buys &middot;{" "}
-              {fmtBtc(performance.btc_total)}
+              <button
+                type="button"
+                onClick={onToggleUnit}
+                title={
+                  unit === "sats"
+                    ? "Showing sats - click to read bitcoin amounts as BTC"
+                    : "Showing BTC - click to read bitcoin amounts as sats"
+                }
+                className="rounded underline decoration-cream/25 decoration-dotted underline-offset-4 transition hover:text-cream hover:decoration-cream/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+              >
+                {stackAmount(performance.btc_total)}
+              </button>
             </span>
           </div>
         </>

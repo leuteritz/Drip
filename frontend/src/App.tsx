@@ -14,6 +14,7 @@ import {
   type RunResult,
 } from "./api/client";
 import { useTheme } from "./lib/theme";
+import { UnitProvider, useUnitChoice } from "./lib/units";
 import SiteHeader from "./components/SiteHeader";
 import SimulationModal from "./components/SimulationModal";
 import Overview from "./pages/Dashboard";
@@ -38,6 +39,9 @@ export default function App() {
   // Day or night. Server state this is not, but it belongs with everything else
   // the header needs handed to it.
   const { choice: themeChoice, setChoice: setThemeChoice } = useTheme();
+  // BTC or sats, for every bitcoin quantity on the page. A context rather than
+  // a prop: six components render one, and none of them are neighbours.
+  const { unit, toggleUnit } = useUnitChoice();
 
   // Background refreshes used to fail silently, which left the header showing
   // empty skeletons whenever the backend was down. They now surface here.
@@ -191,58 +195,64 @@ export default function App() {
   }, [loadPerformance, reloadBalance, report]);
 
   return (
-    <div className="h-full bg-shell">
-      {/* Full-bleed single scroll container (no frame). */}
-      <div
-        ref={scrollRef}
-        className="relative flex h-full w-full flex-col overflow-y-auto bg-shell"
-      >
-        <SiteHeader
-          status={status}
-          settings={settings}
-          digest={digest}
-          indicators={indicators}
-          performance={performance}
-          balance={balance}
-          themeChoice={themeChoice}
-          scrollRef={scrollRef}
-          onSetTheme={setThemeChoice}
-          onSimulate={() => setShowSim(true)}
-          onTestBuy={testBuy}
-          onBuyNow={buyNow}
-          buying={buying}
-          onSetDryRun={setDryRun}
-          onSaveSettings={saveSettings}
-          onPause={pause}
-          onResume={resume}
-          onTestWebhook={testWebhook}
-          onSaveDigest={saveDigest}
-          onSendDigest={sendDigest}
-          onCredentialsChanged={credentialsChanged}
-          onHistoryChanged={reloadPurchases}
-          running={running}
-          runResult={runResult}
-        />
-
-        <main className="flex flex-col">
-          <Overview
-            purchases={purchases}
-            includeDryRun={includeDryRun}
-            onToggleDryRun={onToggleDryRun}
+    <UnitProvider value={unit}>
+      <div className="h-full bg-shell">
+        {/* Full-bleed single scroll container (no frame). */}
+        <div
+          ref={scrollRef}
+          className="relative flex h-full w-full flex-col overflow-y-auto bg-shell"
+        >
+          <SiteHeader
+            status={status}
+            settings={settings}
+            digest={digest}
+            indicators={indicators}
+            performance={performance}
+            balance={balance}
+            themeChoice={themeChoice}
+            scrollRef={scrollRef}
+            onSetTheme={setThemeChoice}
+            onToggleUnit={toggleUnit}
+            onSimulate={() => setShowSim(true)}
+            onTestBuy={testBuy}
+            onBuyNow={buyNow}
+            buying={buying}
+            onSetDryRun={setDryRun}
+            onSaveSettings={saveSettings}
+            onPause={pause}
+            onResume={resume}
+            onTestWebhook={testWebhook}
+            onSaveDigest={saveDigest}
+            onSendDigest={sendDigest}
+            onCredentialsChanged={credentialsChanged}
+            onHistoryChanged={reloadPurchases}
+            running={running}
+            runResult={runResult}
           />
-          <Research scrollRef={scrollRef} />
-          <HistorySection purchases={purchases} onChanged={reloadPurchases} />
-        </main>
+
+          <main className="flex flex-col">
+            <Overview
+              purchases={purchases}
+              includeDryRun={includeDryRun}
+              onToggleDryRun={onToggleDryRun}
+            />
+            <Research scrollRef={scrollRef} />
+            <HistorySection purchases={purchases} onChanged={reloadPurchases} />
+          </main>
+        </div>
+
+        {apiError && (
+          <ErrorToast message={apiError} onDismiss={() => setApiError(null)} />
+        )}
+
+        {showSim && settings && (
+          <SimulationModal
+            settings={settings}
+            onClose={() => setShowSim(false)}
+          />
+        )}
       </div>
-
-      {apiError && (
-        <ErrorToast message={apiError} onDismiss={() => setApiError(null)} />
-      )}
-
-      {showSim && settings && (
-        <SimulationModal settings={settings} onClose={() => setShowSim(false)} />
-      )}
-    </div>
+    </UnitProvider>
   );
 }
 
@@ -262,7 +272,9 @@ function ErrorToast({
       <WarningIcon className="mt-0.5 shrink-0 text-rose" aria-hidden="true" />
       <div className="min-w-0">
         <div className="text-sm font-bold text-rose">Backend unreachable</div>
-        <div className="mt-0.5 break-words text-xs text-ink-soft">{message}</div>
+        <div className="mt-0.5 break-words text-xs text-ink-soft">
+          {message}
+        </div>
       </div>
       <button
         onClick={onDismiss}
