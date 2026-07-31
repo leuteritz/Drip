@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.13",
+    date: "2026-07-31",
+    changes: [
+      "Closer rungs on the next-milestone line — half a coin no longer reads as \"4% of the way\" to a whole one for years",
+      "README rewritten around the weekly report, with fresh screenshots",
+    ],
+  },
+  {
     version: "1.12",
     date: "2026-07-31",
     changes: [

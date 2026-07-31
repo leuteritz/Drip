@@ -35,11 +35,14 @@ SATS_PER_BTC = 100_000_000
 # How far back the "sats per week" rate behind the milestone estimate looks.
 RATE_WEEKS = 8
 
-# Round numbers a saver actually aims at, in sats. 2.1M is 1/10 BTC in the
-# unit bitcoiners count in; 21M is a whole coin.
+# Round numbers a saver actually aims at, in sats. The upper rungs are the BTC
+# fractions people think in (0.05, 0.1, 0.5, 0.75, a whole coin) plus 21M, the
+# number bitcoiners count by. Kept close enough together that the next one is
+# always in sight — a ladder that jumps from half a coin to a whole one reports
+# "4% there" for years, which is true and useless.
 MILESTONES = [
-    100_000, 250_000, 500_000, 1_000_000, 2_100_000, 5_000_000,
-    10_000_000, 21_000_000, 50_000_000, 100_000_000,
+    100_000, 250_000, 500_000, 1_000_000, 2_500_000, 5_000_000, 10_000_000,
+    21_000_000, 35_000_000, 50_000_000, 75_000_000, 100_000_000,
 ]
 
 

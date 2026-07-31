@@ -14,7 +14,8 @@ explicit, confirmed opt-in.
 
 The dashboard also researches its own strategy - what each indicator contributed,
 whether the score predicts anything, and what a different scoring would have done -
-and reports your cost basis against the market and how old each lot is.
+and reports your cost basis against the market and how old each lot is. Once a week it
+sends you the whole thing on Discord.
 
 ## Install
 
@@ -47,6 +48,22 @@ your base amount.
 |---|---|---|---|---|---|
 | **Buy** | 1.5x | 1.25x | 1.0x | 0.75x | 0.5x |
 
+## Weekly report
+
+A single buy says nothing about whether the saving is going anywhere, so once a week
+Drip reports itself to Discord: what you stacked, what the price did, how your stack
+stands against plain DCA and against the market's own average price, what the signal
+says now, your next sats milestone and how many weeks in a row you have bought.
+
+Twelve sections, each one switchable. Pick the day, the time and what the message
+carries from the dashboard - the preview beside it is built by the same code that
+builds the real message, so it is exactly what will arrive - and send it on demand
+whenever you want to see it now.
+
+![The weekly report editor](docs/screenshot-weekly-report.png)
+
+Needs `DISCORD_WEBHOOK_URL`. Everything else works without it.
+
 ## Environment
 
 Secrets live in `backend/.env`, which is never committed. Without Coinbase keys
@@ -56,7 +73,7 @@ everything still works in dry-run mode - market data comes from public endpoints
 |---|---|---|
 | `COINBASE_API_KEY` | for live trading | Key name from your CDP key file, e.g. `organizations/xxx/apiKeys/yyy`. Create one at https://portal.cdp.coinbase.com/access/api with the Trade permission. |
 | `COINBASE_API_SECRET` | for live trading | The EC private key from the same file, on one line with line breaks written as `\n`. |
-| `DISCORD_WEBHOOK_URL` | optional | Webhook for buy notifications and the weekly digest. |
+| `DISCORD_WEBHOOK_URL` | optional | Webhook for buy notifications and the weekly report. |
 | `DRIP_PORT` | optional | Host port for the dashboard, default 8080. Lives in the **root** `.env`. |
 
 ## License
