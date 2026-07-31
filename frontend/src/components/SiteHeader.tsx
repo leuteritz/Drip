@@ -50,6 +50,7 @@ export default function SiteHeader({
   onPause,
   onResume,
   onTestWebhook,
+  onSendDigest,
   running,
   buying,
   runResult,
@@ -68,6 +69,7 @@ export default function SiteHeader({
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
+  onSendDigest: () => Promise<boolean>;
   running: boolean;
   buying: boolean;
   runResult: RunResult | null;
@@ -191,6 +193,7 @@ export default function SiteHeader({
             onPause={onPause}
             onResume={onResume}
             onTestWebhook={onTestWebhook}
+                onSendDigest={onSendDigest}
           />
 
           {runResult?.analysis && (

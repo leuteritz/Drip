@@ -253,6 +253,13 @@ class ScoringVariantsResponse(BaseModel):
     variants: list[ScoringVariant]
 
 
+class ChartEvent(BaseModel):
+    date: str
+    kind: str
+    label: str
+    price: float
+
+
 class ScorePoint(BaseModel):
     date: str
     close: float

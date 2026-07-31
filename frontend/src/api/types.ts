@@ -223,6 +223,14 @@ export interface ScorePoint {
   multiplier: number;
 }
 
+export interface ChartEvent {
+  date: string;
+  /** "halving" | "high" | "low" — drives the marker's colour and label. */
+  kind: string;
+  label: string;
+  price: number;
+}
+
 export interface SignalQuintile {
   quintile: number;
   from_value: number;

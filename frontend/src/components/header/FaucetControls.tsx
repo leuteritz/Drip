@@ -1,4 +1,5 @@
 import { useState } from "react";
+import NewspaperIcon from "~icons/ph/newspaper";
 import PaperPlaneIcon from "~icons/ph/paper-plane-tilt";
 import PlayIcon from "~icons/ph/play-fill";
 import XIcon from "~icons/ph/x";
@@ -50,6 +51,7 @@ export default function FaucetControls({
   onPause,
   onResume,
   onTestWebhook,
+  onSendDigest,
 }: {
   open: boolean;
   settings: BotSettings | null;
@@ -59,9 +61,12 @@ export default function FaucetControls({
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
+  onSendDigest: () => Promise<boolean>;
 }) {
   const [saved, setSaved] = useState(false);
-  const [webhookSent, setWebhookSent] = useState(false);
+  // Which of the two Discord buttons last succeeded, so one confirmation slot
+  // serves both without either claiming the other's "Sent".
+  const [sent, setSent] = useState<"test" | "digest" | null>(null);
   const [testing, setTesting] = useState(false);
   // Draft for the typed amount; committed (clamped) on blur or Enter.
   const [amountDraft, setAmountDraft] = useState<string | null>(null);
@@ -72,13 +77,14 @@ export default function FaucetControls({
     window.setTimeout(() => setSaved(false), SAVED_FLASH_MS);
   };
 
-  const testWebhook = async () => {
+  const sendToDiscord = async (which: "test" | "digest") => {
     setTesting(true);
-    setWebhookSent(false);
+    setSent(null);
     try {
-      const sent = await onTestWebhook();
-      setWebhookSent(sent);
-      window.setTimeout(() => setWebhookSent(false), WEBHOOK_FLASH_MS);
+      const ok = await (which === "test" ? onTestWebhook() : onSendDigest());
+      if (!ok) return;
+      setSent(which);
+      window.setTimeout(() => setSent(null), WEBHOOK_FLASH_MS);
     } finally {
       setTesting(false);
     }
@@ -182,14 +188,26 @@ export default function FaucetControls({
                   type="button"
                   aria-label="Send test message"
                   title="Send test message"
-                  onClick={testWebhook}
+                  onClick={() => sendToDiscord("test")}
                   disabled={testing}
                   className="flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
                 >
                   <PaperPlaneIcon className="text-sm" />
                 </button>
-                {webhookSent && (
-                  <span className="text-[11px] font-bold text-cream">Sent &#10003;</span>
+                <button
+                  type="button"
+                  aria-label="Send this week's digest now"
+                  title="Send this week's digest now"
+                  onClick={() => sendToDiscord("digest")}
+                  disabled={testing}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
+                >
+                  <NewspaperIcon className="text-sm" />
+                </button>
+                {sent && (
+                  <span className="text-[11px] font-bold text-cream">
+                    {sent === "digest" ? "Digest sent" : "Sent"} &#10003;
+                  </span>
                 )}
               </div>
             </div>

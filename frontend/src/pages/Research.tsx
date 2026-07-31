@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
+import DownloadSimpleIcon from "~icons/ph/download-simple";
 import FlaskIcon from "~icons/ph/flask";
 import {
   api,
   type Attribution,
+  type ChartEvent,
   type CandidateSignals,
   type ForwardReturns,
   type RollingWindows,
@@ -55,6 +57,7 @@ export default function Research({
   const [rolling, setRolling] = useState<RollingWindows | null>(null);
   const [grid, setGrid] = useState<StrategyGrid | null>(null);
   const [scores, setScores] = useState<ScorePoint[] | null>(null);
+  const [events, setEvents] = useState<ChartEvent[] | null>(null);
   const [candidates, setCandidates] = useState<CandidateSignals | null>(null);
   const [variants, setVariants] = useState<ScoringVariantsData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +88,7 @@ export default function Research({
   useEffect(() => {
     if (!wanted) return;
     api.getScoreHistory(scoreDays).then(setScores).catch(fail);
+    api.getChartEvents(scoreDays).then(setEvents).catch(fail);
   }, [wanted, scoreDays]);
 
   useEffect(() => {
@@ -107,6 +111,15 @@ export default function Research({
         icon={<FlaskIcon />}
         title="Research"
         subtitle="Seven ways of asking whether the score is worth its multiplier"
+        actions={
+          <a
+            href={api.datasetUrl(1095)}
+            download
+            className="flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
+          >
+            <DownloadSimpleIcon /> Download the data
+          </a>
+        }
       />
 
       {error && (
@@ -129,7 +142,12 @@ export default function Research({
         windowDays={windowDays}
         onWindowDays={setWindowDays}
       />
-      <ScoreHistory data={scores} days={scoreDays} onDays={setScoreDays} />
+      <ScoreHistory
+        data={scores}
+        events={events}
+        days={scoreDays}
+        onDays={setScoreDays}
+      />
       <ForwardReturnsTable
         data={forward}
         days={forwardDays}

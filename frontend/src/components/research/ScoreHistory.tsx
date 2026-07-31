@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ScorePoint } from "../../api/client";
+import type { ChartEvent, ScorePoint } from "../../api/client";
 import {
   AXIS_TICK,
   CHART_COLORS,
@@ -36,10 +36,12 @@ import { Card, CardHeader, Note, RangePills } from "../ui";
  */
 export default function ScoreHistory({
   data,
+  events,
   days,
   onDays,
 }: {
   data: ScorePoint[] | null;
+  events: ChartEvent[] | null;
   days: number;
   onDays: (v: number) => void;
 }) {
@@ -90,6 +92,21 @@ export default function ScoreHistory({
                   stroke={CHART_COLORS.sand}
                   strokeWidth={1}
                 />
+                {(events ?? []).map((event) => (
+                  <ReferenceLine
+                    key={`${event.kind}-${event.date}`}
+                    yAxisId="price"
+                    x={event.date}
+                    stroke={CHART_COLORS.inkSoft}
+                    strokeDasharray="4 4"
+                    label={{
+                      value: event.label,
+                      position: "insideTopLeft",
+                      fill: CHART_COLORS.inkSoft,
+                      fontSize: 11,
+                    }}
+                  />
+                ))}
                 <Tooltip cursor={CURSOR_PROPS} content={<ScoreTooltip />} />
                 <Bar
                   yAxisId="score"
@@ -120,6 +137,9 @@ export default function ScoreHistory({
             sand is exactly the base. The dark line is the BTC price on the left axis.
             Read it as a sanity check on the machinery: if the teal clusters do not
             sit in the price&apos;s dips, the score is not reading what it claims to.
+            The dashed markers are the only things here that are facts rather than
+            readings &mdash; a halving, and the highest and lowest close this window
+            contains.
           </Note>
         </>
       )}

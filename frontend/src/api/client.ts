@@ -8,6 +8,7 @@ import type {
   BotStatus,
   Candle,
   CandidateSignals,
+  ChartEvent,
   ComparisonPoint,
   ForwardReturns,
   Holdings,
@@ -99,6 +100,13 @@ export const api = {
     request<CandidateSignals>(`/api/research/candidates?days=${days}`),
   getScoringVariants: (windowDays: number) =>
     request<ScoringVariants>(`/api/research/scoring-variants?window_days=${windowDays}`),
+  getChartEvents: (days: number) =>
+    request<ChartEvent[]>(`/api/research/events?days=${days}`),
+  datasetUrl: (days: number) => `/api/research/dataset.csv?days=${days}`,
+  sendDigest: () =>
+    request<{ sent: boolean; reason?: string }>("/api/bot/test-digest", {
+      method: "POST",
+    }),
   getScoreHistory: (days: number) =>
     request<ScorePoint[]>(`/api/research/score-history?days=${days}`),
   getHoldings: (includeDryRun: boolean) =>

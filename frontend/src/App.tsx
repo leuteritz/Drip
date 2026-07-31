@@ -106,6 +106,11 @@ export default function App() {
     return sent;
   }, []);
 
+  const sendDigest = useCallback(async () => {
+    const { sent } = await api.sendDigest();
+    return sent;
+  }, []);
+
   // Manual "test a buy" is always a dry run; refresh purchases + reservoir after.
   const testBuy = useCallback(async () => {
     setRunning(true);
@@ -180,6 +185,7 @@ export default function App() {
           onPause={pause}
           onResume={resume}
           onTestWebhook={testWebhook}
+          onSendDigest={sendDigest}
           running={running}
           runResult={runResult}
         />

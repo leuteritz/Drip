@@ -681,6 +681,70 @@ def scoring_variants(session: Session, window_days: int, settings: BotSettings) 
     }
 
 
+DATASET_COLUMNS = (
+    "date", "close", "fear_greed", "rsi", "ma_dist_pct", "mayer",
+    "drawdown_pct", "cycle_phase", "points_fng", "points_rsi", "points_ma",
+    "score", "multiplier",
+)
+
+
+def dataset_rows(session: Session, days: int):
+    """The whole scoring table, a row per day, for your own analysis.
+
+    Every number the research section works from, so a question this dashboard
+    does not answer can be answered somewhere else without reimplementing the
+    scoring first.
+    """
+    for row in _window_rows(score_table(session), days):
+        reading = row.readings
+        yield [
+            row.day.isoformat(),
+            round(row.close, 2),
+            int(reading["fng"]),
+            round(reading["rsi"], 2),
+            round(reading["ma_dist"], 2),
+            round(reading["mayer"], 4),
+            round(reading["drawdown"], 2),
+            round(reading["cycle"], 4),
+            row.points["fng"],
+            row.points["rsi"],
+            row.points["ma"],
+            row.score,
+            strategy.determine_purchase_strategy(row.score)["multiplier"],
+        ]
+
+
+def events(session: Session, days: int) -> list[dict]:
+    """Dated landmarks worth drawing on a chart of this window.
+
+    Only what can be stated as fact: the halvings, and the highest and lowest
+    close the window actually contains. No tops called, no bottoms called.
+    """
+    table = score_table(session)
+    rows = _window_rows(table, days)
+    if not rows:
+        return []
+
+    found = [
+        {"date": halving.isoformat(), "kind": "halving", "label": "Halving",
+         "price": next((r.close for r in rows if r.day == halving), 0.0)}
+        for halving in signals.HALVINGS
+        if rows[0].day <= halving <= rows[-1].day
+    ]
+
+    peak = max(rows, key=lambda r: r.close)
+    trough = min(rows, key=lambda r: r.close)
+    found.append({"date": peak.day.isoformat(), "kind": "high",
+                  "label": "Highest close", "price": peak.close})
+    found.append({"date": trough.day.isoformat(), "kind": "low",
+                  "label": "Lowest close", "price": trough.close})
+
+    # A marker Recharts cannot place is worse than no marker: with a categorical
+    # axis a ReferenceLine only lands if its x value is a day the series has.
+    have = {row.day.isoformat() for row in rows}
+    return sorted((e for e in found if e["date"] in have), key=lambda e: e["date"])
+
+
 def score_history(session: Session, days: int) -> list[dict]:
     """The score the bot would have read on every day, with that day's close.
 

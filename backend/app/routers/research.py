@@ -4,7 +4,11 @@ Every endpoint reads the same cached scoring table (`research.score_table`), so
 the first call after a cold start is the slow one - it may fetch up to three
 years of candles - and the rest are cheap.
 """
+import csv
+import io
+
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlmodel import Session
 
 from .. import research
@@ -15,6 +19,7 @@ from ..schemas import (
     ForwardReturnsResponse,
     GridResponse,
     RollingWindowsResponse,
+    ChartEvent,
     ScorePoint,
     ScoringVariantsResponse,
 )
@@ -62,6 +67,28 @@ def scoring_variants(
     """Alternative scorings over the rolling windows. Changes nothing."""
     return research.scoring_variants(
         session, window_days=window_days, settings=load_settings(session)
+    )
+
+
+@router.get("/events", response_model=list[ChartEvent])
+def events(days: int = DaysQuery, session: Session = Depends(get_session)):
+    """Halvings and the window's extremes, for marking on a chart."""
+    return research.events(session, days=days)
+
+
+@router.get("/dataset.csv")
+def dataset(days: int = DaysQuery, session: Session = Depends(get_session)):
+    """The whole scoring table as a CSV, for analysis outside Drip."""
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(research.DATASET_COLUMNS)
+    writer.writerows(research.dataset_rows(session, days=days))
+    return Response(
+        content=buffer.getvalue(),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=drip_scores_{days}d.csv"
+        },
     )
 
 

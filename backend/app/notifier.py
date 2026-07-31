@@ -83,6 +83,77 @@ def send_purchase_notification(analysis: "Analysis", purchase: Purchase,
     return send_notification(title, description, color, fields, enabled)
 
 
+def send_digest_notification(digest: dict, enabled: bool) -> bool:
+    """The weekly state-of-the-drip embed.
+
+    Deliberately leads with sats rather than euros: over a week the euro value
+    mostly reports what bitcoin did, while the sats are what the saving actually
+    achieved. The euro figures follow underneath, where they belong.
+    """
+    week, total = digest["week"], digest["total"]
+    basis, analysis = digest["cost_basis"], digest["analysis"]
+    edge = digest["vs_dca"]
+
+    fields = [
+        {
+            "name": "This week",
+            "value": (f"{week['sats']:,.0f} sats for €{week['spent_eur']:.2f}"
+                      if week["buys"] else "No buys"),
+            "inline": False,
+        },
+        {"name": "Stacked", "value": f"{total['sats']:,.0f} sats", "inline": True},
+        {"name": "Invested", "value": f"€{total['invested_eur']:,.2f}", "inline": True},
+        {
+            "name": "Value",
+            "value": f"€{total['value_eur']:,.2f} ({total['profit_pct']:+.1f}%)",
+            "inline": True,
+        },
+        {
+            "name": "vs. plain DCA",
+            "value": f"{edge['pp']:+.2f} pp per euro invested",
+            "inline": True,
+        },
+        {
+            "name": "Your entry vs. market",
+            "value": (f"€{basis['avg_price_eur']:,.0f} vs €{basis['market_twap_eur']:,.0f} "
+                      f"({basis['advantage_pct']:+.1f}%)"),
+            "inline": True,
+        },
+        {
+            "name": "Right now",
+            "value": f"Score {analysis.score} - {analysis.signal} ({analysis.multiplier}x)",
+            "inline": False,
+        },
+    ]
+
+    if digest["next_free_date"]:
+        fields.append({
+            "name": "Next lot past one year",
+            "value": digest["next_free_date"],
+            "inline": True,
+        })
+    if digest["excluded"]["count"]:
+        fields.append({
+            "name": "Not counted",
+            "value": (f"{digest['excluded']['count']} buys recorded as failed "
+                      f"(€{digest['excluded']['eur']:,.2f})"),
+            "inline": False,
+        })
+
+    mode = "dry run" if digest["dry_run"] else "live"
+    description = f"The week in one message · currently in **{mode}**"
+    if digest["next_run"]:
+        description += f"\nNext buy: {digest['next_run'][:16].replace('T', ' ')}"
+
+    return send_notification(
+        title="Drip - your week",
+        description=description,
+        color=analysis.color,
+        fields=fields,
+        enabled=enabled,
+    )
+
+
 def send_paused_notification(paused_until, enabled: bool) -> bool:
     """Sent when a scheduled run is skipped because the bot is paused."""
     return send_notification(

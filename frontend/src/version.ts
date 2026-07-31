@@ -17,6 +17,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.8",
+    date: "2026-07-31",
+    changes: [
+      "A weekly digest on Discord every Sunday at 18:00 — your week in one message",
+      "Sats stacked, your entry against the market, and where you stand versus plain DCA",
+      "New button beside the Discord toggle sends this week's digest right now",
+      "Research: download every scored day as a CSV, to answer questions Drip doesn't",
+      "The score chart now marks the halving and the window's highest and lowest close",
+    ],
+  },
+  {
     version: "1.7",
     date: "2026-07-31",
     changes: [
