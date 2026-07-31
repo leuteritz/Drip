@@ -88,7 +88,7 @@ export default function NextBuyActions({
   const amountCents = dot >= 0 ? amount.slice(dot) : "";
 
   return (
-    <div className="relative mx-auto mt-7 w-full max-w-[940px] overflow-hidden rounded-[28px] bg-cream pb-[9px] shadow-[0_28px_64px_-26px_rgba(0,0,0,.62)]">
+    <div className="relative mx-auto mt-7 w-full max-w-[940px] overflow-hidden rounded-[28px] bg-spout pb-[9px] shadow-[0_28px_64px_-26px_rgba(0,0,0,.62)]">
       {/* A pool of water around the drop, so the bar reads as the tank's spout
           rather than a white slab dropped onto it */}
       <div
@@ -101,7 +101,7 @@ export default function NextBuyActions({
         <div className="flex min-w-0 flex-1 items-center gap-4 lg:flex-none">
           <span
             className={`relative flex h-14 w-14 flex-none items-center justify-center rounded-full text-2xl text-cream shadow-[0_10px_22px_-10px_rgba(47,90,99,.9)] ${
-              paused ? "bg-rose" : "bg-teal"
+              paused ? "bg-rose-deep" : "bg-teal-deep"
             }`}
           >
             <span className="absolute inset-0 rounded-full ring-8 ring-teal/8" />
@@ -174,8 +174,8 @@ export default function NextBuyActions({
             title={live ? "Place a real market buy" : "Place a dry-run buy"}
             className={`${ACTION} flex-1 md:flex-none ${
               live
-                ? "bg-rose text-cream hover:opacity-90 focus-visible:outline-rose"
-                : "bg-teal text-cream hover:bg-teal/90 focus-visible:outline-teal"
+                ? "bg-rose-deep text-cream hover:opacity-90 focus-visible:outline-rose"
+                : "bg-teal-deep text-cream hover:bg-teal-deep/90 focus-visible:outline-teal"
             }`}
           >
             <DropHalfBottomIcon className="text-base" />
@@ -195,7 +195,7 @@ export default function NextBuyActions({
             aria-expanded={panelOpen}
             aria-label="Adjust the next buy"
             title="Amount, schedule, pause"
-            className={`${ICON_ACTION} ${panelOpen ? "bg-teal text-cream hover:bg-teal/90" : ""}`}
+            className={`${ICON_ACTION} ${panelOpen ? "bg-teal-deep text-cream hover:bg-teal-deep/90" : ""}`}
           >
             <SlidersIcon className="text-base" />
             <CaretDownIcon

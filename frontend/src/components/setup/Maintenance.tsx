@@ -149,7 +149,7 @@ function Action({
         disabled={busy}
         className={`${BUTTON} ${
           asked
-            ? "bg-rose text-cream"
+            ? "bg-rose-deep text-cream"
             : tone === "danger"
               ? "bg-rose-soft text-rose hover:opacity-80"
               : "bg-sand-soft text-ink hover:opacity-80"

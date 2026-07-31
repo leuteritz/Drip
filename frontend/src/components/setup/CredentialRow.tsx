@@ -97,7 +97,7 @@ export default function CredentialRow({
               type="button"
               onClick={() => write(draft)}
               disabled={busy || !draft.trim()}
-              className="flex items-center gap-1.5 rounded-full bg-teal px-4 py-1.5 text-xs font-bold text-cream transition hover:opacity-90 disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-full bg-teal-deep px-4 py-1.5 text-xs font-bold text-cream transition hover:opacity-90 disabled:opacity-40"
             >
               <CheckIcon /> {busy ? "Saving…" : "Save"}
             </button>

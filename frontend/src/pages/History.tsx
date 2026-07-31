@@ -157,7 +157,7 @@ export default function HistorySection({
               <button
                 onClick={() => setConfirmWipe(true)}
                 disabled={busy}
-                className="flex items-center gap-2 rounded-full bg-rose-soft px-4 py-2 text-sm font-bold text-rose transition hover:bg-rose hover:text-cream disabled:opacity-40"
+                className="flex items-center gap-2 rounded-full bg-rose-soft px-4 py-2 text-sm font-bold text-rose transition hover:bg-rose-deep hover:text-cream disabled:opacity-40"
               >
                 <TrashIcon /> Delete all
               </button>
@@ -314,7 +314,7 @@ export default function HistorySection({
             </button>
             <button
               onClick={deleteAll}
-              className="rounded-full bg-rose px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
+              className="rounded-full bg-rose-deep px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
             >
               Delete everything
             </button>

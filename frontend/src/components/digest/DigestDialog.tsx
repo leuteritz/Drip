@@ -156,7 +156,7 @@ export default function DigestDialog({
                 <span
                   className={`mt-0.5 flex h-4.5 w-4.5 flex-none items-center justify-center rounded-md border-2 text-[10px] transition ${
                     block.enabled
-                      ? "border-teal bg-teal text-cream"
+                      ? "border-teal bg-teal-deep text-cream"
                       : "border-sand bg-paper text-transparent"
                   }`}
                 >
@@ -230,7 +230,7 @@ export default function DigestDialog({
           onClick={sendNow}
           disabled={sending || !digest.discord_configured || visible.size === 0}
           title="Send this week's report now, whatever the schedule says"
-          className="flex items-center gap-2 rounded-full bg-teal px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-full bg-teal-deep px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90 disabled:opacity-50"
         >
           <PaperPlaneIcon /> {sending ? "Sending…" : "Send now"}
         </button>

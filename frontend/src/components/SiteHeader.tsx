@@ -12,6 +12,7 @@ import type {
   RunResult,
 } from "../api/client";
 import { fmtEur, formatDayMonth } from "../lib/format";
+import type { ThemeChoice } from "../lib/theme";
 import DigestDialog from "./digest/DigestDialog";
 import FaucetControls from "./header/FaucetControls";
 import { NAV, useScrolled, useScrollSpy, type Section } from "./header/hooks";
@@ -28,6 +29,7 @@ import ReportBadge from "./header/ReportBadge";
 import Reservoir from "./header/Reservoir";
 import SetupButton from "./header/SetupButton";
 import TankBackdrop from "./header/TankBackdrop";
+import ThemeToggle from "./header/ThemeToggle";
 import VersionBadge from "./header/VersionBadge";
 import ManualBuyDialog from "./ManualBuyDialog";
 import SetupDialog, { type SetupTab } from "./setup/SetupDialog";
@@ -47,7 +49,9 @@ export default function SiteHeader({
   indicators,
   performance,
   balance,
+  themeChoice,
   scrollRef,
+  onSetTheme,
   onSimulate,
   onTestBuy,
   onBuyNow,
@@ -70,7 +74,9 @@ export default function SiteHeader({
   indicators: Indicators | null;
   performance: Performance | null;
   balance: AccountBalance | null;
+  themeChoice: ThemeChoice;
   scrollRef: RefObject<HTMLDivElement | null>;
+  onSetTheme: (choice: ThemeChoice) => void;
   onSimulate: () => void;
   onTestBuy: () => void;
   onBuyNow: (amountEur: number) => Promise<void>;
@@ -134,6 +140,7 @@ export default function SiteHeader({
                 <DropSlashIcon /> Off until {formatDayMonth(status.paused_until)}
               </HeaderPill>
             )}
+            <ThemeToggle choice={themeChoice} onChange={onSetTheme} />
             <SetupButton
               status={status}
               onOpen={() => setSetupTab(status?.has_credentials ? "system" : "coinbase")}
@@ -148,7 +155,7 @@ export default function SiteHeader({
                     aria-current={on ? "true" : undefined}
                     className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
                       on
-                        ? "bg-teal text-cream shadow-sm"
+                        ? "bg-teal-deep text-cream shadow-sm"
                         : "bg-teal/10 text-teal hover:bg-teal/15"
                     }`}
                   >
@@ -219,7 +226,7 @@ export default function SiteHeader({
 
           {runResult?.analysis && (
             <div className="mt-5 flex justify-center">
-              <div className="rounded-lg bg-cream/85 px-3 py-1.5 text-xs font-bold text-teal shadow-sm">
+              <div className="rounded-lg bg-cream/85 px-3 py-1.5 text-xs font-bold text-teal-deep shadow-sm">
                 {runResult.analysis.signal} &middot;{" "}
                 {runResult.purchase && !runResult.purchase.dry_run
                   ? "bought"

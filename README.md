@@ -17,7 +17,8 @@ whether the score predicts anything, and what a different scoring would have don
 and reports your cost basis against the market and how old each lot is. Once a week it
 sends you the whole thing on Discord. Keys, the webhook and the state of the backend
 itself are all reachable from the gear in the top bar, so the Pi needs no shell after
-the first install.
+the first install. After dark the tank dims with the room - the theme follows your
+phone or laptop unless you tell it otherwise.
 
 ## Install
 
@@ -55,8 +56,8 @@ your base amount.
 
 A single buy says nothing about whether the saving is going anywhere, so once a week
 Drip reports itself to Discord: what you stacked, what the price did, how your stack
-stands against plain DCA and against the market's own average price, what the signal
-says now, your next sats milestone and how many weeks in a row you have bought.
+stands against plain DCA and against the market's own average, and what the signal
+says now.
 
 Twelve sections, each one switchable. Pick the day, the time and what the message
 carries - the preview beside it is built by the same code that builds the real message,

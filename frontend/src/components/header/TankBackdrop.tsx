@@ -4,13 +4,14 @@
  *
  * Purely decorative (`aria-hidden`, `pointer-events-none`) and entirely
  * self-contained, so the header above it stays about data. The wave tones are
- * shades of the water gradient rather than palette colors, which is why they
- * live here instead of in the `@theme` block.
+ * shades of the water gradient rather than palette colors — they live in
+ * index.css beside that gradient so the surface dims with the water when the
+ * night theme comes on, instead of leaving a lit crest on a dark tank.
  */
 
-const WAVE_BACK = "#57929c";
-const WAVE_FRONT = "#5c939d";
-const FOAM = "rgba(241,255,250,.4)";
+const WAVE_BACK = "var(--wave-back)";
+const WAVE_FRONT = "var(--wave-front)";
+const FOAM = "var(--wave-foam)";
 
 /** Rising bubbles — position, size, tempo, delay and climb height. */
 const BUBBLES: {

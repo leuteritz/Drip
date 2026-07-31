@@ -13,6 +13,7 @@ import {
   type Purchase,
   type RunResult,
 } from "./api/client";
+import { useTheme } from "./lib/theme";
 import SiteHeader from "./components/SiteHeader";
 import SimulationModal from "./components/SimulationModal";
 import Overview from "./pages/Dashboard";
@@ -34,6 +35,9 @@ export default function App() {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showSim, setShowSim] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  // Day or night. Server state this is not, but it belongs with everything else
+  // the header needs handed to it.
+  const { choice: themeChoice, setChoice: setThemeChoice } = useTheme();
 
   // Background refreshes used to fail silently, which left the header showing
   // empty skeletons whenever the backend was down. They now surface here.
@@ -187,11 +191,11 @@ export default function App() {
   }, [loadPerformance, reloadBalance, report]);
 
   return (
-    <div className="h-full bg-cream">
+    <div className="h-full bg-shell">
       {/* Full-bleed single scroll container (no frame). */}
       <div
         ref={scrollRef}
-        className="relative flex h-full w-full flex-col overflow-y-auto bg-cream"
+        className="relative flex h-full w-full flex-col overflow-y-auto bg-shell"
       >
         <SiteHeader
           status={status}
@@ -200,7 +204,9 @@ export default function App() {
           indicators={indicators}
           performance={performance}
           balance={balance}
+          themeChoice={themeChoice}
           scrollRef={scrollRef}
+          onSetTheme={setThemeChoice}
           onSimulate={() => setShowSim(true)}
           onTestBuy={testBuy}
           onBuyNow={buyNow}

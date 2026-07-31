@@ -127,7 +127,7 @@ export default function ImportModal({
             )}
             <button
               onClick={onDone}
-              className="mt-5 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-bold text-cream transition hover:bg-ink/90"
+              className="mt-5 w-full rounded-full bg-ink-solid px-4 py-2.5 text-sm font-bold text-cream transition hover:bg-ink-solid/90"
             >
               Done
             </button>
@@ -239,7 +239,7 @@ export default function ImportModal({
               <button
                 onClick={runImport}
                 disabled={!picked}
-                className="flex-1 rounded-full bg-ink px-4 py-2.5 text-sm font-bold text-cream transition hover:bg-ink/90 disabled:opacity-40"
+                className="flex-1 rounded-full bg-ink-solid px-4 py-2.5 text-sm font-bold text-cream transition hover:bg-ink-solid/90 disabled:opacity-40"
               >
                 Import
               </button>

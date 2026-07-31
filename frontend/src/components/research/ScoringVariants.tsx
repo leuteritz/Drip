@@ -131,7 +131,7 @@ function VariantRow({
         <div className="font-semibold text-ink">
           {variant.label}
           {isCurrent && (
-            <span className="ml-2 rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cream">
+            <span className="ml-2 rounded-full bg-ink-solid px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cream">
               running
             </span>
           )}

@@ -24,10 +24,10 @@ export default function EmbedPreview({
   const accent = `#${preview.color.toString(16).padStart(6, "0")}`;
 
   return (
-    <div className="rounded-2xl bg-ink p-3.5 font-sans">
+    <div className="rounded-2xl bg-chrome p-3.5 font-sans">
       {/* The message header Discord puts above every webhook post */}
       <div className="mb-2 flex items-center gap-2">
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal text-cream">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-deep text-cream">
           <DropFillIcon className="text-sm" />
         </span>
         <span className="text-sm font-bold text-cream">Drip</span>

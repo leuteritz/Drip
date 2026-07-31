@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.15",
+    date: "2026-08-01",
+    changes: [
+      "A night theme, in the same five colours: the tank dims with the room instead of glowing at you across a dark kitchen",
+      "It follows your phone or laptop by default — the sun in the top bar switches to day, night, or back to following the device",
+    ],
+  },
+  {
     version: "1.14",
     date: "2026-07-31",
     changes: [

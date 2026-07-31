@@ -36,7 +36,7 @@ export default function LiveModeDialog({
         </button>
         <button
           onClick={onConfirm}
-          className="rounded-full bg-rose px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
+          className="rounded-full bg-rose-deep px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
         >
           Trade live
         </button>

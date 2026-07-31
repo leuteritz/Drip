@@ -86,7 +86,7 @@ export function RangePills<T extends number>({
           onClick={() => onChange(option.value)}
           className={`rounded-full px-3 py-1 text-xs font-bold transition ${
             value === option.value
-              ? "bg-ink text-cream"
+              ? "bg-ink-solid text-cream"
               : "bg-sand-soft text-ink-soft hover:text-ink"
           }`}
         >
@@ -144,7 +144,7 @@ export function Badge({
     teal: "bg-water-soft text-teal border border-water",
     rose: "bg-rose-soft text-rose border border-rose/40",
     water: "bg-water-soft text-ink border border-water",
-    ink: "bg-ink text-cream border border-ink",
+    ink: "bg-ink-solid text-cream border border-ink-solid",
   };
   return (
     <span
@@ -327,7 +327,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4"
       onClick={closeOnBackdrop ? onClose : undefined}
     >
       <Card className={className} onClick={(e) => e.stopPropagation()}>

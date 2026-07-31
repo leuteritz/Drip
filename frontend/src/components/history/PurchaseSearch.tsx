@@ -120,7 +120,7 @@ export default function PurchaseSearch({
               onClick={() => onQuery(toggleToken(query, chip.token))}
               className={`${CHIP} ${
                 on
-                  ? "bg-teal text-cream"
+                  ? "bg-teal-deep text-cream"
                   : "border border-sand bg-paper text-ink-soft hover:border-water hover:text-ink disabled:opacity-40 disabled:hover:border-sand disabled:hover:text-ink-soft"
               }`}
             >

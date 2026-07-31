@@ -133,7 +133,7 @@ export default function SetupDialog({
               onClick={() => setTab(id)}
               aria-current={on ? "true" : undefined}
               className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition ${
-                on ? "bg-teal text-cream" : "bg-sand-soft text-ink-soft hover:text-ink"
+                on ? "bg-teal-deep text-cream" : "bg-sand-soft text-ink-soft hover:text-ink"
               }`}
             >
               <Icon className="text-sm" />
@@ -235,7 +235,7 @@ function CoinbaseTab({
           type="button"
           onClick={test}
           disabled={testing || !stored}
-          className="ml-auto flex items-center gap-1.5 rounded-full bg-teal px-4 py-1.5 text-xs font-bold text-cream transition hover:opacity-90 disabled:opacity-40"
+          className="ml-auto flex items-center gap-1.5 rounded-full bg-teal-deep px-4 py-1.5 text-xs font-bold text-cream transition hover:opacity-90 disabled:opacity-40"
         >
           <PlugsIcon /> {testing ? "Asking Coinbase…" : "Test connection"}
         </button>
@@ -324,7 +324,7 @@ function DiscordTab({
           type="button"
           onClick={test}
           disabled={testing || !stored}
-          className="ml-auto flex items-center gap-1.5 rounded-full bg-teal px-4 py-1.5 text-xs font-bold text-cream transition hover:opacity-90 disabled:opacity-40"
+          className="ml-auto flex items-center gap-1.5 rounded-full bg-teal-deep px-4 py-1.5 text-xs font-bold text-cream transition hover:opacity-90 disabled:opacity-40"
         >
           <PaperPlaneIcon /> {testing ? "Sending…" : "Send test"}
         </button>

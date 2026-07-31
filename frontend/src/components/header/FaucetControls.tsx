@@ -126,7 +126,7 @@ export default function FaucetControls({
             Adjust your drip
           </span>
           {saved && (
-            <span className="inline-flex items-center rounded-full bg-cream/90 px-2.5 py-0.5 text-[11px] font-bold text-teal">
+            <span className="inline-flex items-center rounded-full bg-cream/90 px-2.5 py-0.5 text-[11px] font-bold text-teal-deep">
               Saved &#10003;
             </span>
           )}
@@ -261,13 +261,13 @@ export default function FaucetControls({
                 <span className={TILE_LABEL}>Pause</span>
                 {paused ? (
                   <>
-                    <span className="inline-flex items-center rounded-full bg-rose/60 px-2.5 py-1 text-xs font-bold text-cream">
+                    <span className="inline-flex items-center rounded-full bg-rose-deep/60 px-2.5 py-1 text-xs font-bold text-cream">
                       until {formatDateNumeric(settings.paused_until!)}
                     </span>
                     <button
                       type="button"
                       onClick={onResume}
-                      className="flex items-center gap-1 rounded-xl bg-cream px-3 py-1.5 text-xs font-bold text-teal transition hover:bg-white"
+                      className="flex items-center gap-1 rounded-xl bg-cream px-3 py-1.5 text-xs font-bold text-teal-deep transition hover:bg-white"
                     >
                       <PlayIcon /> Resume
                     </button>

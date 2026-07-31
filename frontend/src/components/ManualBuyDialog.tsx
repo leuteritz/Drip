@@ -56,8 +56,8 @@ export default function ManualBuyDialog({
       className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
         amount === v
           ? live
-            ? "bg-rose text-cream"
-            : "bg-teal text-cream"
+            ? "bg-rose-deep text-cream"
+            : "bg-teal-deep text-cream"
           : "bg-sand-soft text-ink hover:opacity-80"
       }`}
     >
@@ -153,7 +153,7 @@ export default function ManualBuyDialog({
           onClick={confirm}
           disabled={!canConfirm}
           className={`rounded-full px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90 disabled:opacity-50 ${
-            live ? "bg-rose" : "bg-teal"
+            live ? "bg-rose-deep" : "bg-teal-deep"
           }`}
         >
           {buying

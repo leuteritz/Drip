@@ -34,7 +34,7 @@ export default function ModeToggle({
           type="button"
           aria-pressed={dry}
           onClick={() => !dry && onSetDryRun(true)}
-          className={`${seg} ${dry ? "bg-cream text-teal shadow-sm" : "text-teal/70 hover:text-teal"}`}
+          className={`${seg} ${dry ? "bg-cream text-teal-deep shadow-sm" : "text-teal/70 hover:text-teal"}`}
         >
           <FlaskIcon /> Dry run
         </button>
@@ -42,7 +42,7 @@ export default function ModeToggle({
           type="button"
           aria-pressed={!dry}
           onClick={() => dry && setConfirmLive(true)}
-          className={`${seg} ${!dry ? "bg-rose text-cream shadow-sm" : "text-teal/70 hover:text-teal"}`}
+          className={`${seg} ${!dry ? "bg-rose-deep text-cream shadow-sm" : "text-teal/70 hover:text-teal"}`}
         >
           <LightningIcon /> Live
         </button>

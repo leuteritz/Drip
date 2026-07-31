@@ -5,11 +5,11 @@
 
 @theme {
   /* Fixed 5-color palette */
-  --color-cream: #f1fffa; /* mint cream - page background */
+  --color-cream: #f1fffa; /* mint cream - light type, glass on the water */
   --color-water: #93b7be; /* light blue - identity, charts, drops */
   --color-sand: #d5c7bc; /* dust grey - borders, quiet surfaces */
   --color-rose: #785964; /* smoky rose - loss, warnings, live mode */
-  --color-ink: #454545; /* gunmetal - text, solid buttons */
+  --color-ink: #454545; /* gunmetal - body text */
 
   /* Derived tints/shades of the palette (no foreign hues) */
   --color-teal: #45818c; /* deepened water - profit, links, focus */
@@ -19,12 +19,71 @@
   --color-paper: #fbfffd; /* near-white card surface */
   --color-ink-soft: #6f6f6f; /* muted text */
 
+  /* Roles that have to survive the day/night flip on their own.
+     `cream` and `ink` each carry two jobs in the light theme that pull apart at
+     night — page ground vs. type on the water, body type vs. a solid button —
+     so each keeps the job that flips and hands the other one to a token here. */
+  --color-shell: #f1fffa; /* the page ground (was bg-cream) */
+  --color-spout: #f1fffa; /* the next-buy card floating on the water */
+  --color-ink-solid: #454545; /* solid buttons and badges, always under cream type */
+  /* The two accents at their light-theme weight, held there in both themes.
+     Cream type needs a dark fill under it, and teal type needs a dark ink when
+     it sits on a cream chip - neither survives the accent lightening at night. */
+  --color-teal-deep: #45818c;
+  --color-rose-deep: #785964;
+  --color-chrome: #454545; /* Discord's own panel in the report preview */
+  --color-scrim: rgba(69, 69, 69, 0.5); /* behind every dialog */
+
   --font-display: "Fraunces", "Georgia", serif;
   --font-sans: "Outfit Variable", "Outfit", system-ui, sans-serif;
 
   --radius-card: 1.25rem;
 
   --shadow-puff: 0 2px 0 0 rgba(69, 69, 69, 0.06), 0 12px 32px -12px rgba(120, 89, 100, 0.18);
+
+  /* The tank itself, so day and night can deepen the water together */
+  --tank-sky: linear-gradient(180deg, #f4fffb 0%, #e4f1f0 46%);
+  --tank-body: linear-gradient(180deg, #5c939d 0%, #3f717c 45%, #2f5761 100%);
+  --wave-back: #57929c;
+  --wave-front: #5c939d;
+  --wave-foam: rgba(241, 255, 250, 0.4);
+}
+
+/**
+ * The tank at night.
+ *
+ * Same five colors, no new hues: the surfaces walk down toward ink and the type
+ * walks up toward cream, so every utility in the app flips by resolving the
+ * same custom property to a different value. `data-theme` is stamped on <html>
+ * before first paint (see index.html) and set by lib/theme.ts.
+ */
+:root[data-theme="dark"] {
+  --color-sand: #26383d;
+  --color-rose: #c79dab;
+  --color-ink: #e4f0ec;
+
+  --color-teal: #7fb8c2;
+  --color-water-soft: #1d3941;
+  --color-sand-soft: #1a2d32;
+  --color-rose-soft: #3a2b31;
+  --color-paper: #14252a;
+  --color-ink-soft: #94aaad;
+
+  --color-shell: #0c171a;
+  --color-spout: #173036;
+  /* A dark page cannot carry a dark button, so the accent becomes the fill —
+     still one of the five, and still cream type on top of it. */
+  --color-ink-solid: #45818c;
+  --color-scrim: rgba(3, 10, 12, 0.7);
+
+  --shadow-puff: 0 2px 0 0 rgba(0, 0, 0, 0.22), 0 14px 34px -12px rgba(0, 0, 0, 0.55);
+
+  /* The water dims with the room, or the tank would be the only lit thing left */
+  --tank-sky: linear-gradient(180deg, #0b1518 0%, #10242a 46%);
+  --tank-body: linear-gradient(180deg, #2c545e 0%, #1e3d46 45%, #142a31 100%);
+  --wave-back: #28505a;
+  --wave-front: #2c545e;
+  --wave-foam: rgba(241, 255, 250, 0.26);
 }
 
 html,
@@ -33,22 +92,31 @@ body,
   height: 100%;
 }
 
+/* Lets native controls, scrollbars and form widgets follow the theme */
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 body {
-  background: var(--color-cream);
+  background: var(--color-shell);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   overflow: hidden; /* fixed-canvas app: the frame owns all height, no page scroll */
 }
 
-/* "The Tank" sky: a light mint gradient the aquarium sits under */
+/* "The Tank" sky: the gradient the aquarium sits under */
 .hero-gradient {
-  background: linear-gradient(180deg, #f4fffb 0%, #e4f1f0 46%);
+  background: var(--tank-sky);
 }
 
 /* The submerged body of water: lighter at the sunlit surface, deepening below */
 .tank-water {
-  background: linear-gradient(180deg, #5c939d 0%, #3f717c 45%, #2f5761 100%);
+  background: var(--tank-body);
 }
 
 ::selection {
@@ -56,9 +124,10 @@ body {
 }
 
 /* Native dropdown lists of the header's glass selects: without this the options
-   inherit cream text on the OS default white popup and become invisible */
+   inherit cream text on the OS default white popup and become invisible. The
+   deep teal is fixed, because the popup sits on the water in both themes. */
 .faucet-select option {
-  background-color: var(--color-teal);
+  background-color: var(--color-teal-deep);
   color: var(--color-cream);
 }
 

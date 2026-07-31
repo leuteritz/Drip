@@ -80,7 +80,7 @@ export default function SimulationModal({
               onClick={() => setDays(p.days)}
               className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
                 days === p.days
-                  ? "bg-ink text-cream"
+                  ? "bg-ink-solid text-cream"
                   : "bg-sand-soft text-ink-soft hover:text-ink"
               }`}
             >
