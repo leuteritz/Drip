@@ -1,20 +1,45 @@
 import CaretDownIcon from "~icons/ph/caret-down";
 import ChartLineUpIcon from "~icons/ph/chart-line-up";
 import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
+import PauseIcon from "~icons/ph/pause";
 import PlayIcon from "~icons/ph/play-fill";
+import SlidersIcon from "~icons/ph/sliders-horizontal";
 import type { BotSettings, BotStatus, Indicators } from "../../api/client";
-import { fmtEur, formatWeekdayTime, WEEKDAYS } from "../../lib/format";
+import { fmtEur, formatDayMonth, formatWeekdayTime, WEEKDAYS } from "../../lib/format";
+import { ScoreDrops } from "../drops";
+import { useNow } from "./hooks";
 
-const PILL =
-  "flex flex-1 items-center justify-center gap-1.5 rounded-full py-[7px] text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60";
-const ICON_BUTTON =
-  "flex w-8 flex-none items-center justify-center rounded-full bg-teal/14 text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+const ACTION =
+  "flex h-12 items-center justify-center gap-2 rounded-2xl px-6 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60";
+const ICON_ACTION =
+  "flex h-12 w-12 flex-none items-center justify-center rounded-2xl bg-teal/12 text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+const CAPTION = "text-[10px] font-bold uppercase tracking-[0.16em] text-teal/60";
+
+/** The drip is weekly, so the pipe fills over one week between buys. */
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** "Good buy signal" -> "Good buy": the caption already says Signal. */
+const shortSignal = (signal: string) => signal.replace(/ signal$/i, "");
+
+/** "in 3 days" / "in 5 h" / "in 20 min" — how far off the next drip is. */
+function untilLabel(ms: number): string {
+  if (ms <= 0) return "due now";
+  if (ms < 60 * 60 * 1000) return `in ${Math.max(1, Math.round(ms / 60_000))} min`;
+  const hours = Math.round(ms / (60 * 60 * 1000));
+  if (hours < 24) return `in ${hours} ${hours === 1 ? "hour" : "hours"}`;
+  const days = Math.round(hours / 24);
+  return `in ${days} ${days === 1 ? "day" : "days"}`;
+}
 
 /**
- * Next scheduled buy — a button that opens the faucet control bar — plus the
- * dry-run test, manual buy and simulate actions. Buy uses the same simple
- * mechanic as the bot (a market buy for an amount) via ManualBuyDialog; in
- * live mode it turns rose to signal real money.
+ * The spout of the tank: a full-width bar under the stat chips carrying the
+ * next scheduled buy — when it lands, how big it is and why — plus every action
+ * that can move money: the dry-run test, a manual buy, the backtest and the
+ * faucet controls.
+ *
+ * Buy uses the same simple mechanic as the bot (a market buy for an amount) via
+ * ManualBuyDialog; in live mode it turns rose to signal real money. The pipe
+ * along the bottom edge fills as the week runs down toward the next drip.
  */
 export default function NextBuyActions({
   indicators,
@@ -39,7 +64,10 @@ export default function NextBuyActions({
   running: boolean;
   buying: boolean;
 }) {
+  const now = useNow();
   const live = status != null && !status.dry_run;
+  const paused = status?.paused === true;
+
   // Prefer the scheduler's own next-run time; fall back to the configured slot
   // while the status is still loading.
   const nextWhen = status?.next_run
@@ -47,58 +75,149 @@ export default function NextBuyActions({
     : settings
       ? `${WEEKDAYS[settings.schedule_weekday].slice(0, 3)} ${settings.schedule_time}`
       : "—";
-  const nextAmount =
+  const remaining = status?.next_run
+    ? new Date(status.next_run).getTime() - now
+    : null;
+  // The pipe fills as the week drains toward the next buy.
+  const filled =
+    remaining == null ? 0 : Math.max(0, Math.min(1, 1 - remaining / WEEK_MS));
+
+  const amount =
     settings && indicators
       ? fmtEur(settings.base_amount_eur * indicators.multiplier)
       : "—";
+  const dot = amount.lastIndexOf(".");
+  const amountMain = dot >= 0 ? amount.slice(0, dot) : amount;
+  const amountCents = dot >= 0 ? amount.slice(dot) : "";
 
   return (
-    <div className="flex w-[210px] flex-col items-center rounded-[18px] bg-cream px-[18px] py-[15px] text-center shadow-[0_18px_38px_-16px_rgba(0,0,0,.55)]">
-      <div className="whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.1em] text-[#5c8a91]">
-        Next buy &middot; {nextWhen}
+    <div className="relative mx-auto mt-7 w-full max-w-[940px] overflow-hidden rounded-[28px] bg-cream pb-[9px] shadow-[0_28px_64px_-26px_rgba(0,0,0,.62)]">
+      {/* A pool of water around the drop, so the bar reads as the tank's spout
+          rather than a white slab dropped onto it */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(220px_160px_at_70px_50%,rgba(147,183,190,.22),transparent_72%)]"
+      />
+
+      <div className="relative flex flex-col gap-5 px-5 py-5 md:flex-row md:flex-wrap md:items-center md:gap-6 md:px-7 md:py-6">
+        {/* Left: the drop, the amount, and what makes it that size */}
+        <div className="flex min-w-0 flex-1 items-center gap-4 lg:flex-none">
+          <span
+            className={`relative flex h-14 w-14 flex-none items-center justify-center rounded-full text-2xl text-cream shadow-[0_10px_22px_-10px_rgba(47,90,99,.9)] ${
+              paused ? "bg-rose" : "bg-teal"
+            }`}
+          >
+            <span className="absolute inset-0 rounded-full ring-8 ring-teal/8" />
+            {paused ? <PauseIcon /> : <DropHalfBottomIcon />}
+          </span>
+
+          <div className="min-w-0">
+            <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${CAPTION}`}>
+              <span>Next buy</span>
+              <span className="rounded-full bg-teal/10 px-2 py-0.5 tracking-[0.1em] text-teal/80">
+                {nextWhen}
+              </span>
+              {paused && status?.paused_until ? (
+                <span className="rounded-full bg-rose/12 px-2 py-0.5 tracking-[0.1em] text-rose">
+                  Paused until {formatDayMonth(status.paused_until)}
+                </span>
+              ) : (
+                remaining != null && (
+                  <span className="normal-case tracking-normal text-teal/50">
+                    {untilLabel(remaining)}
+                  </span>
+                )
+              )}
+            </div>
+
+            <div className="mt-1 font-display text-[42px] font-semibold leading-none text-teal md:text-[46px]">
+              {amountMain}
+              <span className="text-teal/45">{amountCents}</span>
+            </div>
+
+            {settings && indicators && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-semibold text-teal/60">
+                <ScoreDrops multiplier={indicators.multiplier} size="text-[13px]" />
+                <span>
+                  {fmtEur(settings.base_amount_eur, 0)} base &times;{" "}
+                  {indicators.multiplier}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Middle: why the amount is what it is, in the strategy's own words.
+            A paused bot has no signal worth reading, and dropping it keeps the
+            longer "Paused until" caption from crowding the actions. */}
+        {indicators && !paused && (
+          <div className="hidden flex-1 justify-center text-center lg:flex">
+            <div>
+              <div className={CAPTION}>Signal</div>
+              <div className="mt-1.5 whitespace-nowrap font-display text-[19px] font-semibold leading-tight text-teal">
+                {shortSignal(indicators.signal)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Right: everything that can move money */}
+        <div className="flex flex-none items-center gap-2 max-md:justify-end md:ml-auto md:border-l md:border-teal/12 md:pl-6">
+          <button
+            onClick={onTestBuy}
+            disabled={running}
+            title="Run the strategy once without spending anything"
+            className={`${ACTION} flex-1 bg-teal/12 text-teal hover:bg-teal/20 focus-visible:outline-teal md:flex-none`}
+          >
+            <PlayIcon /> {running ? "Testing…" : "Test"}
+          </button>
+          <button
+            onClick={onBuy}
+            disabled={buying}
+            title={live ? "Place a real market buy" : "Place a dry-run buy"}
+            className={`${ACTION} flex-1 md:flex-none ${
+              live
+                ? "bg-rose text-cream hover:opacity-90 focus-visible:outline-rose"
+                : "bg-teal text-cream hover:bg-teal/90 focus-visible:outline-teal"
+            }`}
+          >
+            <DropHalfBottomIcon className="text-base" />
+            {buying ? "Buying…" : "Buy"}
+          </button>
+          <button
+            onClick={onSimulate}
+            aria-label="Simulate the strategy"
+            title="Backtest the strategy"
+            className={ICON_ACTION}
+          >
+            <ChartLineUpIcon className="text-base" />
+          </button>
+          <button
+            type="button"
+            onClick={onTogglePanel}
+            aria-expanded={panelOpen}
+            aria-label="Adjust the next buy"
+            title="Amount, schedule, pause"
+            className={`${ICON_ACTION} ${panelOpen ? "bg-teal text-cream hover:bg-teal/90" : ""}`}
+          >
+            <SlidersIcon className="text-base" />
+            <CaretDownIcon
+              className={`ml-[-2px] text-[10px] transition-transform duration-300 ${
+                panelOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
       </div>
-      <div className="mt-1 font-display text-3xl font-semibold leading-none text-[#2f5a63]">
-        {nextAmount}
-      </div>
-      <div className="mt-3 flex gap-1.5 self-stretch">
-        <button
-          onClick={onTestBuy}
-          disabled={running}
-          className={`${PILL} bg-teal text-cream hover:bg-teal/90 focus-visible:outline-teal`}
-        >
-          <PlayIcon /> {running ? "Testing…" : "Test"}
-        </button>
-        <button
-          onClick={onBuy}
-          disabled={buying}
-          className={`${PILL} ${
-            live
-              ? "bg-rose text-cream hover:opacity-90 focus-visible:outline-rose"
-              : "bg-teal/14 text-teal hover:bg-teal/20 focus-visible:outline-teal"
+
+      {/* The pipe: fills across the week as the next drip approaches */}
+      <div className="absolute inset-x-0 bottom-0 h-[9px] bg-teal/10">
+        <div
+          className={`h-full rounded-r-full transition-[width] duration-700 ${
+            paused ? "bg-rose/45" : "bg-teal/45"
           }`}
-        >
-          <DropHalfBottomIcon /> {buying ? "Buying…" : "Buy"}
-        </button>
-        <button
-          onClick={onSimulate}
-          aria-label="Simulate the strategy"
-          title="Simulate"
-          className={ICON_BUTTON}
-        >
-          <ChartLineUpIcon className="text-sm" />
-        </button>
-        <button
-          type="button"
-          onClick={onTogglePanel}
-          aria-expanded={panelOpen}
-          aria-label="Adjust the next buy"
-          title="Adjust"
-          className={ICON_BUTTON}
-        >
-          <CaretDownIcon
-            className={`text-sm transition-transform duration-300 ${panelOpen ? "rotate-180" : ""}`}
-          />
-        </button>
+          style={{ width: `${filled * 100}%` }}
+        />
       </div>
     </div>
   );

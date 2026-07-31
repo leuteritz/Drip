@@ -107,7 +107,7 @@ export default function FaucetControls({
         open ? "mt-4 max-h-[640px] opacity-100" : "mt-0 max-h-0 opacity-0"
       }`}
     >
-      <div className="mx-auto max-w-[720px] rounded-3xl border border-cream/20 bg-teal/95 p-4 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md md:p-5">
+      <div className="mx-auto max-w-[940px] rounded-3xl border border-cream/20 bg-teal/95 p-4 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md md:p-5">
         {/* Header: title · saved feedback · close */}
         <div className="mb-3.5 flex items-center gap-2.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-cream/70">

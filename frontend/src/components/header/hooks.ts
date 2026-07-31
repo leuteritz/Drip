@@ -32,6 +32,19 @@ export function useScrolled(
   return scrolled;
 }
 
+/** A clock that ticks every `intervalMs` — keeps relative times ("in 3 days")
+ *  honest on a dashboard that can sit open for days without a reload. */
+export function useNow(intervalMs = 60_000): number {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), intervalMs);
+    return () => window.clearInterval(id);
+  }, [intervalMs]);
+
+  return now;
+}
+
 /** Highlights the nav entry for whichever section is most in view. */
 export function useScrollSpy(scrollRef: RefObject<HTMLDivElement | null>): Section {
   const [active, setActive] = useState<Section>("overview");

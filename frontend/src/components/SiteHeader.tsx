@@ -150,8 +150,7 @@ export default function SiteHeader({
           {/* Centered reservoir headline, fully submerged below the waterline */}
           <Reservoir performance={performance} />
 
-          {/* Submerged stat cards: Score · F&G · RSI · BTC (frosted glass) + the
-              solid Next-buy card with its actions */}
+          {/* Submerged stat cards: Score · F&G · RSI · BTC · well (frosted glass) */}
           <div className="mt-8 flex flex-wrap items-stretch justify-center gap-4">
             {indicators && (
               <>
@@ -166,19 +165,21 @@ export default function SiteHeader({
               settings={settings}
               indicators={indicators}
             />
-            <NextBuyActions
-              indicators={indicators}
-              settings={settings}
-              status={status}
-              onTestBuy={onTestBuy}
-              onSimulate={onSimulate}
-              onBuy={() => setBuyOpen(true)}
-              onTogglePanel={() => setPanelOpen((v) => !v)}
-              panelOpen={panelOpen}
-              running={running}
-              buying={buying}
-            />
           </div>
+
+          {/* The spout: next buy + every action, on its own full-width row */}
+          <NextBuyActions
+            indicators={indicators}
+            settings={settings}
+            status={status}
+            onTestBuy={onTestBuy}
+            onSimulate={onSimulate}
+            onBuy={() => setBuyOpen(true)}
+            onTogglePanel={() => setPanelOpen((v) => !v)}
+            panelOpen={panelOpen}
+            running={running}
+            buying={buying}
+          />
 
           {/* Collapsible faucet control bar (amount · schedule · Discord · pause) */}
           <FaucetControls

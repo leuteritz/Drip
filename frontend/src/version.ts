@@ -17,6 +17,22 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.3",
+    date: "2026-07-31",
+    changes: [
+      "Next buy is now a wide bar across the header with bigger buttons",
+      "It shows how long until the next drip and what makes the amount",
+      "A pipe along its bottom edge fills as the week runs down",
+    ],
+  },
+  {
+    version: "1.2",
+    date: "2026-07-30",
+    changes: [
+      "Readme cut back to the essentials, with a current dashboard screenshot",
+    ],
+  },
+  {
     version: "1.1",
     date: "2026-07-30",
     changes: [
