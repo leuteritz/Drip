@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.11",
+    date: "2026-07-31",
+    changes: [
+      "The weekly report now has its own badge in the top bar — reachable from anywhere, and it opens straight into the editor",
+      "The badge fills up across the week, so you can see the next report coming without reading the time",
+    ],
+  },
+  {
     version: "1.10",
     date: "2026-07-31",
     changes: [

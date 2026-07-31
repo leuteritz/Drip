@@ -25,6 +25,7 @@ import {
   ScoreReadout,
   WellReadout,
 } from "./header/Readouts";
+import ReportBadge from "./header/ReportBadge";
 import Reservoir from "./header/Reservoir";
 import TankBackdrop from "./header/TankBackdrop";
 import VersionBadge from "./header/VersionBadge";
@@ -116,6 +117,9 @@ export default function SiteHeader({
                 settings={settings}
                 onSetDryRun={onSetDryRun}
               />
+            )}
+            {digest && (
+              <ReportBadge digest={digest} onOpen={() => setDigestOpen(true)} />
             )}
             {status?.paused && status.paused_until && (
               <HeaderPill>

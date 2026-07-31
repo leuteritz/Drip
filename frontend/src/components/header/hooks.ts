@@ -7,6 +7,11 @@ export type Section = "overview" | "research" | "history";
 
 type IconComponent = FunctionComponent<SVGProps<SVGSVGElement>>;
 
+/** Drip is weekly, so a week is the full run of both countdowns in the header:
+ *  the pipe filling toward the next buy and the report badge filling toward the
+ *  next send. Shared so the two fill on the same scale. */
+export const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
 /** The scroll sections, in page order — drives both the jump-nav and the spy. */
 export const NAV: { id: Section; label: string; Icon: IconComponent }[] = [
   { id: "overview", label: "Overview", Icon: ChartLineUpIcon },

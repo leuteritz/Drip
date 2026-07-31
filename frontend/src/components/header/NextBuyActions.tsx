@@ -7,16 +7,13 @@ import SlidersIcon from "~icons/ph/sliders-horizontal";
 import type { BotSettings, BotStatus, Indicators } from "../../api/client";
 import { fmtEur, formatDayMonth, formatWeekdayTime, WEEKDAYS } from "../../lib/format";
 import { ScoreDrops } from "../drops";
-import { useNow } from "./hooks";
+import { useNow, WEEK_MS } from "./hooks";
 
 const ACTION =
   "flex h-12 items-center justify-center gap-2 rounded-2xl px-6 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60";
 const ICON_ACTION =
   "flex h-12 w-12 flex-none items-center justify-center rounded-2xl bg-teal/12 text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
 const CAPTION = "text-[10px] font-bold uppercase tracking-[0.16em] text-teal/60";
-
-/** The drip is weekly, so the pipe fills over one week between buys. */
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** "Good buy signal" -> "Good buy": the caption already says Signal. */
 const shortSignal = (signal: string) => signal.replace(/ signal$/i, "");
