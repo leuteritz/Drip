@@ -1,4 +1,5 @@
 import { useEffect, type MouseEvent, type ReactNode } from "react";
+import InfoIcon from "~icons/ph/info";
 
 export function Card({
   children,
@@ -46,6 +47,88 @@ export function SectionHeading({
       {subtitle && <span className="text-sm text-ink-soft">{subtitle}</span>}
       {actions && <div className="ml-auto flex flex-wrap gap-2">{actions}</div>}
     </div>
+  );
+}
+
+/** Card header: title on the left, controls pushed right. */
+export function CardHeader({
+  title,
+  children,
+}: {
+  title: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-ink-soft">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+/** The range switcher a card carries in its own header. */
+export function RangePills<T extends number>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { label: string; value: T }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex gap-1">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          onClick={() => onChange(option.value)}
+          className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+            value === option.value
+              ? "bg-ink text-cream"
+              : "bg-sand-soft text-ink-soft hover:text-ink"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** One headline figure. Every KPI on the page is one of these, so a number in
+ *  the overview and the same number in research can never look like two
+ *  different kinds of thing. */
+export function Stat({
+  label,
+  tone = "plain",
+  hint,
+  children,
+}: {
+  label: string;
+  tone?: Tone;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <dl className="min-w-[130px] flex-1 rounded-xl bg-sand-soft/60 px-4 py-2.5">
+      <dt className="text-xs font-medium text-ink-soft">{label}</dt>
+      <dd className={`font-display text-xl font-semibold ${toneText(tone)}`}>
+        {children}
+      </dd>
+      {hint && <dd className="mt-0.5 text-xs text-ink-soft">{hint}</dd>}
+    </dl>
+  );
+}
+
+/** The explanatory footnote under a card. */
+export function Note({ children }: { children: ReactNode }) {
+  return (
+    <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-ink-soft">
+      <InfoIcon className="mt-0.5 shrink-0" aria-hidden="true" />
+      <span>{children}</span>
+    </p>
   );
 }
 

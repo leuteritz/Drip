@@ -9,12 +9,14 @@ import type {
   Candle,
   ComparisonPoint,
   ForwardReturns,
+  Holdings,
   ImportResult,
   Indicators,
   Performance,
   Purchase,
   RollingWindows,
   RunResult,
+  ScorePoint,
   SimulationResult,
   StrategyGrid,
 } from "./types";
@@ -91,6 +93,10 @@ export const api = {
     request<RollingWindows>(`/api/research/rolling?window_days=${windowDays}`),
   getStrategyGrid: (days: number) =>
     request<StrategyGrid>(`/api/research/grid?days=${days}`),
+  getScoreHistory: (days: number) =>
+    request<ScorePoint[]>(`/api/research/score-history?days=${days}`),
+  getHoldings: (includeDryRun: boolean) =>
+    request<Holdings>(`/api/stats/holdings?include_dry_run=${includeDryRun}`),
   deletePurchase: (id: number) =>
     request<{ deleted: number }>(`/api/purchases/${id}`, { method: "DELETE" }),
   clearTestRuns: () =>

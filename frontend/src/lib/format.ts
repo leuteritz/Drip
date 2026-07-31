@@ -15,6 +15,13 @@ export const fmtEurSigned = (v: number, digits = 2) =>
 
 export const fmtBtc = (v: number) => `${v.toFixed(8)} BTC`;
 
+/** "1,806 sats" — the unit that stays readable while a BTC amount is all zeroes. */
+export const fmtSats = (v: number, digits = 0) =>
+  `${new Intl.NumberFormat("en-IE", {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits,
+  }).format(v)} sats`;
+
 export const fmtPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 
 /** "+2.72 pp" — the gap between two percentages, never a percentage itself.

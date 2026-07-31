@@ -216,6 +216,54 @@ export interface StrategyGrid {
   cells: GridCell[];
 }
 
+export interface ScorePoint {
+  date: string;
+  close: number;
+  score: number;
+  multiplier: number;
+}
+
+export interface CostBasis {
+  purchase_count: number;
+  btc_total: number;
+  invested_eur: number;
+  avg_price_eur: number;
+  /** The market's own time-weighted average price over the same days. */
+  market_twap_eur: number;
+  /** Positive means the average euro went in below that market average. */
+  advantage_pct: number;
+  best_price_eur: number;
+  worst_price_eur: number;
+  first_buy: string | null;
+  days: number;
+}
+
+export interface HoldingBucket {
+  lots: number;
+  btc: number;
+  cost_eur: number;
+  value_eur: number;
+  gain_eur: number;
+}
+
+export interface RipeningMonth extends HoldingBucket {
+  month: string;
+}
+
+export interface Holdings {
+  as_of: string;
+  current_price: number;
+  include_dry_run: boolean;
+  cost_basis: CostBasis;
+  free: HoldingBucket;
+  locked: HoldingBucket;
+  next_free_date: string | null;
+  next_free_in_days: number;
+  timeline: RipeningMonth[];
+  /** Failed buys, which every other figure on the dashboard leaves out. */
+  excluded: { count: number; btc: number; eur: number };
+}
+
 export interface ImportResult {
   imported: number;
   skipped: number;

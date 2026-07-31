@@ -21,8 +21,7 @@ import {
 } from "../../lib/chart";
 import { formatDayMonth, fmtPct, fmtPp, WEEKDAYS } from "../../lib/format";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card } from "../ui";
-import { CardHeader, Note, RangePills, Stat } from "./parts";
+import { Card, CardHeader, Note, RangePills, Stat } from "../ui";
 
 /**
  * One backtest is one path and proves nothing. This runs the same backtest from

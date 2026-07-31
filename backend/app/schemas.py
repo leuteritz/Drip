@@ -207,6 +207,59 @@ class GridResponse(BaseModel):
     cells: list[GridCell]
 
 
+class ScorePoint(BaseModel):
+    date: str
+    close: float
+    score: int
+    multiplier: float
+
+
+class CostBasis(BaseModel):
+    purchase_count: int
+    btc_total: float
+    invested_eur: float
+    avg_price_eur: float
+    market_twap_eur: float
+    advantage_pct: float
+    best_price_eur: float
+    worst_price_eur: float
+    first_buy: Optional[str]
+    days: int
+
+
+class HoldingBucket(BaseModel):
+    lots: int
+    btc: float
+    cost_eur: float
+    value_eur: float
+    gain_eur: float
+
+
+class RipeningMonth(HoldingBucket):
+    month: str
+
+
+class ExcludedBuys(BaseModel):
+    """Failed buys, which every other figure leaves out."""
+
+    count: int
+    btc: float
+    eur: float
+
+
+class HoldingsResponse(BaseModel):
+    as_of: str
+    current_price: float
+    include_dry_run: bool
+    cost_basis: CostBasis
+    free: HoldingBucket
+    locked: HoldingBucket
+    next_free_date: Optional[str]
+    next_free_in_days: int
+    timeline: list[RipeningMonth]
+    excluded: ExcludedBuys
+
+
 class PurchaseResponse(BaseModel):
     id: int
     timestamp: datetime

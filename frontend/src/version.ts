@@ -17,6 +17,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.6",
+    date: "2026-07-31",
+    changes: [
+      "Overview now shows your cost basis: your average entry against what buying evenly would have paid",
+      "Sats per euro for every buy, so a small stack still has a number that moves",
+      "Holding periods: which lots have passed the one-year mark and when the next one does",
+      "Buys recorded as failed orders are now named and counted, instead of only being left out",
+      "Research: the daily score plotted against the price it was read from",
+    ],
+  },
+  {
     version: "1.5",
     date: "2026-07-31",
     changes: [

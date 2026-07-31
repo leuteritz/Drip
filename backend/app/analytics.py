@@ -15,7 +15,14 @@ from .models import Purchase
 from .portfolio import InvestmentEvent, build_series, side_summary
 
 
-def _relevant_purchases(session: Session, include_dry_run: bool) -> list[Purchase]:
+def relevant_purchases(session: Session, include_dry_run: bool) -> list[Purchase]:
+    """Every buy that counts towards a number the dashboard shows.
+
+    Public because `holdings.py` must select exactly the same rows — a stack
+    that disagreed with the P&L above it would be worse than no stack view at
+    all. Failed buys are excluded here and surfaced separately over there, so
+    they are visibly left out rather than silently dropped.
+    """
     stmt = select(Purchase).where(Purchase.order_id != ORDER_ID_ERROR).order_by(Purchase.timestamp)
     purchases = list(session.exec(stmt).all())
     if not include_dry_run:
@@ -43,7 +50,7 @@ def _as_events(purchases: list[Purchase]) -> list[InvestmentEvent]:
 
 
 def performance_summary(session: Session, include_dry_run: bool = True) -> dict:
-    purchases = _relevant_purchases(session, include_dry_run)
+    purchases = relevant_purchases(session, include_dry_run)
     current_price = get_current_price()
     events = _as_events(purchases)
 
@@ -69,7 +76,7 @@ def performance_summary(session: Session, include_dry_run: bool = True) -> dict:
 
 def comparison_series(session: Session, include_dry_run: bool = True) -> list[dict]:
     """Daily time series: bot vs. plain DCA portfolio value since the first buy."""
-    purchases = _relevant_purchases(session, include_dry_run)
+    purchases = relevant_purchases(session, include_dry_run)
     if not purchases:
         return []
 

@@ -396,6 +396,25 @@ def rolling_windows(session: Session, window_days: int, settings: BotSettings) -
     }
 
 
+def score_history(session: Session, days: int) -> list[dict]:
+    """The score the bot would have read on every day, with that day's close.
+
+    The dashboard only ever shows the score on the days it happened to buy;
+    this is the same reading taken daily, so the multiplier can be seen moving
+    with the market instead of as 52 disconnected dots.
+    """
+    table = score_table(session)
+    return [
+        {
+            "date": row.day.isoformat(),
+            "close": row.close,
+            "score": row.score,
+            "multiplier": strategy.determine_purchase_strategy(row.score)["multiplier"],
+        }
+        for row in _window_rows(table, days)
+    ]
+
+
 def grid(session: Session, days: int, settings: BotSettings) -> dict:
     """Every buy weekday against every multiplier spread - the heatmap.
 

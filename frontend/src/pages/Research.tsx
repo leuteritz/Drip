@@ -5,20 +5,22 @@ import {
   type Attribution,
   type ForwardReturns,
   type RollingWindows,
+  type ScorePoint,
   type StrategyGrid,
 } from "../api/client";
 import AttributionWaterfall from "../components/research/AttributionWaterfall";
 import EdgeDistribution from "../components/research/EdgeDistribution";
 import ForwardReturnsTable from "../components/research/ForwardReturnsTable";
 import { useNearViewport } from "../components/research/hooks";
+import ScoreHistory from "../components/research/ScoreHistory";
 import WeekdayGrid from "../components/research/WeekdayGrid";
 import { Card, SectionHeading } from "../components/ui";
 
 /**
- * The Research body: four read-only analyses that audit the strategy instead of
+ * The Research body: read-only analyses that audit the strategy instead of
  * reporting it. Nothing here can place an order or write a row.
  *
- * All four hit `/api/research/*`, which share one cached scoring table spanning
+ * They all hit `/api/research/*`, which share one cached scoring table spanning
  * three years of candles — so the whole section defers until it is nearly in
  * view (`useNearViewport`) rather than making the dashboard wait on a cold
  * candle fetch it may never need.
@@ -39,12 +41,14 @@ export default function Research({
   const [attributionDays, setAttributionDays] = useState(365);
   const [forwardDays, setForwardDays] = useState(1095);
   const [gridDays, setGridDays] = useState(365);
+  const [scoreDays, setScoreDays] = useState(365);
   const [windowDays, setWindowDays] = useState(365);
 
   const [attribution, setAttribution] = useState<Attribution | null>(null);
   const [forward, setForward] = useState<ForwardReturns | null>(null);
   const [rolling, setRolling] = useState<RollingWindows | null>(null);
   const [grid, setGrid] = useState<StrategyGrid | null>(null);
+  const [scores, setScores] = useState<ScorePoint[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fail = (e: unknown) =>
@@ -70,6 +74,11 @@ export default function Research({
     api.getStrategyGrid(gridDays).then(setGrid).catch(fail);
   }, [wanted, gridDays]);
 
+  useEffect(() => {
+    if (!wanted) return;
+    api.getScoreHistory(scoreDays).then(setScores).catch(fail);
+  }, [wanted, scoreDays]);
+
   return (
     <section
       ref={sectionRef}
@@ -79,7 +88,7 @@ export default function Research({
       <SectionHeading
         icon={<FlaskIcon />}
         title="Research"
-        subtitle="Four ways of asking whether the score is worth its multiplier"
+        subtitle="Five ways of asking whether the score is worth its multiplier"
       />
 
       {error && (
@@ -102,6 +111,7 @@ export default function Research({
         windowDays={windowDays}
         onWindowDays={setWindowDays}
       />
+      <ScoreHistory data={scores} days={scoreDays} onDays={setScoreDays} />
       <ForwardReturnsTable
         data={forward}
         days={forwardDays}

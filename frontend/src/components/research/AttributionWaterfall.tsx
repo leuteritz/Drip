@@ -1,7 +1,6 @@
 import type { Attribution } from "../../api/client";
 import { fmtEur, fmtEurSigned, fmtPp, WEEKDAYS } from "../../lib/format";
-import { Card, toneText } from "../ui";
-import { CardHeader, Note, RangePills, Stat } from "./parts";
+import { Card, CardHeader, Note, RangePills, Stat, toneText } from "../ui";
 
 /**
  * Where the edge over plain DCA comes from, as a waterfall.

@@ -14,6 +14,7 @@ from ..schemas import (
     ForwardReturnsResponse,
     GridResponse,
     RollingWindowsResponse,
+    ScorePoint,
 )
 
 router = APIRouter(prefix="/api/research", tags=["research"])
@@ -43,6 +44,12 @@ def rolling(
     return research.rolling_windows(
         session, window_days=window_days, settings=load_settings(session)
     )
+
+
+@router.get("/score-history", response_model=list[ScorePoint])
+def score_history(days: int = DaysQuery, session: Session = Depends(get_session)):
+    """The daily score behind the multiplier, with each day's close."""
+    return research.score_history(session, days=days)
 
 
 @router.get("/grid", response_model=GridResponse)

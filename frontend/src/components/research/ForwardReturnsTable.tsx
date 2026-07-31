@@ -1,6 +1,5 @@
 import type { ForwardReturns, ForwardStats } from "../../api/client";
-import { Card, toneText } from "../ui";
-import { CardHeader, Note, RangePills } from "./parts";
+import { Card, CardHeader, Note, RangePills, toneText } from "../ui";
 
 /**
  * Does a high score actually mark a cheap entry?

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import InfoIcon from "~icons/ph/info";
 import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
@@ -6,25 +6,43 @@ import {
   api,
   type Candle,
   type ComparisonPoint,
+  type Holdings,
   type Purchase,
 } from "../api/client";
 import { fmtEur, fmtPct } from "../lib/format";
 import ComparisonChart from "../components/ComparisonChart";
 import PriceChart from "../components/PriceChart";
-import { Card, CardTitle, Spinner, Toggle, toneText, type Tone } from "../components/ui";
+import CostBasisCard from "../components/stack/CostBasisCard";
+import HoldingPeriods from "../components/stack/HoldingPeriods";
+import {
+  Card,
+  CardTitle,
+  RangePills,
+  Spinner,
+  Stat,
+  Toggle,
+} from "../components/ui";
 
 const RANGES = [
-  { label: "30d", days: 30 },
-  { label: "90d", days: 90 },
-  { label: "1y", days: 365 },
+  { label: "30d", value: 30 },
+  { label: "90d", value: 90 },
+  { label: "1y", value: 365 },
 ];
 
 /**
- * The Overview body: one combined chart — the strategy comparison with the BTC
- * price as a backdrop and buys pinned onto the price line. The reservoir
- * headline and its stats live in the hero header (SiteHeader); the "include
- * dry runs" filter is lifted to App (it drives both the header stats and the
- * strategy series), and is surfaced here next to the chart it affects.
+ * The Overview body: what you have.
+ *
+ * One combined chart — the strategy comparison with the BTC price as a backdrop
+ * and buys pinned onto the price line — then the two cards that describe the
+ * stack itself rather than the strategy behind it: how well it was bought
+ * (`CostBasisCard`) and how old it is (`HoldingPeriods`). Whether the strategy
+ * is any good is a different question, and lives in the Research section.
+ *
+ * The reservoir headline and its stats live in the hero header (SiteHeader);
+ * the "include dry runs" filter is lifted to App (it drives both the header
+ * stats and the strategy series), and is surfaced here next to the chart it
+ * affects. It reaches the cost basis too — but never the holding periods, which
+ * count real buys only.
  */
 export default function Overview({
   purchases,
@@ -39,6 +57,7 @@ export default function Overview({
   const [candlesLoaded, setCandlesLoaded] = useState(false);
   const [comparison, setComparison] = useState<ComparisonPoint[]>([]);
   const [compLoaded, setCompLoaded] = useState(false);
+  const [holdings, setHoldings] = useState<Holdings | null>(null);
   const [rangeDays, setRangeDays] = useState(90);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +87,7 @@ export default function Overview({
   // Refreshed whenever the buy history changes (e.g. after a header test buy).
   useEffect(() => {
     loadComparison(includeDryRun);
+    api.getHoldings(includeDryRun).then(setHoldings).catch((e) => setError(String(e)));
   }, [includeDryRun, purchases, loadComparison]);
 
   const strategySeries = comparison.slice(-rangeDays);
@@ -103,21 +123,7 @@ export default function Overview({
                 Include dry runs
                 <Toggle checked={includeDryRun} onChange={onToggleDryRun} />
               </label>
-              <div className="flex gap-1">
-                {RANGES.map((r) => (
-                  <button
-                    key={r.days}
-                    onClick={() => setRangeDays(r.days)}
-                    className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-                      rangeDays === r.days
-                        ? "bg-ink text-cream"
-                        : "bg-sand-soft text-ink-soft hover:text-ink"
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
+              <RangePills options={RANGES} value={rangeDays} onChange={setRangeDays} />
             </div>
           </div>
           {hasStrategy && latest && <StrategyKpis latest={latest} />}
@@ -163,6 +169,16 @@ export default function Overview({
             )
           )}
         </Card>
+
+        {/* The stack itself, rather than the strategy behind it. */}
+        <div className="grid gap-4 xl:grid-cols-2">
+          <CostBasisCard
+            holdings={holdings}
+            purchases={purchases}
+            includeDryRun={includeDryRun}
+          />
+          <HoldingPeriods data={holdings} />
+        </div>
       </div>
     </section>
   );
@@ -180,43 +196,22 @@ function StrategyKpis({ latest }: { latest: ComparisonPoint }) {
   const ahead = edge >= 0;
   return (
     <div className="mb-3 flex flex-wrap gap-2">
-      <Kpi label="Drip P&L" tone={up ? "up" : "down"}>
+      <Stat label="Drip P&L" tone={up ? "up" : "down"}>
         <span className="inline-flex items-center gap-1.5">
           {up ? <TrendUpIcon aria-hidden="true" /> : <TrendDownIcon aria-hidden="true" />}
           {up ? "+" : ""}
           {fmtEur(botProfit)}
           <span className="text-sm font-normal opacity-80">({fmtPct(botPct)})</span>
         </span>
-      </Kpi>
-      <Kpi label="vs. plain DCA" tone={ahead ? "up" : "down"}>
+      </Stat>
+      <Stat label="vs. plain DCA" tone={ahead ? "up" : "down"}>
         {ahead ? "+" : ""}
         {fmtEur(edge)}
         <span className="ml-1.5 text-sm font-normal opacity-80">
           {ahead ? "ahead" : "behind"}
         </span>
-      </Kpi>
-      <Kpi label="Invested" tone="plain">
-        {fmtEur(latest.bot_invested)}
-      </Kpi>
+      </Stat>
+      <Stat label="Invested">{fmtEur(latest.bot_invested)}</Stat>
     </div>
-  );
-}
-
-function Kpi({
-  label,
-  tone,
-  children,
-}: {
-  label: string;
-  tone: Tone;
-  children: ReactNode;
-}) {
-  return (
-    <dl className="min-w-[130px] flex-1 rounded-xl bg-sand-soft/60 px-4 py-2.5">
-      <dt className="text-xs font-medium text-ink-soft">{label}</dt>
-      <dd className={`font-display text-xl font-semibold ${toneText(tone)}`}>
-        {children}
-      </dd>
-    </dl>
   );
 }
