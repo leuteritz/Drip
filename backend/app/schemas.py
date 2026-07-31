@@ -113,6 +113,100 @@ class SimulationResponse(BaseModel):
     series: list[ComparisonPoint]
 
 
+class AttributionShare(BaseModel):
+    """One indicator's Shapley share of the edge over plain DCA."""
+
+    key: str
+    label: str
+    eur: float
+    pp: float
+
+
+class AttributionResponse(BaseModel):
+    days: int
+    start_date: str
+    end_date: str
+    purchase_count: int
+    base_amount_eur: float
+    weekday: int
+    current_price: float
+    baseline_eur: float
+    baseline_pp: float
+    total_eur: float
+    total_pp: float
+    contributions: list[AttributionShare]
+    bot: PerformanceSide
+    dca: PerformanceSide
+
+
+class ForwardStats(BaseModel):
+    n: int
+    mean_pct: float
+    median_pct: float
+    win_rate: float
+
+
+class ForwardBucket(BaseModel):
+    multiplier: float
+    signal: str
+    score_min: int
+    score_max: int
+    by_horizon: dict[str, ForwardStats]
+
+
+class ForwardReturnsResponse(BaseModel):
+    days: int
+    horizons: list[int]
+    sample_size: int
+    baseline: dict[str, ForwardStats]
+    buckets: list[ForwardBucket]
+
+
+class RollingWindow(BaseModel):
+    start: str
+    end: str
+    edge_pp: float
+    edge_eur: float
+    bot_pct: float
+    dca_pct: float
+
+
+class RollingWindowsResponse(BaseModel):
+    window_days: int
+    weekday: int
+    count: int
+    wins: int
+    win_rate: float
+    median_pp: float
+    p10_pp: float
+    p90_pp: float
+    best_pp: float
+    worst_pp: float
+    windows: list[RollingWindow]
+
+
+class GridSpread(BaseModel):
+    value: float
+    min_multiplier: float
+    max_multiplier: float
+
+
+class GridCell(BaseModel):
+    weekday: int
+    spread: float
+    edge_pp: float
+    edge_eur: float
+    purchase_count: int
+
+
+class GridResponse(BaseModel):
+    days: int
+    current_weekday: int
+    current_spread: float
+    spreads: list[GridSpread]
+    cells: list[GridCell]
+
+
 class PurchaseResponse(BaseModel):
     id: int
     timestamp: datetime

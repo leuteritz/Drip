@@ -17,6 +17,12 @@ export const fmtBtc = (v: number) => `${v.toFixed(8)} BTC`;
 
 export const fmtPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 
+/** "+2.72 pp" — the gap between two percentages, never a percentage itself.
+ *  The research view compares returns, so its numbers are differences and must
+ *  not be read as "2.72% of something". */
+export const fmtPp = (v: number, digits = 2) =>
+  `${v >= 0 ? "+" : ""}${v.toFixed(digits)} pp`;
+
 export const WEEKDAYS = [
   "Monday",
   "Tuesday",

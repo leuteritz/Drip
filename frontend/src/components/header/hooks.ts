@@ -1,14 +1,16 @@
 import { useEffect, useState, type FunctionComponent, type RefObject, type SVGProps } from "react";
 import ChartLineUpIcon from "~icons/ph/chart-line-up";
+import FlaskIcon from "~icons/ph/flask";
 import ListDashesIcon from "~icons/ph/list-dashes";
 
-export type Section = "overview" | "history";
+export type Section = "overview" | "research" | "history";
 
 type IconComponent = FunctionComponent<SVGProps<SVGSVGElement>>;
 
 /** The scroll sections, in page order — drives both the jump-nav and the spy. */
 export const NAV: { id: Section; label: string; Icon: IconComponent }[] = [
   { id: "overview", label: "Overview", Icon: ChartLineUpIcon },
+  { id: "research", label: "Research", Icon: FlaskIcon },
   { id: "history", label: "History", Icon: ListDashesIcon },
 ];
 

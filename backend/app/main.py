@@ -14,7 +14,16 @@ from sqlmodel import Session
 from . import scheduler
 from .config import STATIC_DIR
 from .database import engine, init_db, load_settings
-from .routers import account, bot, market, purchases, settings, simulate, stats
+from .routers import (
+    account,
+    bot,
+    market,
+    purchases,
+    research,
+    settings,
+    simulate,
+    stats,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,6 +49,7 @@ app.include_router(market.router)
 app.include_router(bot.router)
 app.include_router(stats.router)
 app.include_router(simulate.router)
+app.include_router(research.router)
 
 
 if (STATIC_DIR / "index.html").exists():

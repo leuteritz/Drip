@@ -121,6 +121,101 @@ export interface SimulationResult {
   series: ComparisonPoint[];
 }
 
+/** One indicator's Shapley share of the edge over plain DCA. */
+export interface AttributionShare {
+  key: string;
+  label: string;
+  eur: number;
+  pp: number;
+}
+
+export interface Attribution {
+  days: number;
+  start_date: string;
+  end_date: string;
+  purchase_count: number;
+  base_amount_eur: number;
+  weekday: number;
+  current_price: number;
+  baseline_eur: number;
+  baseline_pp: number;
+  total_eur: number;
+  total_pp: number;
+  contributions: AttributionShare[];
+  bot: PerformanceSide;
+  dca: PerformanceSide;
+}
+
+export interface ForwardStats {
+  n: number;
+  mean_pct: number;
+  median_pct: number;
+  win_rate: number;
+}
+
+export interface ForwardBucket {
+  multiplier: number;
+  signal: string;
+  score_min: number;
+  score_max: number;
+  /** Keyed by horizon in days, as a string — JSON has no integer keys. */
+  by_horizon: Record<string, ForwardStats>;
+}
+
+export interface ForwardReturns {
+  days: number;
+  horizons: number[];
+  sample_size: number;
+  baseline: Record<string, ForwardStats>;
+  buckets: ForwardBucket[];
+}
+
+export interface RollingWindow {
+  start: string;
+  end: string;
+  edge_pp: number;
+  edge_eur: number;
+  bot_pct: number;
+  dca_pct: number;
+}
+
+export interface RollingWindows {
+  window_days: number;
+  weekday: number;
+  count: number;
+  wins: number;
+  win_rate: number;
+  median_pp: number;
+  p10_pp: number;
+  p90_pp: number;
+  best_pp: number;
+  worst_pp: number;
+  windows: RollingWindow[];
+}
+
+export interface GridSpread {
+  /** Exponent applied to every multiplier; 1 is what the bot does today. */
+  value: number;
+  min_multiplier: number;
+  max_multiplier: number;
+}
+
+export interface GridCell {
+  weekday: number;
+  spread: number;
+  edge_pp: number;
+  edge_eur: number;
+  purchase_count: number;
+}
+
+export interface StrategyGrid {
+  days: number;
+  current_weekday: number;
+  current_spread: number;
+  spreads: GridSpread[];
+  cells: GridCell[];
+}
+
 export interface ImportResult {
   imported: number;
   skipped: number;

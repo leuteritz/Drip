@@ -3,16 +3,20 @@
 
 import type {
   AccountBalance,
+  Attribution,
   BotSettings,
   BotStatus,
   Candle,
   ComparisonPoint,
+  ForwardReturns,
   ImportResult,
   Indicators,
   Performance,
   Purchase,
+  RollingWindows,
   RunResult,
   SimulationResult,
+  StrategyGrid,
 } from "./types";
 
 export type * from "./types";
@@ -77,6 +81,16 @@ export const api = {
     request<ComparisonPoint[]>(`/api/stats/comparison?include_dry_run=${includeDryRun}`),
   getSimulation: (days: number) =>
     request<SimulationResult>(`/api/simulate?days=${days}`),
+  // Research is read-only and shares one cached scoring table on the backend,
+  // so the first of these calls after a cold start is the slow one.
+  getAttribution: (days: number) =>
+    request<Attribution>(`/api/research/attribution?days=${days}`),
+  getForwardReturns: (days: number) =>
+    request<ForwardReturns>(`/api/research/forward-returns?days=${days}`),
+  getRollingWindows: (windowDays: number) =>
+    request<RollingWindows>(`/api/research/rolling?window_days=${windowDays}`),
+  getStrategyGrid: (days: number) =>
+    request<StrategyGrid>(`/api/research/grid?days=${days}`),
   deletePurchase: (id: number) =>
     request<{ deleted: number }>(`/api/purchases/${id}`, { method: "DELETE" }),
   clearTestRuns: () =>

@@ -15,6 +15,7 @@ import SiteHeader from "./components/SiteHeader";
 import SimulationModal from "./components/SimulationModal";
 import Overview from "./pages/Dashboard";
 import HistorySection from "./pages/History";
+import Research from "./pages/Research";
 
 export default function App() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -189,6 +190,7 @@ export default function App() {
             includeDryRun={includeDryRun}
             onToggleDryRun={onToggleDryRun}
           />
+          <Research scrollRef={scrollRef} />
           <HistorySection purchases={purchases} onChanged={reloadPurchases} />
         </main>
       </div>

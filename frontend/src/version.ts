@@ -17,6 +17,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.5",
+    date: "2026-07-31",
+    changes: [
+      "New Research section — four ways of checking whether the score is worth its multiplier",
+      "Where the edge comes from: splits the gap to plain DCA between Fear & Greed, RSI and the 350d MA",
+      "How often it worked: the same backtest from every start date, so one lucky window can't flatter it",
+      "Does the score see anything: what the price did 30, 90 and 180 days after each score",
+      "Weekday against spread: a heatmap of what would have worked — read the warning before you tune anything",
+    ],
+  },
+  {
     version: "1.4",
     date: "2026-07-31",
     changes: [
