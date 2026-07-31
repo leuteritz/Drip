@@ -6,11 +6,14 @@ import type {
   AccountBalance,
   BotSettings,
   BotStatus,
+  DigestSettings,
+  DigestUpdate,
   Indicators,
   Performance,
   RunResult,
 } from "../api/client";
 import { fmtEur, formatDayMonth } from "../lib/format";
+import DigestDialog from "./digest/DigestDialog";
 import FaucetControls from "./header/FaucetControls";
 import { NAV, useScrolled, useScrollSpy, type Section } from "./header/hooks";
 import ModeToggle from "./header/ModeToggle";
@@ -38,6 +41,7 @@ import ManualBuyDialog from "./ManualBuyDialog";
 export default function SiteHeader({
   status,
   settings,
+  digest,
   indicators,
   performance,
   balance,
@@ -50,6 +54,7 @@ export default function SiteHeader({
   onPause,
   onResume,
   onTestWebhook,
+  onSaveDigest,
   onSendDigest,
   running,
   buying,
@@ -57,6 +62,7 @@ export default function SiteHeader({
 }: {
   status: BotStatus | null;
   settings: BotSettings | null;
+  digest: DigestSettings | null;
   indicators: Indicators | null;
   performance: Performance | null;
   balance: AccountBalance | null;
@@ -69,6 +75,7 @@ export default function SiteHeader({
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
+  onSaveDigest: (update: DigestUpdate) => Promise<void>;
   onSendDigest: () => Promise<boolean>;
   running: boolean;
   buying: boolean;
@@ -78,6 +85,7 @@ export default function SiteHeader({
   const scrolled = useScrolled(scrollRef);
   const [panelOpen, setPanelOpen] = useState(false);
   const [buyOpen, setBuyOpen] = useState(false);
+  const [digestOpen, setDigestOpen] = useState(false);
 
   const jumpTo = (id: Section) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -187,13 +195,14 @@ export default function SiteHeader({
           <FaucetControls
             open={panelOpen}
             settings={settings}
+            digest={digest}
             indicators={indicators}
             onClose={() => setPanelOpen(false)}
             onSave={onSaveSettings}
             onPause={onPause}
             onResume={onResume}
             onTestWebhook={onTestWebhook}
-                onSendDigest={onSendDigest}
+            onOpenDigest={() => setDigestOpen(true)}
           />
 
           {runResult?.analysis && (
@@ -209,6 +218,15 @@ export default function SiteHeader({
           )}
         </div>
       </section>
+
+      {digestOpen && digest && (
+        <DigestDialog
+          digest={digest}
+          onSave={onSaveDigest}
+          onSend={onSendDigest}
+          onClose={() => setDigestOpen(false)}
+        />
+      )}
 
       {buyOpen && settings && status && (
         <ManualBuyDialog

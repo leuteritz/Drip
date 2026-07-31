@@ -6,6 +6,8 @@ import {
   type AccountBalance,
   type BotSettings,
   type BotStatus,
+  type DigestSettings,
+  type DigestUpdate,
   type Indicators,
   type Performance,
   type Purchase,
@@ -21,6 +23,7 @@ export default function App() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [settings, setSettings] = useState<BotSettings | null>(null);
   const [status, setStatus] = useState<BotStatus | null>(null);
+  const [digest, setDigest] = useState<DigestSettings | null>(null);
   const [indicators, setIndicators] = useState<Indicators | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [performance, setPerformance] = useState<Performance | null>(null);
@@ -106,6 +109,13 @@ export default function App() {
     return sent;
   }, []);
 
+  // The weekly report's own settings: which blocks it carries and when it goes
+  // out. Kept here with the rest of the server state; the dialog fetches only
+  // its preview itself, which is the expensive part.
+  const saveDigest = useCallback(async (update: DigestUpdate) => {
+    setDigest(await api.updateDigest(update));
+  }, []);
+
   const sendDigest = useCallback(async () => {
     const { sent } = await api.sendDigest();
     return sent;
@@ -147,14 +157,16 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const [st, set, purch] = await Promise.all([
+      const [st, set, purch, dig] = await Promise.all([
         api.getStatus().catch(report),
         api.getSettings().catch(report),
         api.getPurchases().catch(report),
+        api.getDigest().catch(report),
       ]);
       if (st) setStatus(st);
       if (set) setSettings(set);
       if (purch) setPurchases(purch);
+      if (dig) setDigest(dig);
       loadPerformance(true);
       reloadBalance();
       // Indicators last: the first call may fetch 350 days of candles.
@@ -172,6 +184,7 @@ export default function App() {
         <SiteHeader
           status={status}
           settings={settings}
+          digest={digest}
           indicators={indicators}
           performance={performance}
           balance={balance}
@@ -185,6 +198,7 @@ export default function App() {
           onPause={pause}
           onResume={resume}
           onTestWebhook={testWebhook}
+          onSaveDigest={saveDigest}
           onSendDigest={sendDigest}
           running={running}
           runResult={runResult}

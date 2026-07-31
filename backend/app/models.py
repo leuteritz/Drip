@@ -1,4 +1,4 @@
-"""SQLModel tables: purchases, bot settings, candle cache."""
+"""SQLModel tables: purchases, bot settings, digest settings, candle cache."""
 from datetime import date, datetime
 from typing import Optional
 
@@ -29,6 +29,26 @@ class BotSettings(SQLModel, table=True):
     dry_run: bool = True
     paused_until: Optional[date] = None
     discord_enabled: bool = True
+
+
+class DigestSettings(SQLModel, table=True):
+    """When the weekly report goes out, and what it carries.
+
+    Its own table rather than more columns on BotSettings, because there are no
+    migrations: `create_all` will not add a column to an existing table, but it
+    does create a whole new one. That is the only reason this is configurable at
+    all — see CLAUDE.md.
+
+    `blocks` is a JSON object of {block key: bool}. A key that is missing falls
+    back to the block's own default in `digest.BLOCKS`, so a block added in a
+    later version arrives switched on instead of silently off.
+    """
+
+    id: int = Field(default=1, primary_key=True)
+    enabled: bool = True
+    weekday: int = 6  # 0 = Monday ... 6 = Sunday
+    send_time: str = "18:00"
+    blocks: str = "{}"
 
 
 class Candle(SQLModel, table=True):

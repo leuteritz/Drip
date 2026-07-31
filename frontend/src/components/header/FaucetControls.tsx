@@ -1,9 +1,10 @@
 import { useState } from "react";
+import CaretRightIcon from "~icons/ph/caret-right";
 import NewspaperIcon from "~icons/ph/newspaper";
 import PaperPlaneIcon from "~icons/ph/paper-plane-tilt";
 import PlayIcon from "~icons/ph/play-fill";
 import XIcon from "~icons/ph/x";
-import type { BotSettings, Indicators } from "../../api/client";
+import type { BotSettings, DigestSettings, Indicators } from "../../api/client";
 import { fmtEur, formatDateNumeric, WEEKDAYS } from "../../lib/format";
 
 const PAUSE_OPTIONS = [
@@ -45,28 +46,28 @@ const clampAmount = (v: number) =>
 export default function FaucetControls({
   open,
   settings,
+  digest,
   indicators,
   onClose,
   onSave,
   onPause,
   onResume,
   onTestWebhook,
-  onSendDigest,
+  onOpenDigest,
 }: {
   open: boolean;
   settings: BotSettings | null;
+  digest: DigestSettings | null;
   indicators: Indicators | null;
   onClose: () => void;
   onSave: (update: Partial<BotSettings>) => Promise<void>;
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
-  onSendDigest: () => Promise<boolean>;
+  onOpenDigest: () => void;
 }) {
   const [saved, setSaved] = useState(false);
-  // Which of the two Discord buttons last succeeded, so one confirmation slot
-  // serves both without either claiming the other's "Sent".
-  const [sent, setSent] = useState<"test" | "digest" | null>(null);
+  const [sent, setSent] = useState(false);
   const [testing, setTesting] = useState(false);
   // Draft for the typed amount; committed (clamped) on blur or Enter.
   const [amountDraft, setAmountDraft] = useState<string | null>(null);
@@ -77,14 +78,13 @@ export default function FaucetControls({
     window.setTimeout(() => setSaved(false), SAVED_FLASH_MS);
   };
 
-  const sendToDiscord = async (which: "test" | "digest") => {
+  const testWebhook = async () => {
     setTesting(true);
-    setSent(null);
+    setSent(false);
     try {
-      const ok = await (which === "test" ? onTestWebhook() : onSendDigest());
-      if (!ok) return;
-      setSent(which);
-      window.setTimeout(() => setSent(null), WEBHOOK_FLASH_MS);
+      if (!(await onTestWebhook())) return;
+      setSent(true);
+      window.setTimeout(() => setSent(false), WEBHOOK_FLASH_MS);
     } finally {
       setTesting(false);
     }
@@ -188,28 +188,38 @@ export default function FaucetControls({
                   type="button"
                   aria-label="Send test message"
                   title="Send test message"
-                  onClick={() => sendToDiscord("test")}
+                  onClick={testWebhook}
                   disabled={testing}
                   className="flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
                 >
                   <PaperPlaneIcon className="text-sm" />
                 </button>
-                <button
-                  type="button"
-                  aria-label="Send this week's digest now"
-                  title="Send this week's digest now"
-                  onClick={() => sendToDiscord("digest")}
-                  disabled={testing}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-cream transition hover:bg-cream/30 disabled:opacity-50"
-                >
-                  <NewspaperIcon className="text-sm" />
-                </button>
                 {sent && (
                   <span className="text-[11px] font-bold text-cream">
-                    {sent === "digest" ? "Digest sent" : "Sent"} &#10003;
+                    Sent &#10003;
                   </span>
                 )}
               </div>
+
+              {/* The weekly report gets its own row rather than a bare icon:
+                  its schedule is a second timetable next to the buy above, and
+                  reading it here is half the reason to open this drawer. */}
+              <button
+                type="button"
+                onClick={onOpenDigest}
+                className="flex w-full items-center gap-2 rounded-xl bg-cream/12 px-3 py-2 text-left text-xs font-bold text-cream transition hover:bg-cream/25"
+              >
+                <NewspaperIcon className="text-sm" />
+                <span>Weekly report</span>
+                <span className="ml-auto font-semibold text-cream/70">
+                  {digest
+                    ? digest.enabled
+                      ? `${WEEKDAYS[digest.weekday].slice(0, 3)} ${digest.send_time}`
+                      : "Off"
+                    : "…"}
+                </span>
+                <CaretRightIcon className="text-[11px] text-cream/60" />
+              </button>
             </div>
 
             {/* Schedule & Pause */}

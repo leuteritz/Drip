@@ -10,6 +10,9 @@ import type {
   CandidateSignals,
   ChartEvent,
   ComparisonPoint,
+  DigestPreview,
+  DigestSettings,
+  DigestUpdate,
   ForwardReturns,
   Holdings,
   ImportResult,
@@ -103,8 +106,18 @@ export const api = {
   getChartEvents: (days: number) =>
     request<ChartEvent[]>(`/api/research/events?days=${days}`),
   datasetUrl: (days: number) => `/api/research/dataset.csv?days=${days}`,
+  // The weekly report: its settings, a full render of it, and sending it now.
+  // The preview is the expensive one (it builds the whole report), so it is
+  // fetched only when the dialog opens.
+  getDigest: () => request<DigestSettings>("/api/digest"),
+  updateDigest: (update: DigestUpdate) =>
+    request<DigestSettings>("/api/digest", {
+      method: "PUT",
+      body: JSON.stringify(update),
+    }),
+  getDigestPreview: () => request<DigestPreview>("/api/digest/preview"),
   sendDigest: () =>
-    request<{ sent: boolean; reason?: string }>("/api/bot/test-digest", {
+    request<{ sent: boolean; reason?: string }>("/api/digest/send", {
       method: "POST",
     }),
   getScoreHistory: (days: number) =>

@@ -13,10 +13,11 @@ from sqlmodel import Session
 
 from . import scheduler
 from .config import STATIC_DIR
-from .database import engine, init_db, load_settings
+from .database import engine, init_db, load_digest_settings, load_settings
 from .routers import (
     account,
     bot,
+    digest,
     market,
     purchases,
     research,
@@ -35,7 +36,7 @@ logging.basicConfig(
 async def lifespan(app: FastAPI):
     init_db()
     with Session(engine) as session:
-        scheduler.start(load_settings(session))
+        scheduler.start(load_settings(session), load_digest_settings(session))
     yield
     scheduler.shutdown()
 
@@ -47,6 +48,7 @@ app.include_router(settings.router)
 app.include_router(purchases.router)
 app.include_router(market.router)
 app.include_router(bot.router)
+app.include_router(digest.router)
 app.include_router(stats.router)
 app.include_router(simulate.router)
 app.include_router(research.router)

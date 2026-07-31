@@ -17,6 +17,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.10",
+    date: "2026-07-31",
+    changes: [
+      "The weekly report is yours to shape: choose the day, the time and exactly which parts it carries",
+      "Twelve sections to pick from, four of them new — the week's price move, how well the week's buy was timed, your next sats milestone and your saving streak",
+      "A live preview shows the Discord message as you tick boxes, and sends it on demand",
+      "The report can be switched off without touching the buy schedule",
+    ],
+  },
+  {
     version: "1.9",
     date: "2026-07-31",
     changes: [

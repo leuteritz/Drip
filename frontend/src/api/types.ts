@@ -23,6 +23,52 @@ export interface BotStatus {
   discord_configured: boolean;
 }
 
+/** One switchable section of the weekly report. The catalogue — which blocks
+ *  exist, their order and their wording — comes from the backend, so the dialog
+ *  never has its own copy of it. */
+export interface DigestBlock {
+  key: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+}
+
+export interface DigestSettings {
+  enabled: boolean;
+  /** 0 = Monday … 6 = Sunday, same convention as the buy schedule. */
+  weekday: number;
+  send_time: string;
+  next_run: string | null;
+  discord_configured: boolean;
+  blocks: DigestBlock[];
+}
+
+/** A partial edit; `blocks` is merged into the stored selection server-side. */
+export interface DigestUpdate {
+  enabled?: boolean;
+  weekday?: number;
+  send_time?: string;
+  blocks?: Record<string, boolean>;
+}
+
+export interface DigestField {
+  /** The block this field belongs to — how the preview filters. */
+  key: string;
+  name: string;
+  value: string;
+  inline: boolean;
+}
+
+/** The rendered report, every block included. Built by the same backend code
+ *  that builds the real message, so the preview cannot drift from Discord. */
+export interface DigestPreview {
+  title: string;
+  description: string;
+  /** Discord embed colour as an integer, from the palette in strategy.py. */
+  color: number;
+  fields: DigestField[];
+}
+
 export interface Purchase {
   id: number;
   timestamp: string;

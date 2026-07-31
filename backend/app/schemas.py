@@ -21,6 +21,16 @@ class SettingsUpdate(BaseModel):
     discord_enabled: Optional[bool] = None
 
 
+class DigestUpdate(BaseModel):
+    """A partial edit of the weekly report. `blocks` is merged into the stored
+    selection, so the frontend can send a single toggle."""
+
+    enabled: Optional[bool] = None
+    weekday: Optional[int] = Field(default=None, ge=0, le=6)
+    send_time: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    blocks: Optional[dict[str, bool]] = None
+
+
 class PauseRequest(BaseModel):
     days: int = Field(gt=0, le=365)
 
@@ -367,3 +377,43 @@ class DeleteResponse(BaseModel):
 class TestNotificationResponse(BaseModel):
     sent: bool
     reason: Optional[str] = None
+
+
+class DigestBlock(BaseModel):
+    """One switchable section of the weekly report, as offered to the frontend.
+
+    The catalogue is served rather than hard-coded in the client, so the block
+    list, its order and its wording can only ever come from `digest.BLOCKS`.
+    """
+
+    key: str
+    label: str
+    description: str
+    enabled: bool
+
+
+class DigestSettingsResponse(BaseModel):
+    enabled: bool
+    weekday: int
+    send_time: str
+    next_run: Optional[str]
+    discord_configured: bool
+    blocks: list[DigestBlock]
+
+
+class DigestField(BaseModel):
+    """One field of the rendered embed, tagged with the block it came from."""
+
+    key: str
+    name: str
+    value: str
+    inline: bool
+
+
+class DigestPreviewResponse(BaseModel):
+    """The whole report, every block rendered. The client hides what is off."""
+
+    title: str
+    description: str
+    color: int
+    fields: list[DigestField]

@@ -2,7 +2,7 @@
 from sqlmodel import Session, SQLModel, create_engine
 
 from .config import DATA_DIR
-from .models import BotSettings
+from .models import BotSettings, DigestSettings
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 engine = create_engine(
@@ -29,6 +29,21 @@ def load_settings(session: Session) -> BotSettings:
     settings = session.get(BotSettings, 1)
     if settings is None:
         settings = BotSettings(id=1)
+        session.add(settings)
+        session.commit()
+        session.refresh(settings)
+    return settings
+
+
+def load_digest_settings(session: Session) -> DigestSettings:
+    """The digest's singleton row (id=1), created on first access.
+
+    Created here rather than in `init_db` as well, so an existing database that
+    only just gained the table gets its defaults the first time anything asks.
+    """
+    settings = session.get(DigestSettings, 1)
+    if settings is None:
+        settings = DigestSettings(id=1)
         session.add(settings)
         session.commit()
         session.refresh(settings)
