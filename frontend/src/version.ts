@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.18",
+    date: "2026-08-01",
+    changes: [
+      "A card that faces forwards: what Drip has actually been stacking per week, a year of that, and how far it leaves the next round number of sats",
+      "The milestone ladder now carries on past a whole coin, so a bigger stack still has something ahead of it — on the dashboard and in the weekly report alike",
+    ],
+  },
+  {
     version: "1.17",
     date: "2026-08-01",
     changes: [

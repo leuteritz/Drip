@@ -7,6 +7,7 @@ import {
   type Candle,
   type ComparisonPoint,
   type Holdings,
+  type Outlook,
   type Purchase,
 } from "../api/client";
 import { fmtEur, fmtPct } from "../lib/format";
@@ -14,6 +15,7 @@ import ComparisonChart from "../components/ComparisonChart";
 import PriceChart from "../components/PriceChart";
 import CostBasisCard from "../components/stack/CostBasisCard";
 import HoldingPeriods from "../components/stack/HoldingPeriods";
+import OutlookCard from "../components/stack/Outlook";
 import {
   Card,
   CardTitle,
@@ -38,6 +40,10 @@ const RANGES = [
  * (`CostBasisCard`) and how old it is (`HoldingPeriods`). Whether the strategy
  * is any good is a different question, and lives in the Research section.
  *
+ * `OutlookCard` closes the section because it is the only part that faces
+ * forwards: the page reads what happened, then what you hold, then where it is
+ * going if nothing changes.
+ *
  * The reservoir headline and its stats live in the hero header (SiteHeader);
  * the "include dry runs" filter is lifted to App (it drives both the header
  * stats and the strategy series), and is surfaced here next to the chart it
@@ -58,6 +64,7 @@ export default function Overview({
   const [comparison, setComparison] = useState<ComparisonPoint[]>([]);
   const [compLoaded, setCompLoaded] = useState(false);
   const [holdings, setHoldings] = useState<Holdings | null>(null);
+  const [outlook, setOutlook] = useState<Outlook | null>(null);
   const [rangeDays, setRangeDays] = useState(90);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,6 +95,7 @@ export default function Overview({
   useEffect(() => {
     loadComparison(includeDryRun);
     api.getHoldings(includeDryRun).then(setHoldings).catch((e) => setError(String(e)));
+    api.getOutlook(includeDryRun).then(setOutlook).catch((e) => setError(String(e)));
   }, [includeDryRun, purchases, loadComparison]);
 
   const strategySeries = comparison.slice(-rangeDays);
@@ -183,6 +191,9 @@ export default function Overview({
           />
           <HoldingPeriods data={holdings} />
         </div>
+
+        {/* ...and the only one that faces the other way. */}
+        <OutlookCard data={outlook} />
       </div>
     </section>
   );

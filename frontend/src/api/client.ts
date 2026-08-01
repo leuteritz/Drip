@@ -20,6 +20,7 @@ import type {
   ImportResult,
   Indicators,
   Maintenance,
+  Outlook,
   Performance,
   Purchase,
   RollingWindows,
@@ -128,6 +129,8 @@ export const api = {
     request<ScorePoint[]>(`/api/research/score-history?days=${days}`),
   getHoldings: (includeDryRun: boolean) =>
     request<Holdings>(`/api/stats/holdings?include_dry_run=${includeDryRun}`),
+  getOutlook: (includeDryRun: boolean) =>
+    request<Outlook>(`/api/stats/outlook?include_dry_run=${includeDryRun}`),
   deletePurchase: (id: number) =>
     request<{ deleted: number }>(`/api/purchases/${id}`, { method: "DELETE" }),
   clearTestRuns: () =>

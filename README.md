@@ -14,8 +14,9 @@ explicit, confirmed opt-in.
 
 The dashboard also researches its own strategy - what each indicator contributed,
 whether the score predicts anything, and what a different scoring would have done -
-and reports your cost basis against the market and how old each lot is. Once a week it
-sends you the whole thing on Discord. Keys, the webhook and the state of the backend
+reports your cost basis against the market and how old each lot is, and carries the
+rate it has actually been stacking at forward to the next round number of sats. Once
+a week it sends you the whole thing on Discord. Keys, the webhook and the state of the backend
 itself are all reachable from the gear in the top bar, so the Pi needs no shell after
 the first install. After dark the tank dims with the room - the theme follows your
 phone or laptop unless you tell it otherwise - and clicking your stack figure reads

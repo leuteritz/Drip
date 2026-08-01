@@ -104,6 +104,32 @@ export interface Indicators {
   signal: string;
 }
 
+/** The next round number of sats. Absent fields mean `available` is false. */
+export interface MilestoneOutlook {
+  available: boolean;
+  target_sats: number | null;
+  remaining_sats: number | null;
+  progress_pct: number | null;
+  weeks_away: number | null;
+  eta: string | null;
+}
+
+/** The recent stacking rate carried forward — the one card that looks ahead. */
+export interface Outlook {
+  sats: number;
+  invested_eur: number;
+  current_price: number;
+  /** How many weeks the per-week rate averages over. */
+  rate_weeks: number;
+  per_week_eur: number;
+  per_week_sats: number;
+  year_eur: number;
+  /** A year of buys at *today's* price — an order of magnitude, not a forecast. */
+  year_sats: number;
+  milestone: MilestoneOutlook;
+  streak: { weeks: number; total_weeks: number };
+}
+
 export interface Candle {
   date: string;
   open: number;

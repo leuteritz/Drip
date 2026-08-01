@@ -340,6 +340,42 @@ class HoldingsResponse(BaseModel):
     excluded: ExcludedBuys
 
 
+class MilestoneOutlook(BaseModel):
+    """The next round number of sats. `available` is false once the ladder runs
+    out, or before there is any stack to measure against it."""
+
+    available: bool
+    target_sats: Optional[float] = None
+    remaining_sats: Optional[float] = None
+    progress_pct: Optional[float] = None
+    weeks_away: Optional[int] = None
+    eta: Optional[str] = None
+
+
+class StreakOutlook(BaseModel):
+    weeks: int
+    total_weeks: int
+
+
+class OutlookResponse(BaseModel):
+    """The forward-looking card: the recent rate carried forward.
+
+    `year_sats` prices a year of future buys at today's price, which is the one
+    number nobody has — it is an order of magnitude, and the card says so.
+    """
+
+    sats: float
+    invested_eur: float
+    current_price: float
+    rate_weeks: int
+    per_week_eur: float
+    per_week_sats: float
+    year_eur: float
+    year_sats: float
+    milestone: MilestoneOutlook
+    streak: StreakOutlook
+
+
 class PurchaseResponse(BaseModel):
     id: int
     timestamp: datetime
