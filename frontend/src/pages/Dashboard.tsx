@@ -135,7 +135,7 @@ export default function Overview({
             </div>
           </div>
           {hasStrategy && latest && <StrategyKpis latest={latest} />}
-          <div className="h-[520px] md:h-[640px]">
+          <div className="h-[26rem] md:h-[32rem]">
             {!compLoaded || (!hasStrategy && !candlesLoaded) ? (
               <Loading
                 what="Charting your strategy against plain DCA"

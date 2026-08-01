@@ -50,7 +50,7 @@ export default function ForwardReturnsTable({
       ) : (
         <>
           <div className="-mx-2 overflow-x-auto px-2">
-            <table className="w-full min-w-[520px] border-collapse text-sm">
+            <table className="w-full min-w-[34rem] border-collapse text-sm">
               <thead>
                 <tr className="text-left text-xs font-bold uppercase tracking-wider text-ink-soft">
                   <th className="py-2 pr-3 font-bold">Signal</th>
@@ -141,7 +141,7 @@ function ReturnCell({ stats, maxAbs }: { stats?: ForwardStats; maxAbs: number })
           }}
         />
       </div>
-      <div className="mt-0.5 text-[11px] text-ink-soft">
+      <div className="mt-0.5 text-2xs text-ink-soft">
         n={stats.n} · {stats.win_rate.toFixed(0)}% up
       </div>
     </td>

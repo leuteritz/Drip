@@ -133,7 +133,7 @@ export default function ComparisonChart({
       </div>
 
       <StripCaption />
-      <div className="h-[128px] shrink-0 md:h-[150px]">
+      <div className="h-[6.5rem] shrink-0 md:h-[7.5rem]">
         <PriceStrip data={enriched} />
       </div>
     </div>

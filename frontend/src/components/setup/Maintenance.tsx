@@ -91,7 +91,7 @@ function Body({
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[13px] font-bold text-ink">{title}</span>
+        <span className="block text-xs font-bold text-ink">{title}</span>
         <span className="block text-xs leading-snug text-ink-soft">
           {result ?? description}
         </span>

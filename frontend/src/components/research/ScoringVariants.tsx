@@ -46,7 +46,7 @@ export default function ScoringVariants({
       ) : (
         <>
           <div className="-mx-2 overflow-x-auto px-2">
-            <table className="w-full min-w-[620px] border-collapse text-sm">
+            <table className="w-full min-w-[40rem] border-collapse text-sm">
               <thead>
                 <tr className="text-left text-xs font-bold uppercase tracking-wider text-ink-soft">
                   <th className="py-2 pr-3">Scoring</th>
@@ -131,7 +131,7 @@ function VariantRow({
         <div className="font-semibold text-ink">
           {variant.label}
           {isCurrent && (
-            <span className="ml-2 rounded-full bg-ink-solid px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cream">
+            <span className="ml-2 rounded-full bg-ink-solid px-2 py-0.5 text-2xs font-bold uppercase tracking-wide text-cream">
               running
             </span>
           )}
@@ -156,7 +156,7 @@ function VariantRow({
       </td>
       <td className="py-2 text-right font-semibold text-ink tabular-nums">
         {fmtEur(variant.invested_eur, 0)}
-        <div className="text-[11px] font-normal text-ink-soft">
+        <div className="text-2xs font-normal text-ink-soft">
           {extra >= 0 ? "+" : ""}
           {fmtEur(extra, 0)} vs DCA
         </div>

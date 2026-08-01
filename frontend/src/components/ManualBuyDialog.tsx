@@ -102,7 +102,7 @@ export default function ManualBuyDialog({
       <div className="mt-4">
         <label
           htmlFor="pour-amount"
-          className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink/60"
+          className="text-2xs font-bold uppercase tracking-[0.14em] text-ink/60"
         >
           Amount
         </label>
@@ -123,7 +123,7 @@ export default function ManualBuyDialog({
               onKeyDown={(e) => {
                 if (e.key === "Enter") confirm();
               }}
-              className={`w-[120px] rounded-xl border bg-paper py-2 pl-7 pr-3 font-display text-lg font-bold text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+              className={`w-[7.5rem] rounded-xl border bg-paper py-2 pl-7 pr-3 font-display text-lg font-bold text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
                 live ? "border-rose/40 focus:border-rose" : "border-teal/30 focus:border-teal"
               }`}
             />

@@ -181,7 +181,7 @@ export default function HistorySection({
             />
           )}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full min-w-[54rem] text-sm">
               <thead className="border-b-2 border-sand bg-sand-soft">
                 <tr>
                   {header("Date", "timestamp")}

@@ -50,7 +50,7 @@ export default function ThemeToggle({
       onClick={() => onChange(NEXT[choice])}
       title={title}
       aria-label={label}
-      className="flex items-center rounded-full bg-teal/10 px-2.5 py-1.5 text-[11px] font-bold text-teal transition hover:bg-teal/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+      className="flex items-center rounded-full bg-teal/10 px-2.5 py-1.5 text-2xs font-bold text-teal transition hover:bg-teal/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
     >
       <Icon className="text-sm" />
     </button>

@@ -29,9 +29,8 @@ import ModeToggle from "./header/ModeToggle";
 import NextBuyActions from "./header/NextBuyActions";
 import {
   BtcReadout,
-  FearGreedReadout,
-  RsiReadout,
-  ScoreReadout,
+  MarketReadout,
+  SignalReadout,
   WellReadout,
 } from "./header/Readouts";
 import ReportBadge from "./header/ReportBadge";
@@ -202,10 +201,10 @@ export default function SiteHeader({
             : "border-b border-transparent bg-transparent"
         }`}
       >
-        <div className="mx-auto flex h-16 w-full max-w-[1180px] items-center justify-between px-6 md:px-10">
-          <div className="flex items-center gap-2.5">
-            <DropFillIcon className="text-2xl leading-none" />
-            <span className="font-display text-xl font-bold leading-none">Drip</span>
+        <div className="mx-auto flex h-16 w-full max-w-shell items-center justify-between px-6 md:px-10">
+          <div className="flex items-center gap-3">
+            <DropFillIcon className="text-3xl leading-none" />
+            <span className="font-display text-2xl font-bold leading-none">Drip</span>
             <VersionBadge />
           </div>
           <div className="flex items-center gap-2.5 md:gap-3.5">
@@ -238,13 +237,13 @@ export default function SiteHeader({
                     key={id}
                     onClick={() => jumpTo(id)}
                     aria-current={on ? "true" : undefined}
-                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
+                    className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
                       on
                         ? "bg-teal-deep text-cream shadow-sm"
                         : "bg-teal/10 text-teal hover:bg-teal/15"
                     }`}
                   >
-                    <Icon className="text-sm" />
+                    <Icon className="text-base" />
                     <span className="max-sm:hidden">{label}</span>
                   </button>
                 );
@@ -256,21 +255,22 @@ export default function SiteHeader({
 
       {/* Hero "tank": the water fills almost the whole hero, its surface waving just
           below the sticky bar; every bit of data lives submerged on the water in cream. */}
-      <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-16 pt-16 text-cream md:px-10 md:pb-20">
+      <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-14 pt-16 text-cream md:px-10 md:pb-16">
         <TankBackdrop />
         {splash > 0 && <Splash key={splash} />}
 
-        <div className="relative z-10 mx-auto max-w-[1180px]">
+        <div className="relative z-10 mx-auto max-w-hero">
           {/* Centered reservoir headline, fully submerged below the waterline */}
           <Reservoir performance={performance} onToggleUnit={onToggleUnit} />
 
-          {/* Submerged stat cards: Score · F&G · RSI · BTC · well (frosted glass) */}
-          <div className="mt-8 flex flex-wrap items-stretch justify-center gap-4">
+          {/* Submerged read-outs: signal · market · bitcoin · well (frosted
+              glass). A grid rather than a wrapping row, so the four keep one
+              width and one baseline at every size the app is read at. */}
+          <div className="mt-9 grid grid-cols-2 items-stretch gap-4 lg:grid-cols-4">
             {indicators && (
               <>
-                <ScoreReadout indicators={indicators} />
-                <FearGreedReadout indicators={indicators} />
-                <RsiReadout indicators={indicators} />
+                <SignalReadout indicators={indicators} />
+                <MarketReadout indicators={indicators} />
               </>
             )}
             <BtcReadout indicators={indicators} performance={performance} />
@@ -312,8 +312,8 @@ export default function SiteHeader({
           />
 
           {runResult?.analysis && (
-            <div className="mt-5 flex justify-center">
-              <div className="rounded-lg bg-cream/85 px-3 py-1.5 text-xs font-bold text-teal-deep shadow-sm">
+            <div className="mt-6 flex justify-center">
+              <div className="rounded-xl bg-cream/85 px-4 py-2 text-sm font-bold text-teal-deep shadow-sm">
                 {runResult.analysis.signal} &middot;{" "}
                 {runResult.purchase && !runResult.purchase.dry_run
                   ? "bought"
@@ -378,7 +378,7 @@ export default function SiteHeader({
 
 function HeaderPill({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1.5 text-[11px] font-bold text-teal">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-3 py-1.5 text-2xs font-bold text-teal">
       {children}
     </span>
   );

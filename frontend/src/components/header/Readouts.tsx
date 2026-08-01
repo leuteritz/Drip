@@ -11,43 +11,78 @@ import { fmtEur, fmtPct } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { ScoreDrops } from "../drops";
 
-/** Shared frosted-glass chip that floats the stat read-outs on the waterline. */
+/**
+ * The four frosted read-outs floating on the waterline.
+ *
+ * There used to be five, one per indicator, which meant the hero showed the
+ * score next to the two readings that produce it — the same fact three times,
+ * each too small to read from a chair. They are now grouped by the question
+ * they answer: what Drip is about to do (`Signal`), what the market looks like
+ * (`Market`), what bitcoin costs (`Bitcoin`), and whether there is money left
+ * to buy with (`Well`). The arithmetic between them lives one click away in
+ * `SignalBreakdown`.
+ */
 const FROST_CARD =
-  "flex flex-col items-center justify-center text-center rounded-[18px] border border-cream/45 bg-cream/25 px-[18px] py-[15px] text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-md";
+  "flex h-full flex-col items-center justify-center gap-2 text-center rounded-[1.75rem] border border-cream/45 bg-cream/25 px-5 py-6 text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-md";
 
-const CAPTION = "text-[10px] font-bold uppercase tracking-[0.13em] text-cream/72";
-const BIG_NUMBER = "font-display text-3xl font-semibold leading-none";
+const CAPTION = "text-2xs font-bold uppercase tracking-[0.16em] text-cream/72";
+const BIG_NUMBER = "font-display text-4xl font-semibold leading-none";
+const SUB = "text-sm font-semibold text-cream/80";
 
-function FrostCard({ width, children }: { width: string; children: ReactNode }) {
-  return <div className={`${FROST_CARD} ${width}`}>{children}</div>;
+function FrostCard({ children }: { children: ReactNode }) {
+  return <div className={FROST_CARD}>{children}</div>;
 }
 
-/** Score: five potency drops, the score fraction, and the buy multiplier. */
-export function ScoreReadout({ indicators }: { indicators: Indicators }) {
+/**
+ * What the next buy will be, in one number: the multiplier. The drops above it
+ * are the same fact drawn, the line under it names the signal and the score it
+ * came from.
+ */
+export function SignalReadout({ indicators }: { indicators: Indicators }) {
   return (
-    <FrostCard width="w-[172px]">
+    <FrostCard>
       <ScoreDrops
         multiplier={indicators.multiplier}
-        size="text-[15px]"
+        size="text-xl"
         variant="solid"
-        className="mb-2"
       />
-      <div className={BIG_NUMBER}>
-        {indicators.score}
-        <span className="text-lg text-cream/70">/{indicators.score_max}</span>
+      <div className={BIG_NUMBER}>&times;{indicators.multiplier}</div>
+      <div className={CAPTION}>
+        {indicators.signal.replace(/ signal$/i, "")} &middot; score{" "}
+        {indicators.score}/{indicators.score_max}
       </div>
-      <div className={`mt-1.5 ${CAPTION}`}>Score &middot; x{indicators.multiplier}</div>
     </FrostCard>
   );
 }
 
-/** Fear & Greed: the cream semicircle gauge, its value, and the classification. */
-export function FearGreedReadout({ indicators }: { indicators: Indicators }) {
+/** Fear & Greed as the headline, with the RSI as the second opinion under it. */
+export function MarketReadout({ indicators }: { indicators: Indicators }) {
+  const rsi = Math.round(indicators.rsi);
+  const rsiLabel =
+    indicators.rsi < 30 ? "oversold" : indicators.rsi > 70 ? "overbought" : "neutral";
+  const pos = Math.max(0, Math.min(100, rsi));
+
   return (
-    <FrostCard width="w-[172px]">
+    <FrostCard>
       <FearGreedArc value={indicators.fear_greed} />
-      <div className={`mt-0.5 ${BIG_NUMBER}`}>{indicators.fear_greed}</div>
-      <div className={`mt-1.5 ${CAPTION}`}>{indicators.fng_classification}</div>
+      <div className={BIG_NUMBER}>{indicators.fear_greed}</div>
+      <div className={CAPTION}>{indicators.fng_classification}</div>
+
+      <div className="mt-1 w-full self-stretch border-t border-cream/25 pt-3">
+        <div className="relative h-2 w-full rounded-full bg-cream/22">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-cream"
+            style={{ width: `${pos}%` }}
+          />
+          <div
+            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cream shadow-[0_0_0_4px_rgba(60,109,120,0.5)]"
+            style={{ left: `${pos}%` }}
+          />
+        </div>
+        <div className="mt-2 text-xs font-semibold text-cream/70">
+          RSI {rsi} &middot; {rsiLabel}
+        </div>
+      </div>
     </FrostCard>
   );
 }
@@ -58,7 +93,7 @@ function FearGreedArc({ value }: { value: number }) {
   const arcLen = 131.9; // π · r with r = 42
   const arc = "M8 50 A42 42 0 0 1 92 50";
   return (
-    <svg viewBox="0 0 100 58" className="block h-[42px] w-[76px]">
+    <svg viewBox="0 0 100 54" className="block h-[2.6rem] w-[4.8rem]">
       <path
         d={arc}
         fill="none"
@@ -79,37 +114,6 @@ function FearGreedArc({ value }: { value: number }) {
   );
 }
 
-/** RSI: label + big value on one baseline, with the bar and knob below. */
-export function RsiReadout({ indicators }: { indicators: Indicators }) {
-  const rsi = Math.round(indicators.rsi);
-  const rsiLabel =
-    indicators.rsi < 30 ? "Oversold" : indicators.rsi > 70 ? "Overbought" : "Neutral";
-  const pos = Math.max(0, Math.min(100, rsi));
-
-  return (
-    <FrostCard width="w-[210px]">
-      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-cream/72">
-        RSI &middot; {rsiLabel}
-      </div>
-      <div className={`mt-1 ${BIG_NUMBER}`}>{rsi}</div>
-      <div className="relative mt-3 h-2 w-full self-stretch rounded-full bg-cream/22">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-cream"
-          style={{ width: `${pos}%` }}
-        />
-        <div
-          className="absolute top-1/2 h-[14px] w-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cream shadow-[0_0_0_4px_rgba(60,109,120,0.5)]"
-          style={{ left: `${pos}%` }}
-        />
-      </div>
-      <div className="mt-2 flex w-full justify-between text-[9px] font-semibold text-cream/50">
-        <span>Oversold</span>
-        <span>Overbought</span>
-      </div>
-    </FrostCard>
-  );
-}
-
 /** BTC spot price with the 350-day average and its distance underneath. */
 export function BtcReadout({
   indicators,
@@ -119,14 +123,14 @@ export function BtcReadout({
   performance: Performance | null;
 }) {
   return (
-    <FrostCard width="w-[210px]">
-      <div className={CAPTION}>BTC price</div>
-      <div className={`mt-1 ${BIG_NUMBER}`}>
+    <FrostCard>
+      <div className={CAPTION}>Bitcoin</div>
+      <div className={BIG_NUMBER}>
         {performance ? fmtEur(performance.current_price, 0) : "—"}
       </div>
-      <div className="mt-1.5 text-[11px] font-semibold text-cream/80">
+      <div className={SUB}>
         {indicators
-          ? `350‑day avg ${fmtEur(indicators.ma_350, 0)} · ${fmtPct(indicators.ma_distance_pct)}`
+          ? `${fmtPct(indicators.ma_distance_pct)} vs. its 350-day average`
           : "—"}
       </div>
     </FrostCard>
@@ -140,9 +144,9 @@ const WELL_LOW_BUYS = 2;
 
 /**
  * The Coinbase "well" — the source that feeds the reservoir. Shows the EUR
- * balance available for buying, the BTC held on Coinbase, and a water-level
- * runway bar: how many scheduled drips the well still covers at today's
- * potency. Buying lives in the Next-buy card.
+ * balance available for buying and a water-level runway bar: how many
+ * scheduled drips the well still covers at today's potency. Buying lives in
+ * the Next-buy card.
  */
 export function WellReadout({
   balance,
@@ -168,45 +172,40 @@ export function WellReadout({
       : 0;
 
   return (
-    <FrostCard width="w-[210px]">
+    <FrostCard>
       <div className={`flex items-center gap-1.5 ${CAPTION}`}>
-        <CoinsIcon className="text-xs" /> Coinbase well
+        <CoinsIcon className="text-sm" /> Coinbase well
       </div>
       {balance === null ? (
         <>
-          <div className="mt-2 h-7 w-24 animate-pulse rounded-lg bg-cream/20" />
-          <div className="mt-2 h-3 w-32 animate-pulse rounded bg-cream/15" />
+          <div className="h-9 w-28 animate-pulse rounded-lg bg-cream/20" />
+          <div className="h-4 w-36 animate-pulse rounded bg-cream/15" />
         </>
       ) : balance.configured && eur != null ? (
         <>
-          <div className={`mt-1 ${BIG_NUMBER}`}>{fmtEur(eur)}</div>
-          <div className="mt-1.5 text-[11px] font-semibold text-cream/80">
-            {stackAmount(balance.btc_available ?? 0)} on Coinbase
-          </div>
-          <div className="relative mt-2.5 h-2 w-full self-stretch rounded-full bg-cream/22">
+          <div className={BIG_NUMBER}>{fmtEur(eur)}</div>
+          <div className="relative mt-1 h-2 w-full self-stretch rounded-full bg-cream/22">
             <div
-              className={`absolute inset-y-0 left-0 rounded-full ${runningDry ? "bg-rose-soft" : "bg-cream"}`}
+              className={`absolute inset-y-0 left-0 rounded-full ${runningDry ? "bg-rose-pale" : "bg-cream"}`}
               style={{ width: `${level * 100}%` }}
             />
           </div>
           <div
-            className={`mt-1.5 text-[10px] font-semibold ${runningDry ? "text-rose-soft" : "text-cream/60"}`}
+            className={`text-sm font-semibold ${runningDry ? "text-rose-pale" : "text-cream/70"}`}
           >
             {buysLeft == null
-              ? " "
+              ? `${stackAmount(balance.btc_available ?? 0)} on Coinbase`
               : runningDry
-                ? `Well running dry · ~${buysLeft} ${buysLeft === 1 ? "buy" : "buys"} left`
+                ? `Running dry · ~${buysLeft} ${buysLeft === 1 ? "buy" : "buys"} left`
                 : `Feeds ~${buysLeft} more buys`}
           </div>
         </>
       ) : (
         <>
-          <div className={`mt-1 ${BIG_NUMBER} text-cream/60`}>—</div>
-          <div className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-cream/60">
-            <KeyIcon className="text-xs" />
-            {balance.configured
-              ? "Balance unavailable"
-              : "No API keys — add them under Setup"}
+          <div className={`${BIG_NUMBER} text-cream/60`}>—</div>
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-cream/70">
+            <KeyIcon className="text-sm" />
+            {balance.configured ? "Balance unavailable" : "No API keys yet"}
           </div>
         </>
       )}

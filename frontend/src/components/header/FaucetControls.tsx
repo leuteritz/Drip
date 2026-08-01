@@ -23,12 +23,12 @@ const SAVED_FLASH_MS = 2200;
 const WEBHOOK_FLASH_MS = 3000;
 
 const FIELD =
-  "rounded-xl border border-cream/30 bg-cream/15 px-3 py-2 text-[13px] font-bold text-cream outline-none [color-scheme:dark] focus:border-cream/70";
+  "rounded-xl border border-cream/30 bg-cream/15 px-3 py-2 text-xs font-bold text-cream outline-none [color-scheme:dark] focus:border-cream/70";
 const STEP_BUTTON =
   "flex h-8 w-8 items-center justify-center rounded-xl bg-cream/15 text-lg leading-none text-cream transition hover:bg-cream/30";
 const TILE =
   "flex flex-col items-center gap-2.5 rounded-2xl border border-cream/15 bg-cream/10 p-4 text-center";
-const TILE_LABEL = "text-[10px] font-bold uppercase tracking-[0.14em] text-cream/60";
+const TILE_LABEL = "text-2xs font-bold uppercase tracking-[0.14em] text-cream/60";
 /** The full-width rows at the foot of the Discord tile, each opening a dialog. */
 const DRAWER_ROW =
   "flex w-full items-center gap-2 rounded-xl bg-cream/12 px-3 py-2 text-left text-xs font-bold text-cream transition hover:bg-cream/25";
@@ -116,17 +116,17 @@ export default function FaucetControls({
   return (
     <div
       className={`overflow-hidden transition-[max-height,opacity,margin-top] duration-400 ${
-        open ? "mt-4 max-h-[720px] opacity-100" : "mt-0 max-h-0 opacity-0"
+        open ? "mt-4 max-h-[48rem] opacity-100" : "mt-0 max-h-0 opacity-0"
       }`}
     >
-      <div className="mx-auto max-w-[940px] rounded-3xl border border-cream/20 bg-teal/95 p-4 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md md:p-5">
+      <div className="mx-auto max-w-spout rounded-3xl border border-cream/20 bg-teal/95 p-4 text-cream shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)] backdrop-blur-md md:p-5">
         {/* Header: title · saved feedback · close */}
         <div className="mb-3.5 flex items-center gap-2.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-cream/70">
+          <span className="text-2xs font-bold uppercase tracking-[0.18em] text-cream/70">
             Adjust your drip
           </span>
           {saved && (
-            <span className="inline-flex items-center rounded-full bg-cream/90 px-2.5 py-0.5 text-[11px] font-bold text-teal-deep">
+            <span className="inline-flex items-center rounded-full bg-cream/90 px-2.5 py-0.5 text-2xs font-bold text-teal-deep">
               Saved &#10003;
             </span>
           )}
@@ -166,7 +166,7 @@ export default function FaucetControls({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.currentTarget.blur();
                   }}
-                  className={`${FIELD} w-[76px] text-center font-display text-lg [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                  className={`${FIELD} w-[5rem] text-center font-display text-lg [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                 />
                 <button
                   type="button"
@@ -201,7 +201,7 @@ export default function FaucetControls({
                   <PaperPlaneIcon className="text-sm" />
                 </button>
                 {sent && (
-                  <span className="text-[11px] font-bold text-cream">
+                  <span className="text-2xs font-bold text-cream">
                     Sent &#10003;
                   </span>
                 )}
@@ -220,7 +220,7 @@ export default function FaucetControls({
                       : "Off"
                     : "…"}
                 </span>
-                <CaretRightIcon className="text-[11px] text-cream/60" />
+                <CaretRightIcon className="text-2xs text-cream/60" />
               </button>
 
               {/* The keys themselves are a dialog away rather than in here: the
@@ -229,7 +229,7 @@ export default function FaucetControls({
                 <GearIcon className="text-sm" />
                 <span>Keys &amp; system</span>
                 <span className="ml-auto font-semibold text-cream/70">Setup</span>
-                <CaretRightIcon className="text-[11px] text-cream/60" />
+                <CaretRightIcon className="text-2xs text-cream/60" />
               </button>
             </div>
 
@@ -321,7 +321,7 @@ function MiniToggle({
     >
       <span
         className={`absolute top-0.5 h-4 w-4 rounded-full bg-paper shadow-sm transition-all ${
-          checked ? "left-[22px]" : "left-0.5"
+          checked ? "left-[calc(100%-1.125rem)]" : "left-0.5"
         }`}
       />
     </button>

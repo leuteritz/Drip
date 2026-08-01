@@ -31,11 +31,28 @@
      it sits on a cream chip - neither survives the accent lightening at night. */
   --color-teal-deep: #45818c;
   --color-rose-deep: #785964;
+  /* The same idea pointing the other way: a rose held light in both themes, for
+     a loss written *on the water*. The tank is dark day and night, so cream is
+     the type up there and `rose-soft` - a background tint that darkens at night
+     to #3a2b31 - cannot be the colour of a red number on it. */
+  --color-rose-pale: #f0c9d3;
   --color-chrome: #454545; /* Discord's own panel in the report preview */
   --color-scrim: rgba(69, 69, 69, 0.5); /* behind every dialog */
 
   --font-display: "Fraunces", "Georgia", serif;
   --font-sans: "Outfit Variable", "Outfit", system-ui, sans-serif;
+
+  /* One step below `xs`, for the uppercase micro-captions. Everything smaller
+     than this used to be an arbitrary `text-[10px]`, which is the one kind of
+     size the fluid scale below cannot carry. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.45;
+
+  /* The page's own measures. In rem, so they widen with the type rather than
+     leaving a 2560px monitor as a narrow column with huge letters in it. */
+  --container-shell: 78rem; /* the widest anything gets */
+  --container-hero: 68rem; /* the hero's column */
+  --container-spout: 62rem; /* the next-buy bar under it */
 
   --radius-card: 1.25rem;
 
@@ -90,6 +107,22 @@ html,
 body,
 #root {
   height: 100%;
+}
+
+/**
+ * The one knob the whole app is sized by.
+ *
+ * Drip is read on a desk monitor, often a 2560px one, and at the browser's
+ * default 16px every figure on it was set for a laptop. Everything here is
+ * expressed in rem — Tailwind's type scale, its spacing scale, the radii and
+ * the container widths above — so moving the root size moves the entire
+ * layout together instead of leaving big numbers stranded in small padding.
+ *
+ * Read it as: 15px on a 1280px laptop, ~19.6px on Full HD, 24px at 2560 and
+ * wider. Never set a font size in px again; `text-2xs` is the floor.
+ */
+html {
+  font-size: clamp(15px, 0.36rem + 0.72vw, 24px);
 }
 
 /* Lets native controls, scrollbars and form widgets follow the theme */

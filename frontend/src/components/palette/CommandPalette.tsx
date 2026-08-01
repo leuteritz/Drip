@@ -78,7 +78,7 @@ export default function CommandPalette({
           aria-label="Search commands"
           className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink-soft"
         />
-        <kbd className="shrink-0 rounded-md bg-sand-soft px-2 py-1 text-[10px] font-bold text-ink-soft">
+        <kbd className="shrink-0 rounded-md bg-sand-soft px-2 py-1 text-2xs font-bold text-ink-soft">
           esc
         </kbd>
       </div>
@@ -91,7 +91,7 @@ export default function CommandPalette({
         ) : (
           groups.map(({ group, commands: rows }) => (
             <div key={group} className="mb-1 last:mb-0">
-              <div className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-ink-soft">
+              <div className="px-3 pb-1 pt-2 text-2xs font-bold uppercase tracking-[0.16em] text-ink-soft">
                 {group}
               </div>
               {rows.map((command) => {

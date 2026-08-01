@@ -86,7 +86,7 @@ export default function DigestDialog({
           <NewspaperIcon /> Weekly report
         </h3>
         {saved && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-water-soft px-2.5 py-0.5 text-[11px] font-bold text-teal">
+          <span className="inline-flex items-center gap-1 rounded-full bg-water-soft px-2.5 py-0.5 text-2xs font-bold text-teal">
             <CheckIcon /> Saved
           </span>
         )}
@@ -154,7 +154,7 @@ export default function DigestDialog({
                 } hover:opacity-100`}
               >
                 <span
-                  className={`mt-0.5 flex h-4.5 w-4.5 flex-none items-center justify-center rounded-md border-2 text-[10px] transition ${
+                  className={`mt-0.5 flex h-4.5 w-4.5 flex-none items-center justify-center rounded-md border-2 text-2xs transition ${
                     block.enabled
                       ? "border-teal bg-teal-deep text-cream"
                       : "border-sand bg-paper text-transparent"
@@ -163,7 +163,7 @@ export default function DigestDialog({
                   <CheckIcon />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-[13px] font-bold text-ink">
+                  <span className="block text-xs font-bold text-ink">
                     {block.label}
                   </span>
                   <span className="block text-xs leading-snug text-ink-soft">

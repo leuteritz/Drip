@@ -45,7 +45,7 @@ export default function ReportBadge({
           ? `Weekly report, next ${slot}. Open to edit or send it.`
           : "Weekly report, switched off. Open to turn it on."
       }
-      className={`relative flex items-center gap-1.5 overflow-hidden rounded-full px-3 py-1.5 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
+      className={`relative flex items-center gap-1.5 overflow-hidden rounded-full px-3 py-1.5 text-2xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
         digest.enabled
           ? "bg-teal/10 text-teal hover:bg-teal/15"
           : "bg-teal/8 text-teal/55 hover:bg-teal/15"

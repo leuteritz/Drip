@@ -21,7 +21,7 @@ export default function ModeToggle({
   const [confirmLive, setConfirmLive] = useState(false);
   const dry = status.dry_run;
   const seg =
-    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-2xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
 
   return (
     <>

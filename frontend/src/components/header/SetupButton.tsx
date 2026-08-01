@@ -24,7 +24,7 @@ export default function SetupButton({
       onClick={onOpen}
       title={missing ? "Setup - no Coinbase key stored yet" : "Setup - keys, Discord, system"}
       aria-label="Setup"
-      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
+      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-2xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
         missing
           ? "bg-rose-soft text-rose hover:opacity-80"
           : "bg-teal/10 text-teal hover:bg-teal/15"

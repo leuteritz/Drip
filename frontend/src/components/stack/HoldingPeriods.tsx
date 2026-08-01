@@ -145,7 +145,7 @@ function MonthRow({ month, maxValue }: { month: RipeningMonth; maxValue: number 
         <div className="text-sm font-semibold tabular-nums text-ink">
           {fmtEur(month.value_eur)}
         </div>
-        <div className="text-[11px] text-ink-soft">
+        <div className="text-2xs text-ink-soft">
           {month.lots} {month.lots === 1 ? "lot" : "lots"}
         </div>
       </div>

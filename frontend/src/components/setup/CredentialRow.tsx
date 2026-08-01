@@ -59,9 +59,9 @@ export default function CredentialRow({
   return (
     <div className="rounded-xl border border-sand bg-sand-soft/40 p-3.5">
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <span className="text-[13px] font-bold text-ink">{field.label}</span>
+        <span className="text-xs font-bold text-ink">{field.label}</span>
         <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] ${source.className}`}
+          className={`rounded-full px-2 py-0.5 text-2xs font-bold uppercase tracking-[0.1em] ${source.className}`}
         >
           {source.label}
         </span>

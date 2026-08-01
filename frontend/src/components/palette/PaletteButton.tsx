@@ -18,7 +18,7 @@ export default function PaletteButton({ onOpen }: { onOpen: () => void }) {
       title={`Search commands (${PALETTE_SHORTCUT})`}
       aria-label="Search commands"
       aria-keyshortcuts="Meta+K Control+K"
-      className="flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1.5 text-[11px] font-bold text-teal transition hover:bg-teal/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+      className="flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1.5 text-2xs font-bold text-teal transition hover:bg-teal/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
     >
       <MagnifyingGlassIcon className="text-sm" />
       <span className="max-lg:hidden">{PALETTE_SHORTCUT}</span>

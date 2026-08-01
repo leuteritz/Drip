@@ -67,7 +67,7 @@ export default function TankBackdrop() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 bottom-0 top-[88px] z-0"
+      className="pointer-events-none absolute inset-x-0 bottom-0 top-[5.5rem] z-0"
     >
       <div className="tank-water absolute inset-0 overflow-hidden">
         {BUBBLES.map((b, i) => (
@@ -95,7 +95,7 @@ export default function TankBackdrop() {
       <svg
         viewBox="0 0 1080 120"
         preserveAspectRatio="none"
-        className="animate-swell absolute inset-x-0 -top-[60px] h-[120px] w-full"
+        className="animate-swell absolute inset-x-0 -top-[3.75rem] h-[7.5rem] w-full"
       >
         {/* Each layer's fill fades to transparent toward the svg bottom so the
             surface melts into the tank-water gradient — no hard seam, even

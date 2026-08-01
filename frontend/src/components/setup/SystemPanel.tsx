@@ -35,7 +35,7 @@ export default function SystemPanel({
           Scheduled jobs
         </h4>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-2xs font-bold ${
             system.scheduler_running
               ? "bg-water-soft text-teal"
               : "bg-rose-soft text-rose"
@@ -67,8 +67,8 @@ export default function SystemPanel({
               className="flex flex-wrap items-center gap-2 rounded-xl bg-sand-soft/50 px-3.5 py-2.5"
             >
               <ClockIcon className="text-teal" aria-hidden="true" />
-              <span className="text-[13px] font-bold text-ink">{job.label}</span>
-              <code className="rounded bg-paper px-1.5 py-0.5 font-mono text-[10px] text-ink-soft">
+              <span className="text-xs font-bold text-ink">{job.label}</span>
+              <code className="rounded bg-paper px-1.5 py-0.5 font-mono text-2xs text-ink-soft">
                 {job.id}
               </code>
               <span className="ml-auto text-xs font-bold text-teal">

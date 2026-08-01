@@ -1,4 +1,10 @@
-import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import InfoIcon from "~icons/ph/info";
 
 export function Card({
@@ -13,7 +19,7 @@ export function Card({
   return (
     <div
       onClick={onClick}
-      className={`rounded-card border-2 border-sand bg-paper p-6 shadow-puff ${className}`}
+      className={`relative rounded-card border-2 border-sand bg-paper p-6 shadow-puff md:p-7 ${className}`}
     >
       {children}
     </div>
@@ -22,9 +28,7 @@ export function Card({
 
 export function CardTitle({ children }: { children: ReactNode }) {
   return (
-    <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-ink-soft">
-      {children}
-    </h2>
+    <h2 className="mb-4 font-display text-xl font-semibold text-ink">{children}</h2>
   );
 }
 
@@ -41,29 +45,108 @@ export function SectionHeading({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <span className="text-lg text-teal">{icon}</span>
-      <h2 className="font-display text-2xl font-bold text-ink">{title}</h2>
-      {subtitle && <span className="text-sm text-ink-soft">{subtitle}</span>}
+    <div className="flex flex-wrap items-end gap-x-5 gap-y-2 pb-1">
+      <h2 className="flex items-center gap-3 font-display text-4xl font-bold leading-none text-ink">
+        <span className="text-3xl text-teal">{icon}</span>
+        {title}
+      </h2>
+      {subtitle && (
+        <span className="max-w-prose text-base text-ink-soft">{subtitle}</span>
+      )}
       {actions && <div className="ml-auto flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
 
-/** Card header: title on the left, controls pushed right. */
+/**
+ * Card header: title on the left, controls pushed right, and — where the card
+ * needs one — the ⓘ that holds everything the card used to say in prose.
+ *
+ * The footnotes are not gone, they are one click away: `info` is exactly what
+ * `Note` used to render under the card. Keeping them off the page is what lets
+ * every figure above be set large enough to read from across a desk.
+ */
 export function CardHeader({
   title,
+  info,
   children,
 }: {
   title: string;
+  info?: ReactNode;
   children?: ReactNode;
 }) {
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-      <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-ink-soft">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <h3 className="font-display text-xl font-semibold leading-tight text-ink">
         {title}
       </h3>
-      {children}
+      <div className="flex flex-wrap items-center gap-2">
+        {children}
+        {info && <InfoButton label={`About “${title}”`}>{info}</InfoButton>}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The ⓘ that opens a card's footnote.
+ *
+ * A popover rather than an inline reveal: the text is long, and a card that
+ * grows by six lines when you ask a question pushes everything below it down
+ * the page. Escape and a click outside both close it, like every other
+ * transient surface in the app.
+ */
+export function InfoButton({
+  label = "What this shows",
+  children,
+}: {
+  label?: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: globalThis.MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={label}
+        title={label}
+        className={`flex h-9 w-9 items-center justify-center rounded-full text-base transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
+          open
+            ? "bg-teal-deep text-cream"
+            : "bg-sand-soft text-ink-soft hover:bg-water-soft hover:text-teal"
+        }`}
+      >
+        <InfoIcon aria-hidden="true" />
+      </button>
+      {open && (
+        <div
+          role="dialog"
+          aria-label={label}
+          className="absolute right-0 top-[calc(100%+0.6rem)] z-20 w-[34rem] max-w-[min(34rem,80vw)] rounded-card border-2 border-sand bg-paper p-5 text-sm leading-relaxed text-ink-soft shadow-puff"
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -84,7 +167,7 @@ export function RangePills<T extends number>({
         <button
           key={option.value}
           onClick={() => onChange(option.value)}
-          className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+          className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
             value === option.value
               ? "bg-ink-solid text-cream"
               : "bg-sand-soft text-ink-soft hover:text-ink"
@@ -112,24 +195,24 @@ export function Stat({
   children: ReactNode;
 }) {
   return (
-    <dl className="min-w-[130px] flex-1 rounded-xl bg-sand-soft/60 px-4 py-2.5">
-      <dt className="text-xs font-medium text-ink-soft">{label}</dt>
-      <dd className={`font-display text-xl font-semibold ${toneText(tone)}`}>
+    <dl className="min-w-[11rem] flex-1 rounded-xl bg-sand-soft/60 px-5 py-3.5">
+      <dt className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-soft">
+        {label}
+      </dt>
+      <dd
+        className={`mt-1 font-display text-3xl font-semibold leading-none ${toneText(tone)}`}
+      >
         {children}
       </dd>
-      {hint && <dd className="mt-0.5 text-xs text-ink-soft">{hint}</dd>}
+      {hint && <dd className="mt-1.5 text-xs text-ink-soft">{hint}</dd>}
     </dl>
   );
 }
 
-/** The explanatory footnote under a card. */
+/** The body of a card's ⓘ. Kept as its own component so the footnotes read the
+ *  same wherever they are opened from. */
 export function Note({ children }: { children: ReactNode }) {
-  return (
-    <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-ink-soft">
-      <InfoIcon className="mt-0.5 shrink-0" aria-hidden="true" />
-      <span>{children}</span>
-    </p>
-  );
+  return <p className="text-sm leading-relaxed text-ink-soft">{children}</p>;
 }
 
 export function Badge({
@@ -186,7 +269,7 @@ export function Toggle({
     >
       <span
         className={`absolute top-0.5 h-5 w-5 rounded-full bg-paper shadow transition-all ${
-          checked ? "left-[26px]" : "left-0.5"
+          checked ? "left-[calc(100%-1.375rem)]" : "left-0.5"
         }`}
       />
     </button>
@@ -257,39 +340,37 @@ export function Loading({
 
   if (compact) {
     return (
-      <div className="flex items-start gap-2.5 py-1">
-        <Spinner className="mt-0.5 h-4 w-4 border-2" />
+      <div className="flex items-start gap-3 py-1">
+        <Spinner className="mt-1 h-4 w-4 border-2" />
         <div className="min-w-0">
-          <p className="text-xs font-bold text-ink">
+          <p className="text-sm font-bold text-ink">
             {what}
             {clock}
           </p>
           {why && (
-            <p className="mt-0.5 text-xs leading-relaxed text-ink-soft">{why}</p>
+            <p className="mt-1 text-xs leading-relaxed text-ink-soft">{why}</p>
           )}
-          {hint && (
-            <p className="mt-0.5 text-xs leading-relaxed text-teal">{hint}</p>
-          )}
+          {hint && <p className="mt-1 text-xs leading-relaxed text-teal">{hint}</p>}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 py-12 text-center">
+    <div className="flex h-full flex-col items-center justify-center gap-4 py-12 text-center">
       <Spinner />
       <div>
-        <p className="text-sm font-bold text-ink">
+        <p className="text-base font-bold text-ink">
           {what}
           {clock}
         </p>
         {why && (
-          <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-ink-soft">
+          <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-ink-soft">
             {why}
           </p>
         )}
         {hint && (
-          <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-teal">
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-teal">
             {hint}
           </p>
         )}
@@ -329,16 +410,24 @@ export function Modal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // `items-start` plus an auto block margin rather than `items-center`: a
+  // centred flex child that outgrows its scroll container has its top clipped
+  // with no way to scroll back to it, and at this type size the taller dialogs
+  // do outgrow a 1080p screen.
   return (
     <div
-      className={`fixed inset-0 z-50 flex justify-center bg-scrim p-4 ${
-        align === "top" ? "items-start pt-[12vh]" : "items-center"
+      className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-scrim p-4 ${
+        align === "top" ? "pt-[12vh]" : ""
       }`}
       onClick={closeOnBackdrop ? onClose : undefined}
     >
-      <Card className={className} onClick={(e) => e.stopPropagation()}>
-        {children}
-      </Card>
+      <div
+        className={`flex w-full justify-center ${align === "top" ? "" : "my-auto"}`}
+      >
+        <Card className={className} onClick={(e) => e.stopPropagation()}>
+          {children}
+        </Card>
+      </div>
     </div>
   );
 }

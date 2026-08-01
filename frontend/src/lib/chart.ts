@@ -19,17 +19,42 @@ export const CHART_COLORS = {
 export const CHART_MARGIN = { top: 10, right: 12, left: 8, bottom: 0 };
 
 /**
+ * The root font size the page is currently sized at — `index.css` clamps it
+ * between 15px on a laptop and 24px on a 2560px monitor.
+ *
+ * Recharts wants plain pixel numbers for the axis gutters, so the one thing in
+ * the app that cannot be written in rem reads the rem instead. Sampled once at
+ * module load: a mid-session resize leaves the gutter slightly wide or narrow,
+ * which is invisible, and both stacked charts read the same constant either
+ * way — that is the part that has to hold.
+ */
+const ROOT_PX =
+  typeof document !== "undefined"
+    ? parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    : 16;
+
+/**
  * Width reserved for the value axis. The overview stacks two charts that share
  * one x-axis, so their plot areas only line up while this (and the left/right
  * margins) is identical in both — change it in one place or not at all.
  */
-export const Y_AXIS_WIDTH = 68;
+export const Y_AXIS_WIDTH = Math.round(ROOT_PX * 4.4);
+
+/** The narrow right-hand axis the score history hangs its bars off. */
+export const Y_AXIS_WIDTH_NARROW = Math.round(ROOT_PX * 2.6);
 
 /** Recharts links charts with the same syncId: one hover moves both cursors. */
 export const SYNC_ID = "drip-overview";
 
-/** One tick size for every chart — big enough to read on the wall-mounted Pi. */
-export const AXIS_TICK = { fill: CHART_COLORS.inkSoft, fontSize: 12 };
+/**
+ * One tick size for every chart. In rem, like the rest of the page: SVG
+ * resolves the unit against the root exactly as CSS does, so the axes grow
+ * with the monitor instead of staying at a laptop's 12px.
+ */
+export const AXIS_TICK = { fill: CHART_COLORS.inkSoft, fontSize: "0.8rem" };
+
+/** Labels drawn onto the plot itself (halvings, extremes) sit a notch under it. */
+export const PLOT_LABEL_SIZE = "0.72rem";
 
 export const GRID_PROPS = {
   stroke: CHART_COLORS.sand,
@@ -45,7 +70,7 @@ export const DATE_AXIS_PROPS = {
   tickFormatter: formatDayMonth,
   axisLine: { stroke: CHART_COLORS.sand },
   tickLine: false,
-  minTickGap: 48,
+  minTickGap: Math.round(ROOT_PX * 3.6),
 };
 
 /** The dashed crosshair both overview charts drop under the pointer. */

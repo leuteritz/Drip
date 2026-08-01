@@ -31,7 +31,7 @@ export default function EmbedPreview({
           <DropFillIcon className="text-sm" />
         </span>
         <span className="text-sm font-bold text-cream">Drip</span>
-        <span className="rounded bg-water/30 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-cream">
+        <span className="rounded bg-water/30 px-1.5 py-px text-2xs font-bold uppercase tracking-wide text-cream">
           Bot
         </span>
       </div>
@@ -40,10 +40,10 @@ export default function EmbedPreview({
         className="rounded-md rounded-l-sm border-l-4 bg-cream/6 px-3.5 py-3"
         style={{ borderLeftColor: accent }}
       >
-        <div className="font-display text-[15px] font-semibold text-cream">
+        <div className="font-display text-sm font-semibold text-cream">
           {preview.title}
         </div>
-        <p className="mt-1 text-[12px] leading-snug text-cream/65">
+        <p className="mt-1 text-xs leading-snug text-cream/65">
           <RichText text={preview.description} />
         </p>
 
@@ -54,22 +54,22 @@ export default function EmbedPreview({
                 key={`${field.key}-${i}`}
                 className={field.inline ? "col-span-1" : "col-span-3"}
               >
-                <div className="text-[11px] font-bold leading-tight text-cream">
+                <div className="text-2xs font-bold leading-tight text-cream">
                   {field.name}
                 </div>
-                <div className="mt-0.5 text-[12px] leading-snug text-cream/65">
+                <div className="mt-0.5 text-xs leading-snug text-cream/65">
                   <RichText text={field.value} />
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-3 rounded-lg bg-rose/25 px-3 py-2 text-[12px] font-bold text-cream">
+          <p className="mt-3 rounded-lg bg-rose/25 px-3 py-2 text-xs font-bold text-cream">
             Nothing selected — no report would be sent.
           </p>
         )}
 
-        <div className="mt-3 flex items-center gap-1.5 text-[10px] text-cream/45">
+        <div className="mt-3 flex items-center gap-1.5 text-2xs text-cream/45">
           <DropFillIcon /> Drip · today
         </div>
       </div>

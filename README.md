@@ -13,13 +13,12 @@ explicit, confirmed opt-in.
 *Example history, not a real account. Shown in the night theme; there is a day one too.*
 
 The dashboard also researches its own strategy - what each indicator contributed,
-whether the score predicts anything, and what a different scoring would have done -
+whether the score predicts anything, what a different scoring would have done -
 reports your cost basis against the market and how old each lot is, and carries the
-rate it has been stacking at forward to the next round number of sats. Once a week it
-sends you the whole thing on Discord. Keys, the webhook and the state of the backend
-are reachable from the gear in the top bar, so the Pi needs no shell after the first
-install, and `Ctrl+K` reaches all of it from one search box. After dark the tank dims
-with the room.
+rate you stack at forward to the next round number of sats. Once a week it sends you
+the whole thing on Discord. `Ctrl+K` reaches all of it, keys and backend included, so
+the Pi needs no shell after the first install. After dark the tank dims with the room,
+and on a large monitor the whole page scales up rather than turning into small print.
 
 ## Install
 

@@ -38,7 +38,7 @@ export default function VersionBadge() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={`Version ${VERSION} — what's new`}
-        className="rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-bold leading-none text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+        className="rounded-full bg-teal/10 px-2 py-0.5 text-2xs font-bold leading-none text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
       >
         v{VERSION}
       </button>
@@ -47,7 +47,7 @@ export default function VersionBadge() {
         <div
           role="dialog"
           aria-label="What's new"
-          className="absolute left-0 top-full z-40 mt-2 max-h-[320px] w-[280px] overflow-y-auto rounded-2xl border-2 border-sand bg-paper p-3 text-left shadow-puff"
+          className="absolute left-0 top-full z-40 mt-2 max-h-[20rem] w-[18rem] overflow-y-auto rounded-2xl border-2 border-sand bg-paper p-3 text-left shadow-puff"
         >
           {CHANGELOG.slice(0, VISIBLE_RELEASES).map((release, i) => (
             <div key={release.version} className={i > 0 ? "mt-3 border-t border-sand pt-3" : ""}>
@@ -55,7 +55,7 @@ export default function VersionBadge() {
                 <span className="font-display text-sm font-semibold text-ink">
                   v{release.version}
                 </span>
-                <span className="text-[11px] text-ink-soft">
+                <span className="text-2xs text-ink-soft">
                   {formatDayMonthYear(release.date)}
                 </span>
               </div>

@@ -52,11 +52,11 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
 
       <div className="flex flex-col items-center gap-6 md:flex-row md:items-stretch md:gap-8">
         {/* The next round number, as a filling ring */}
-        <div className="flex shrink-0 flex-col items-center text-center md:w-[210px]">
+        <div className="flex shrink-0 flex-col items-center text-center md:w-[13rem]">
           {milestone.available ? (
             <>
               <div className="relative">
-                <svg viewBox="0 0 128 128" className="h-[128px] w-[128px] -rotate-90">
+                <svg viewBox="0 0 128 128" className="h-32 w-32 -rotate-90">
                   <circle
                     cx="64"
                     cy="64"
@@ -81,7 +81,7 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
                   <span className="font-display text-2xl font-semibold text-ink">
                     {Math.round(progress)}%
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-soft">
+                  <span className="text-2xs font-bold uppercase tracking-[0.14em] text-ink-soft">
                     of the way
                   </span>
                 </div>

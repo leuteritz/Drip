@@ -54,7 +54,7 @@ export default function SignalScreen({
       ) : (
         <>
           <div className="-mx-2 overflow-x-auto px-2">
-            <table className="w-full min-w-[620px] border-separate border-spacing-x-1 border-spacing-y-1">
+            <table className="w-full min-w-[40rem] border-separate border-spacing-x-1 border-spacing-y-1">
               <thead>
                 <tr className="text-xs font-bold uppercase tracking-wider text-ink-soft">
                   <th className="pb-1 text-left">Signal</th>
@@ -117,13 +117,13 @@ function Row({
     <tr>
       <td className="py-1 pr-2">
         <div className="text-sm font-semibold text-ink">{signal.label}</div>
-        <div className="text-[11px] text-ink-soft">
+        <div className="text-2xs text-ink-soft">
           {signal.in_score ? "in the score" : "candidate"}
         </div>
       </td>
       <td className="pr-2 text-right text-sm font-semibold text-ink tabular-nums">
         {signal.current.toFixed(2)}
-        <div className="text-[11px] font-normal text-ink-soft">
+        <div className="text-2xs font-normal text-ink-soft">
           fifth {signal.current_quintile}
         </div>
       </td>

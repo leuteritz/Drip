@@ -231,7 +231,7 @@ export default function ImportModal({
 
             {/* Expected format hint */}
             <p className="mt-4 text-xs text-ink-soft">Expected header:</p>
-            <code className="mt-1 block overflow-x-auto whitespace-nowrap rounded-lg bg-ink/5 px-3 py-2 font-mono text-[11px] text-ink-soft">
+            <code className="mt-1 block overflow-x-auto whitespace-nowrap rounded-lg bg-ink/5 px-3 py-2 font-mono text-2xs text-ink-soft">
               {EXPECTED_HEADER}
             </code>
 

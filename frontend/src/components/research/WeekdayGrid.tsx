@@ -49,7 +49,7 @@ export default function WeekdayGrid({
       ) : (
         <>
           <div className="-mx-2 overflow-x-auto px-2">
-            <table className="w-full min-w-[560px] border-separate border-spacing-1">
+            <table className="w-full min-w-[36rem] border-separate border-spacing-1">
               <thead>
                 <tr>
                   <th className="w-24" />

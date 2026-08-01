@@ -19,7 +19,7 @@ export default function Splash() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 top-[150px] z-0 flex justify-center"
+      className="pointer-events-none absolute inset-x-0 top-[9rem] z-0 flex justify-center"
     >
       {RINGS.map((ring) => (
         <span

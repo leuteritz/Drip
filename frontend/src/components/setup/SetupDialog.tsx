@@ -258,7 +258,7 @@ function CoinbaseTab({
             {result.detail}
           </span>
           {result.ok && (
-            <span className="font-mono text-[11px] text-ink-soft">
+            <span className="font-mono text-2xs text-ink-soft">
               {fmtEur(result.eur_available ?? 0)} · {stackAmount(result.btc_available ?? 0)}
             </span>
           )}
@@ -351,7 +351,7 @@ function DiscordTab({
       <button
         type="button"
         onClick={onOpenDigest}
-        className="flex w-full items-center gap-2 rounded-xl bg-sand-soft/60 px-3.5 py-3 text-left text-[13px] font-bold text-ink transition hover:opacity-80"
+        className="flex w-full items-center gap-2 rounded-xl bg-sand-soft/60 px-3.5 py-3 text-left text-xs font-bold text-ink transition hover:opacity-80"
       >
         <NewspaperIcon className="text-teal" />
         <span>

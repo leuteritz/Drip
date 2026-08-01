@@ -59,7 +59,7 @@ export default function PurchaseSearch({
 
   return (
     <div className="flex flex-col gap-3 border-b-2 border-sand bg-sand-soft/50 px-4 py-3.5 md:flex-row md:items-center md:gap-4">
-      <div className="relative md:w-[420px]">
+      <div className="relative md:w-[26rem]">
         <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft" />
         <input
           ref={inputRef}
@@ -82,7 +82,7 @@ export default function PurchaseSearch({
         <div className="absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
           {active ? (
             <>
-              <span className="rounded-full bg-water-soft px-2 py-0.5 text-[11px] font-bold text-teal">
+              <span className="rounded-full bg-water-soft px-2 py-0.5 text-2xs font-bold text-teal">
                 {matched}
               </span>
               <button
@@ -99,7 +99,7 @@ export default function PurchaseSearch({
             </>
           ) : (
             !focused && (
-              <kbd className="rounded-md border border-sand bg-sand-soft px-1.5 py-0.5 text-[11px] font-bold text-ink-soft">
+              <kbd className="rounded-md border border-sand bg-sand-soft px-1.5 py-0.5 text-2xs font-bold text-ink-soft">
                 /
               </kbd>
             )

@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.2",
+    date: "2026-08-01",
+    changes: [
+      "A loss in the tank is legible after dark again: the red under the reservoir was reading as near-black on the night water, and so was the well's \"running dry\" warning",
+      "The whole page is sized by the browser's own text size now, so a large monitor gets a larger Drip instead of small print in a wide column",
+      "The read-outs under the reservoir are four cards on one baseline — signal, market, bitcoin, well — instead of five that rewrapped at every width",
+    ],
+  },
+  {
     version: "2.1",
     date: "2026-08-01",
     changes: [

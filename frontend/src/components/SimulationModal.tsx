@@ -134,7 +134,7 @@ export default function SimulationModal({
 
             {result && result.series.length > 1 ? (
               <div className="mt-4">
-                <div className="h-[420px]">
+                <div className="h-[21rem]">
                   <ComparisonChart data={result.series} />
                 </div>
                 <p className="mt-3 flex items-center gap-2 text-sm text-ink-soft">
