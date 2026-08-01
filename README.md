@@ -10,7 +10,7 @@ explicit, confirmed opt-in.
 
 ![Drip dashboard](docs/screenshot-dashboard.png)
 
-*Example history, not a real account.*
+*Example history, not a real account. Shown in the night theme; there is a day one too.*
 
 The dashboard also researches its own strategy - what each indicator contributed,
 whether the score predicts anything, and what a different scoring would have done -

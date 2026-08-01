@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.1",
+    date: "2026-08-01",
+    changes: [
+      "The README now shows Drip after dark — both screenshots are taken in the night theme",
+    ],
+  },
+  {
     version: "2.0",
     date: "2026-08-01",
     changes: [
