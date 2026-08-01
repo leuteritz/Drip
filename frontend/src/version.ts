@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.19",
+    date: "2026-08-01",
+    changes: [
+      "Ctrl+K — ⌘K on a Mac — opens one search box that reaches every section, every dialog and every switch, so nothing is hidden in a corner of the header any more",
+      "Switching to live trading is deliberately not in it: that one keeps its confirmation in the top bar",
+    ],
+  },
+  {
     version: "1.18",
     date: "2026-08-01",
     changes: [

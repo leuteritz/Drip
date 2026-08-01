@@ -210,9 +210,11 @@ export default function App() {
             performance={performance}
             balance={balance}
             themeChoice={themeChoice}
+            includeDryRun={includeDryRun}
             scrollRef={scrollRef}
             onSetTheme={setThemeChoice}
             onToggleUnit={toggleUnit}
+            onToggleDryRun={onToggleDryRun}
             onSimulate={() => setShowSim(true)}
             onTestBuy={testBuy}
             onBuyNow={buyNow}

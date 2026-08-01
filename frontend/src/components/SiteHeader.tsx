@@ -1,4 +1,11 @@
-import { useState, type ReactNode, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import DropFillIcon from "~icons/ph/drop-fill";
 import DropSlashIcon from "~icons/ph/drop-slash";
 import type {
@@ -11,8 +18,10 @@ import type {
   Performance,
   RunResult,
 } from "../api/client";
+import { isPaletteShortcut } from "../lib/commands";
 import { fmtEur, formatDayMonth } from "../lib/format";
 import type { ThemeChoice } from "../lib/theme";
+import { useUnit } from "../lib/units";
 import DigestDialog from "./digest/DigestDialog";
 import FaucetControls from "./header/FaucetControls";
 import { NAV, useScrolled, useScrollSpy, type Section } from "./header/hooks";
@@ -33,6 +42,9 @@ import TankBackdrop from "./header/TankBackdrop";
 import ThemeToggle from "./header/ThemeToggle";
 import VersionBadge from "./header/VersionBadge";
 import ManualBuyDialog from "./ManualBuyDialog";
+import { buildCommands } from "./palette/buildCommands";
+import CommandPalette from "./palette/CommandPalette";
+import PaletteButton from "./palette/PaletteButton";
 import SetupDialog, { type SetupTab } from "./setup/SetupDialog";
 
 /**
@@ -51,9 +63,11 @@ export default function SiteHeader({
   performance,
   balance,
   themeChoice,
+  includeDryRun,
   scrollRef,
   onSetTheme,
   onToggleUnit,
+  onToggleDryRun,
   onSimulate,
   onTestBuy,
   onBuyNow,
@@ -77,9 +91,11 @@ export default function SiteHeader({
   performance: Performance | null;
   balance: AccountBalance | null;
   themeChoice: ThemeChoice;
+  includeDryRun: boolean;
   scrollRef: RefObject<HTMLDivElement | null>;
   onSetTheme: (choice: ThemeChoice) => void;
   onToggleUnit: () => void;
+  onToggleDryRun: (v: boolean) => void;
   onSimulate: () => void;
   onTestBuy: () => void;
   onBuyNow: (amountEur: number) => Promise<void>;
@@ -105,10 +121,66 @@ export default function SiteHeader({
   // Which tab Setup opens on - null while closed, so the credential pill can
   // land straight on Coinbase.
   const [setupTab, setSetupTab] = useState<SetupTab | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const unit = useUnit();
 
-  const jumpTo = (id: Section) => {
+  const jumpTo = useCallback((id: Section) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  }, []);
+
+  // Ctrl/Cmd-K from anywhere in the scroll. Registered here rather than in the
+  // palette because the palette only exists once it is open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!isPaletteShortcut(e)) return;
+      e.preventDefault();
+      setPaletteOpen((open) => !open);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const commands = useMemo(
+    () =>
+      buildCommands({
+        indicators,
+        status,
+        unit,
+        themeChoice,
+        includeDryRun,
+        jumpTo,
+        openSetup: () => setSetupTab("coinbase"),
+        openSystem: () => setSetupTab("system"),
+        openDigest: () => setDigestOpen(true),
+        openBuy: () => setBuyOpen(true),
+        openExplain: () => setExplainOpen(true),
+        openPanel: () => setPanelOpen(true),
+        onSimulate,
+        onTestBuy,
+        onPause,
+        onResume,
+        onSetDryRun,
+        onSetTheme,
+        onToggleUnit,
+        onToggleDryRun,
+      }),
+    [
+      includeDryRun,
+      indicators,
+      jumpTo,
+      onPause,
+      onResume,
+      onSetDryRun,
+      onSetTheme,
+      onSimulate,
+      onTestBuy,
+      onToggleDryRun,
+      onToggleUnit,
+      status,
+      themeChoice,
+      unit,
+    ],
+  );
 
   return (
     <>
@@ -144,6 +216,7 @@ export default function SiteHeader({
                 <DropSlashIcon /> Off until {formatDayMonth(status.paused_until)}
               </HeaderPill>
             )}
+            <PaletteButton onOpen={() => setPaletteOpen(true)} />
             <ThemeToggle choice={themeChoice} onChange={onSetTheme} />
             <SetupButton
               status={status}
@@ -266,6 +339,10 @@ export default function SiteHeader({
           onSend={onSendDigest}
           onClose={() => setDigestOpen(false)}
         />
+      )}
+
+      {paletteOpen && (
+        <CommandPalette commands={commands} onClose={() => setPaletteOpen(false)} />
       )}
 
       {explainOpen && indicators && (

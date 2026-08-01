@@ -311,11 +311,15 @@ export function Modal({
   onClose,
   className = "",
   closeOnBackdrop = false,
+  align = "center",
 }: {
   children: ReactNode;
   onClose: () => void;
   className?: string;
   closeOnBackdrop?: boolean;
+  /** "top" is for the command palette, which wants to sit under the pointer
+   *  rather than in the middle of a page it is about to jump you around. */
+  align?: "center" | "top";
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -327,7 +331,9 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4"
+      className={`fixed inset-0 z-50 flex justify-center bg-scrim p-4 ${
+        align === "top" ? "items-start pt-[12vh]" : "items-center"
+      }`}
       onClick={closeOnBackdrop ? onClose : undefined}
     >
       <Card className={className} onClick={(e) => e.stopPropagation()}>
