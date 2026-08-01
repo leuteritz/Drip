@@ -53,6 +53,10 @@ class Analysis:
             else 0.0,
             "multiplier": self.multiplier,
             "signal": self.signal,
+            # The signal's own colour, one of the five palette hexes. It exists
+            # for the Discord embed; the dashboard reads it too, so the browser
+            # tab's drop carries the same colour as the message would.
+            "color": self.color,
         }
 
 

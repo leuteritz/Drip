@@ -13,6 +13,7 @@ import {
   type Purchase,
   type RunResult,
 } from "./api/client";
+import { hexFromSignalColor, paintFavicon } from "./lib/favicon";
 import { useTheme } from "./lib/theme";
 import { UnitProvider, useUnitChoice } from "./lib/units";
 import SiteHeader from "./components/SiteHeader";
@@ -174,6 +175,12 @@ export default function App() {
     },
     [includeDryRun, loadPerformance, reloadBalance, reloadPurchases],
   );
+
+  // The tab's drop carries the day's signal colour, so a pinned Drip says
+  // something from the tab strip alone.
+  useEffect(() => {
+    if (indicators) paintFavicon(hexFromSignalColor(indicators.color));
+  }, [indicators]);
 
   useEffect(() => {
     (async () => {

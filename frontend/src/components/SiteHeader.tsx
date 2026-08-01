@@ -36,6 +36,7 @@ import {
 } from "./header/Readouts";
 import ReportBadge from "./header/ReportBadge";
 import Reservoir from "./header/Reservoir";
+import Splash from "./header/Splash";
 import SetupButton from "./header/SetupButton";
 import SignalBreakdown from "./header/SignalBreakdown";
 import TankBackdrop from "./header/TankBackdrop";
@@ -122,7 +123,14 @@ export default function SiteHeader({
   // land straight on Coinbase.
   const [setupTab, setSetupTab] = useState<SetupTab | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Bumped by every landed buy, and only used as a key: remounting Splash is
+  // what replays the animation.
+  const [splash, setSplash] = useState(0);
   const unit = useUnit();
+
+  useEffect(() => {
+    if (runResult) setSplash((n) => n + 1);
+  }, [runResult]);
 
   const jumpTo = useCallback((id: Section) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -250,6 +258,7 @@ export default function SiteHeader({
           below the sticky bar; every bit of data lives submerged on the water in cream. */}
       <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-16 pt-16 text-cream md:px-10 md:pb-20">
         <TankBackdrop />
+        {splash > 0 && <Splash key={splash} />}
 
         <div className="relative z-10 mx-auto max-w-[1180px]">
           {/* Centered reservoir headline, fully submerged below the waterline */}

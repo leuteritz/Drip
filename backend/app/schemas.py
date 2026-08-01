@@ -86,6 +86,8 @@ class IndicatorsResponse(BaseModel):
     ma_distance_pct: float
     multiplier: float
     signal: str
+    # The signal colour as an int, the same one the Discord embed uses.
+    color: int
 
 
 class CandleResponse(BaseModel):

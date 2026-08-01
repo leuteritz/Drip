@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.20",
+    date: "2026-08-01",
+    changes: [
+      "A buy now lands in the tank: rings spread from the waterline when one goes through",
+      "The browser tab's drop takes the day's signal colour, so a pinned Drip says something without being opened",
+      "Figures that sit in a column line up digit for digit again — the heading typeface has no such thing as an even-width digit, so the tables no longer use it",
+    ],
+  },
+  {
     version: "1.19",
     date: "2026-08-01",
     changes: [

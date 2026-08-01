@@ -73,12 +73,12 @@ export default function ScoringVariants({
                     </div>
                   </td>
                   <td className="py-2 pr-3 text-right text-ink-soft">&mdash;</td>
-                  <td className="py-2 pr-3 text-right font-display font-semibold text-ink">
+                  <td className="py-2 pr-3 text-right font-semibold tabular-nums text-ink">
                     0.00 pp
                   </td>
                   <td className="py-2 pr-3 text-right text-ink-soft">&mdash;</td>
                   <td className="py-2 pr-3 text-right text-ink-soft">&mdash;</td>
-                  <td className="py-2 text-right font-display font-semibold text-ink">
+                  <td className="py-2 text-right font-semibold tabular-nums text-ink">
                     {fmtEur(data.dca_invested_eur, 0)}
                   </td>
                 </tr>
@@ -138,23 +138,23 @@ function VariantRow({
         </div>
         <div className="text-xs text-ink-soft">{variant.description}</div>
       </td>
-      <td className="py-2 pr-3 text-right font-display font-semibold text-ink tabular-nums">
+      <td className="py-2 pr-3 text-right font-semibold text-ink tabular-nums">
         {variant.win_rate.toFixed(0)}%
       </td>
       <td
-        className={`py-2 pr-3 text-right font-display font-semibold tabular-nums ${
+        className={`py-2 pr-3 text-right font-semibold tabular-nums ${
           variant.median_pp >= 0 ? "text-teal" : "text-rose"
         }`}
       >
         {fmtPp(variant.median_pp)}
       </td>
-      <td className="py-2 pr-3 text-right font-display font-semibold tabular-nums text-rose">
+      <td className="py-2 pr-3 text-right font-semibold tabular-nums text-rose">
         {fmtPp(variant.worst_pp)}
       </td>
-      <td className="py-2 pr-3 text-right font-display font-semibold tabular-nums text-teal">
+      <td className="py-2 pr-3 text-right font-semibold tabular-nums text-teal">
         {fmtPp(variant.best_pp)}
       </td>
-      <td className="py-2 text-right font-display font-semibold text-ink tabular-nums">
+      <td className="py-2 text-right font-semibold text-ink tabular-nums">
         {fmtEur(variant.invested_eur, 0)}
         <div className="text-[11px] font-normal text-ink-soft">
           {extra >= 0 ? "+" : ""}

@@ -102,6 +102,8 @@ export interface Indicators {
   ma_distance_pct: number;
   multiplier: number;
   signal: string;
+  /** The signal's colour as an int — the same one the Discord embed uses. */
+  color: number;
 }
 
 /** The next round number of sats. Absent fields mean `available` is false. */

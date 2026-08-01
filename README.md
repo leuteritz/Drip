@@ -19,8 +19,8 @@ rate it has actually been stacking at forward to the next round number of sats. 
 a week it sends you the whole thing on Discord. Keys, the webhook and the state of the backend
 itself are all reachable from the gear in the top bar, so the Pi needs no shell after
 the first install, and `Ctrl+K` reaches all of it from one search box. After dark the
-tank dims with the room, and clicking your stack figure reads every bitcoin amount in
-sats.
+tank dims with the room, clicking your stack figure reads every bitcoin amount in
+sats, and the tab's drop carries the day's signal colour.
 
 ## Install
 

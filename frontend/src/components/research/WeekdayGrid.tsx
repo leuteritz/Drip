@@ -58,7 +58,7 @@ export default function WeekdayGrid({
                       key={spread.value}
                       className="px-1 pb-1 text-center text-xs font-bold text-ink-soft"
                     >
-                      <div className="font-display text-ink">
+                      <div className="tabular-nums text-ink">
                         {spread.min_multiplier === spread.max_multiplier
                           ? `${spread.min_multiplier.toFixed(1)}×`
                           : `${spread.min_multiplier}–${spread.max_multiplier}×`}
@@ -93,7 +93,7 @@ export default function WeekdayGrid({
                                 ? `${name}, ${spread.min_multiplier}–${spread.max_multiplier}× · ${cell.purchase_count} buys`
                                 : undefined
                             }
-                            className={`rounded-lg px-2 py-2.5 text-center font-display text-sm font-semibold tabular-nums ${
+                            className={`rounded-lg px-2 py-2.5 text-center text-sm font-semibold tabular-nums ${
                               current ? "outline-2 outline-offset-1 outline-ink" : ""
                             }`}
                             style={tintFor(cell?.edge_pp ?? 0, maxAbs)}

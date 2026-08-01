@@ -66,7 +66,7 @@ export default function ForwardReturnsTable({
                 {data.buckets.map((bucket) => (
                   <tr key={bucket.multiplier} className="border-t border-sand/70">
                     <td className="py-2 pr-3">
-                      <span className="font-display font-semibold text-ink">
+                      <span className="font-semibold tabular-nums text-ink">
                         {bucket.multiplier}&times;
                       </span>
                       <span className="ml-2 text-xs text-ink-soft">
@@ -127,7 +127,7 @@ function ReturnCell({ stats, maxAbs }: { stats?: ForwardStats; maxAbs: number })
   const share = Math.min(Math.abs(stats.median_pct) / maxAbs, 1) * 100;
   return (
     <td className="py-2 pr-3 text-right align-middle">
-      <div className={`font-display font-semibold ${toneText(up ? "up" : "down")}`}>
+      <div className={`font-semibold tabular-nums ${toneText(up ? "up" : "down")}`}>
         {up ? "+" : ""}
         {stats.median_pct.toFixed(1)}%
       </div>

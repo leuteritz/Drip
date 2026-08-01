@@ -168,7 +168,7 @@ function Row({
         />
       </div>
       <div
-        className={`text-right font-display text-sm font-semibold ${
+        className={`text-right text-sm font-semibold tabular-nums ${
           emphasis ? "text-ink" : toneText(up ? "up" : "down")
         }`}
       >

@@ -121,7 +121,7 @@ function Row({
           {signal.in_score ? "in the score" : "candidate"}
         </div>
       </td>
-      <td className="pr-2 text-right font-display text-sm font-semibold text-ink tabular-nums">
+      <td className="pr-2 text-right text-sm font-semibold text-ink tabular-nums">
         {signal.current.toFixed(2)}
         <div className="text-[11px] font-normal text-ink-soft">
           fifth {signal.current_quintile}
@@ -133,7 +133,7 @@ function Row({
             title={`${quintile.from_value.toFixed(2)} to ${quintile.to_value.toFixed(
               2,
             )} · n=${quintile.n}`}
-            className={`rounded-lg px-1.5 py-2 text-center font-display text-sm font-semibold tabular-nums ${
+            className={`rounded-lg px-1.5 py-2 text-center text-sm font-semibold tabular-nums ${
               quintile.quintile === signal.current_quintile
                 ? "outline-2 outline-offset-1 outline-ink"
                 : ""
@@ -145,7 +145,7 @@ function Row({
           </div>
         </td>
       ))}
-      <td className="pl-2 text-right font-display text-sm font-semibold tabular-nums">
+      <td className="pl-2 text-right text-sm font-semibold tabular-nums">
         <span className={signal.spread_pct >= 0 ? "text-teal" : "text-rose"}>
           {signal.spread_pct >= 0 ? "+" : ""}
           {signal.spread_pct.toFixed(1)}

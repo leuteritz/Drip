@@ -224,6 +224,28 @@ body {
   }
 }
 
+/* A buy landing in the tank: rings spreading from the waterline, once. The
+   scale is set on a ring already sized in px, so all three end the same width
+   apart rather than proportionally. */
+@keyframes splash {
+  0% {
+    transform: scale(0.15);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+.animate-splash {
+  animation: splash 1.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  opacity: 0;
+}
+
 .animate-bubble {
   animation: bubble 6.5s ease-in infinite;
 }
@@ -243,7 +265,8 @@ body {
   .animate-swell,
   .animate-bubble,
   .animate-bubble-short,
-  .animate-bubble-tall {
+  .animate-bubble-tall,
+  .animate-splash {
     animation: none;
   }
 }
