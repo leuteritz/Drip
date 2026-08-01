@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.0",
+    date: "2026-08-01",
+    changes: [
+      "A wall display at /#tank: the reservoir, the price and the next buy on one screen, sized to read from across the room",
+      "Point a spare monitor at it and leave it — it refreshes itself, never scrolls, and nothing on it can spend money. Esc comes back to the dashboard",
+    ],
+  },
+  {
     version: "1.20",
     date: "2026-08-01",
     changes: [

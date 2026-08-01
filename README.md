@@ -15,12 +15,11 @@ explicit, confirmed opt-in.
 The dashboard also researches its own strategy - what each indicator contributed,
 whether the score predicts anything, and what a different scoring would have done -
 reports your cost basis against the market and how old each lot is, and carries the
-rate it has actually been stacking at forward to the next round number of sats. Once
-a week it sends you the whole thing on Discord. Keys, the webhook and the state of the backend
-itself are all reachable from the gear in the top bar, so the Pi needs no shell after
-the first install, and `Ctrl+K` reaches all of it from one search box. After dark the
-tank dims with the room, clicking your stack figure reads every bitcoin amount in
-sats, and the tab's drop carries the day's signal colour.
+rate it has been stacking at forward to the next round number of sats. Once a week it
+sends you the whole thing on Discord. Keys, the webhook and the state of the backend
+are reachable from the gear in the top bar, so the Pi needs no shell after the first
+install, and `Ctrl+K` reaches all of it from one search box. After dark the tank dims
+with the room.
 
 ## Install
 
@@ -34,9 +33,15 @@ docker compose up -d --build
 ```
 
 The dashboard is then at `http://<pi-address>:8080`. Paste your Coinbase key and
-Discord webhook into **Setup** there - the file can stay empty. To update:
-`git pull && docker compose up -d --build`. SQLite lives in the `drip-data` volume and
-survives updates.
+Discord webhook into **Setup** there. To update: `git pull && docker compose up -d
+--build`; SQLite lives in the `drip-data` volume and survives it.
+
+## On a wall
+
+`http://<pi-address>:8080/#tank` is the whole thing on one screen, sized to read from
+across the room: the reservoir, the price, and what lands next. Point a spare monitor
+at it and leave it - it refreshes itself and nothing on it can spend money. `Ctrl+K`
+gets there from the dashboard, Esc comes back.
 
 The API has **no authentication** - keep it inside your home network and do not
 forward the port to the internet.
@@ -54,8 +59,7 @@ your base amount.
 |---|---|---|---|---|---|
 | **Buy** | 1.5x | 1.25x | 1.0x | 0.75x | 0.5x |
 
-The dashboard shows this sum for the next buy - tap the drops under the amount and it
-lists what each indicator reads and the points it put in.
+The dashboard shows this sum for the next buy: tap the drops under the amount.
 
 ## Weekly report
 

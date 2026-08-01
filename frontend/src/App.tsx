@@ -14,6 +14,7 @@ import {
   type RunResult,
 } from "./api/client";
 import { hexFromSignalColor, paintFavicon } from "./lib/favicon";
+import { useIsTank } from "./lib/route";
 import { useTheme } from "./lib/theme";
 import { UnitProvider, useUnitChoice } from "./lib/units";
 import SiteHeader from "./components/SiteHeader";
@@ -21,6 +22,11 @@ import SimulationModal from "./components/SimulationModal";
 import Overview from "./pages/Dashboard";
 import HistorySection from "./pages/History";
 import Research from "./pages/Research";
+import Tank from "./pages/Tank";
+
+/** How often the wall display refetches what it shows. Five minutes is well
+ *  under the weekly rhythm it reports and gentle on a Pi. */
+const TANK_REFRESH_MS = 5 * 60 * 1000;
 
 export default function App() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -43,6 +49,7 @@ export default function App() {
   // BTC or sats, for every bitcoin quantity on the page. A context rather than
   // a prop: six components render one, and none of them are neighbours.
   const { unit, toggleUnit } = useUnitChoice();
+  const isTank = useIsTank();
 
   // Background refreshes used to fail silently, which left the header showing
   // empty skeletons whenever the backend was down. They now surface here.
@@ -182,6 +189,18 @@ export default function App() {
     if (indicators) paintFavicon(hexFromSignalColor(indicators.color));
   }, [indicators]);
 
+  // Nobody presses reload on a wall, so the kiosk refreshes what it shows.
+  // Only in kiosk mode: the dashboard is a page you are sitting in front of.
+  useEffect(() => {
+    if (!isTank) return;
+    const id = window.setInterval(() => {
+      reloadStatus();
+      loadPerformance(includeDryRun);
+      api.getIndicators().then(setIndicators).catch(report);
+    }, TANK_REFRESH_MS);
+    return () => window.clearInterval(id);
+  }, [includeDryRun, isTank, loadPerformance, reloadStatus, report]);
+
   useEffect(() => {
     (async () => {
       const [st, set, purch, dig] = await Promise.all([
@@ -200,6 +219,19 @@ export default function App() {
       api.getIndicators().then(setIndicators).catch(report);
     })();
   }, [loadPerformance, reloadBalance, report]);
+
+  if (isTank) {
+    return (
+      <UnitProvider value={unit}>
+        <Tank
+          performance={performance}
+          indicators={indicators}
+          settings={settings}
+          status={status}
+        />
+      </UnitProvider>
+    );
+  }
 
   return (
     <UnitProvider value={unit}>

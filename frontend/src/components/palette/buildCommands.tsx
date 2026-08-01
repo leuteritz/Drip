@@ -5,6 +5,7 @@ import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
 import EyeIcon from "~icons/ph/eye";
 import FlaskIcon from "~icons/ph/flask";
 import GearIcon from "~icons/ph/gear-six";
+import MonitorIcon from "~icons/ph/monitor";
 import MoonStarsIcon from "~icons/ph/moon-stars";
 import NewspaperIcon from "~icons/ph/newspaper";
 import PauseIcon from "~icons/ph/pause";
@@ -14,6 +15,7 @@ import SlidersIcon from "~icons/ph/sliders-horizontal";
 import SunIcon from "~icons/ph/sun";
 import type { BotStatus, Indicators } from "../../api/client";
 import type { Command } from "../../lib/commands";
+import { enterTank } from "../../lib/route";
 import type { ThemeChoice } from "../../lib/theme";
 import type { Unit } from "../../lib/units";
 import { NAV, type Section } from "../header/hooks";
@@ -106,6 +108,14 @@ export function buildCommands(ctx: CommandContext): Command[] {
       group: "Open",
       Icon: ChartLineUpIcon,
       run: ctx.onSimulate,
+    },
+    {
+      id: "open-tank",
+      label: "Wall display",
+      hint: "The reservoir, the price and the next buy, big enough to read across a room",
+      group: "Open",
+      Icon: MonitorIcon,
+      run: enterTank,
     },
     {
       id: "open-panel",
