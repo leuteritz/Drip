@@ -69,7 +69,7 @@ export default function Tank({
 
   return (
     <div className="tank-water relative h-full w-full overflow-hidden text-cream">
-      <TankBackdrop />
+      <TankBackdrop multiplier={indicators?.multiplier} />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-[4vw] text-center">
         <div className={CAPTION}>Your reservoir</div>

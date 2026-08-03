@@ -270,7 +270,7 @@ export default function SiteHeader({
       {/* Hero "tank": the water fills almost the whole hero, its surface waving just
           below the sticky bar; every bit of data lives submerged on the water in cream. */}
       <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-14 pt-16 text-cream md:px-10 md:pb-16">
-        <TankBackdrop />
+        <TankBackdrop multiplier={indicators?.multiplier} />
         {splash > 0 && <Splash key={splash} />}
 
         <div className="relative z-10 mx-auto max-w-hero">

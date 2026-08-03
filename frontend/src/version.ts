@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.7",
+    date: "2026-08-03",
+    changes: [
+      "The tank now fizzes at the strength of the signal: a strong buy week has twice as many bubbles rising twice as fast as a weak one, so the water tells you what the score says before you read it",
+      "Both ends stay watchable — the quiet tank keeps half its bubbles across the full width, and the busy one is livelier without turning into a jacuzzi",
+    ],
+  },
+  {
     version: "2.6",
     date: "2026-08-03",
     changes: [
