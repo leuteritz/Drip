@@ -21,7 +21,7 @@ import {
 } from "../../lib/chart";
 import { formatDayMonth, fmtPct, fmtPp, WEEKDAYS } from "../../lib/format";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Note, RangePills, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills, Stat } from "../ui";
 
 /**
  * One backtest is one path and proves nothing. This runs the same backtest from
@@ -83,7 +83,9 @@ export default function EdgeDistribution({
       </CardHeader>
 
       {!data ? (
-        <div className="h-64 animate-pulse rounded-xl bg-sand-soft/70" />
+        <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
+          <Loading compact counter={false} what="Rolling the test window across the years" />
+        </div>
       ) : windows.length === 0 ? (
         <p className="py-10 text-center text-sm text-ink-soft">
           Not enough price history for a {windowDays}-day run yet.

@@ -273,17 +273,38 @@ export function Toggle({
   );
 }
 
-/** The bare ring. Reach for `Loading` instead unless there is genuinely
- *  nothing to say about the wait. */
-export function Spinner({ className = "h-8 w-8" }: { className?: string }) {
+/**
+ * The bare ring. Reach for `Loading` instead unless there is genuinely
+ * nothing to say about the wait.
+ *
+ * `on` is the ground it spins against: the tank is dark in both themes, so a
+ * ring up there is cream and everything below it is teal on sand.
+ */
+export function Spinner({
+  className = "h-8 w-8",
+  on = "paper",
+}: {
+  className?: string;
+  on?: Ground;
+}) {
   return (
     <div
       role="status"
       aria-label="Loading"
-      className={`animate-spin rounded-full border-[3px] border-sand border-t-teal ${className}`}
+      className={`animate-spin rounded-full border-[3px] ${
+        on === "water" ? "border-cream/25 border-t-cream" : "border-sand border-t-teal"
+      } ${className}`}
     />
   );
 }
+
+/** Paper is every card in the page; water is the tank and the wall display. */
+export type Ground = "paper" | "water";
+
+const WAIT_TEXT: Record<Ground, { what: string; why: string; hint: string }> = {
+  paper: { what: "text-ink", why: "text-ink-soft", hint: "text-teal" },
+  water: { what: "text-cream", why: "text-cream/70", hint: "text-cream/85" },
+};
 
 /** Seconds since this mounted. Half-second ticks so the first "1s" is not a
  *  whole second late; the value itself stays whole seconds. */
@@ -314,6 +335,9 @@ function useElapsed(): number {
  *
  * `slow` is the escalation, not a second sentence: keep it for what only
  * matters once the wait is already long.
+ *
+ * `on="water"` is the same wait in cream, for the tank and the wall display —
+ * the one place in the app where type sits on the water rather than on paper.
  */
 export function Loading({
   what,
@@ -321,33 +345,42 @@ export function Loading({
   slow,
   slowAfter = 6,
   compact = false,
+  on = "paper",
+  counter = true,
 }: {
   what: string;
   why?: string;
   slow?: string;
   slowAfter?: number;
   compact?: boolean;
+  on?: Ground;
+  /** Off where several waits sit side by side — four ticking clocks in one row
+   *  is noise, and the page already carries one in the sticky bar. */
+  counter?: boolean;
 }) {
   const seconds = useElapsed();
+  const text = WAIT_TEXT[on];
   // Below two seconds the number is noise — most calls never reach it.
-  const clock = seconds >= 2 && (
-    <span className="ml-2 font-medium tabular-nums text-ink-soft">{seconds}s</span>
+  const clock = counter && seconds >= 2 && (
+    <span className={`ml-2 font-medium tabular-nums ${text.why}`}>{seconds}s</span>
   );
   const hint = seconds >= slowAfter ? slow : undefined;
 
   if (compact) {
     return (
       <div className="flex items-start gap-3 py-1">
-        <Spinner className="mt-1 h-4 w-4 border-2" />
+        <Spinner className="mt-1 h-4 w-4 border-2" on={on} />
         <div className="min-w-0">
-          <p className="text-sm font-bold text-ink">
+          <p className={`text-sm font-bold ${text.what}`}>
             {what}
             {clock}
           </p>
           {why && (
-            <p className="mt-1 text-xs leading-relaxed text-ink-soft">{why}</p>
+            <p className={`mt-1 text-xs leading-relaxed ${text.why}`}>{why}</p>
           )}
-          {hint && <p className="mt-1 text-xs leading-relaxed text-teal">{hint}</p>}
+          {hint && (
+            <p className={`mt-1 text-xs leading-relaxed ${text.hint}`}>{hint}</p>
+          )}
         </div>
       </div>
     );
@@ -355,19 +388,19 @@ export function Loading({
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 py-12 text-center">
-      <Spinner />
+      <Spinner on={on} />
       <div>
-        <p className="text-base font-bold text-ink">
+        <p className={`text-base font-bold ${text.what}`}>
           {what}
           {clock}
         </p>
         {why && (
-          <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-ink-soft">
+          <p className={`mx-auto mt-1.5 max-w-md text-sm leading-relaxed ${text.why}`}>
             {why}
           </p>
         )}
         {hint && (
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-teal">
+          <p className={`mx-auto mt-2 max-w-md text-sm leading-relaxed ${text.hint}`}>
             {hint}
           </p>
         )}

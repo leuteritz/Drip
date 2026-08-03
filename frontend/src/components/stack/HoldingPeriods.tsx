@@ -2,7 +2,7 @@ import WarningIcon from "~icons/ph/warning";
 import type { Holdings, RipeningMonth } from "../../api/client";
 import { fmtEur, fmtEurSigned, formatDayMonthYear } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Note, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat } from "../ui";
 
 /**
  * How old each lot is, against the German one-year rule (§23 EStG): bitcoin
@@ -55,7 +55,9 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
       />
 
       {!data ? (
-        <div className="h-40 animate-pulse rounded-xl bg-sand-soft/70" />
+        <div className="flex h-40 items-center justify-center rounded-xl bg-sand-soft/40">
+          <Loading compact counter={false} what="Ageing every buy you have made" />
+        </div>
       ) : (
         <>
           {nothingHeld ? (

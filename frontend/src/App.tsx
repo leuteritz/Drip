@@ -14,6 +14,7 @@ import {
   type RunResult,
 } from "./api/client";
 import { hexFromSignalColor, paintFavicon } from "./lib/favicon";
+import { useLoadTracker } from "./lib/loading";
 import { useIsTank } from "./lib/route";
 import { useTheme } from "./lib/theme";
 import { UnitProvider, useUnitChoice } from "./lib/units";
@@ -50,6 +51,10 @@ export default function App() {
   // a prop: six components render one, and none of them are neighbours.
   const { unit, toggleUnit } = useUnitChoice();
   const isTank = useIsTank();
+  // What is still in the air, for the sticky bar's pill. Every load below goes
+  // through `track` — a request the bar does not know about is a wait nobody
+  // can see once you have scrolled past the card that explains it.
+  const { inFlight, track } = useLoadTracker();
 
   // Background refreshes used to fail silently, which left the header showing
   // empty skeletons whenever the backend was down. They now surface here.
@@ -58,23 +63,26 @@ export default function App() {
   }, []);
 
   const reloadPurchases = useCallback(() => {
-    api.getPurchases().then(setPurchases).catch(report);
-  }, [report]);
+    track("purchases", api.getPurchases()).then(setPurchases).catch(report);
+  }, [report, track]);
   const reloadStatus = useCallback(() => {
-    api.getStatus().then(setStatus).catch(report);
-  }, [report]);
+    track("status", api.getStatus()).then(setStatus).catch(report);
+  }, [report, track]);
   const loadPerformance = useCallback(
     (dry: boolean) => {
-      api.getPerformance(dry).then(setPerformance).catch(report);
+      track("performance", api.getPerformance(dry)).then(setPerformance).catch(report);
     },
-    [report],
+    [report, track],
   );
   const reloadBalance = useCallback(() => {
-    api.getBalance().then(setBalance).catch(report);
-  }, [report]);
+    track("balance", api.getBalance()).then(setBalance).catch(report);
+  }, [report, track]);
   const reloadDigest = useCallback(() => {
-    api.getDigest().then(setDigest).catch(report);
-  }, [report]);
+    track("digest", api.getDigest()).then(setDigest).catch(report);
+  }, [report, track]);
+  const reloadIndicators = useCallback(() => {
+    track("indicators", api.getIndicators()).then(setIndicators).catch(report);
+  }, [report, track]);
 
   // A key or webhook saved in Setup changes what the rest of the page may
   // claim: whether the header can show a balance, whether the report can be
@@ -196,18 +204,18 @@ export default function App() {
     const id = window.setInterval(() => {
       reloadStatus();
       loadPerformance(includeDryRun);
-      api.getIndicators().then(setIndicators).catch(report);
+      reloadIndicators();
     }, TANK_REFRESH_MS);
     return () => window.clearInterval(id);
-  }, [includeDryRun, isTank, loadPerformance, reloadStatus, report]);
+  }, [includeDryRun, isTank, loadPerformance, reloadIndicators, reloadStatus]);
 
   useEffect(() => {
     (async () => {
       const [st, set, purch, dig] = await Promise.all([
-        api.getStatus().catch(report),
-        api.getSettings().catch(report),
-        api.getPurchases().catch(report),
-        api.getDigest().catch(report),
+        track("status", api.getStatus()).catch(report),
+        track("settings", api.getSettings()).catch(report),
+        track("purchases", api.getPurchases()).catch(report),
+        track("digest", api.getDigest()).catch(report),
       ]);
       if (st) setStatus(st);
       if (set) setSettings(set);
@@ -216,9 +224,9 @@ export default function App() {
       loadPerformance(true);
       reloadBalance();
       // Indicators last: the first call may fetch 350 days of candles.
-      api.getIndicators().then(setIndicators).catch(report);
+      reloadIndicators();
     })();
-  }, [loadPerformance, reloadBalance, report]);
+  }, [loadPerformance, reloadBalance, reloadIndicators, report, track]);
 
   if (isTank) {
     return (
@@ -248,6 +256,7 @@ export default function App() {
             indicators={indicators}
             performance={performance}
             balance={balance}
+            loading={inFlight}
             themeChoice={themeChoice}
             includeDryRun={includeDryRun}
             scrollRef={scrollRef}
@@ -278,7 +287,11 @@ export default function App() {
               onToggleDryRun={onToggleDryRun}
             />
             <Research scrollRef={scrollRef} />
-            <HistorySection purchases={purchases} onChanged={reloadPurchases} />
+            <HistorySection
+              purchases={purchases}
+              loading={inFlight.includes("purchases")}
+              onChanged={reloadPurchases}
+            />
           </main>
         </div>
 

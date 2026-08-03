@@ -1,6 +1,6 @@
 import type { CandidateSignals, SignalScreenRow } from "../../api/client";
 import { tintFor } from "../../lib/chart";
-import { Card, CardHeader, Note, RangePills } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills } from "../ui";
 
 /**
  * Every signal, the three that are live and three that are not, put through
@@ -76,7 +76,9 @@ export default function SignalScreen({
       </CardHeader>
 
       {!data ? (
-        <div className="h-64 animate-pulse rounded-xl bg-sand-soft/70" />
+        <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
+          <Loading compact counter={false} what="Screening the signals that are not in the score" />
+        </div>
       ) : (
         <>
           <div className="-mx-2 overflow-x-auto px-2">

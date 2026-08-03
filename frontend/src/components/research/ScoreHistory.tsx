@@ -23,7 +23,7 @@ import {
 } from "../../lib/chart";
 import { fmtEur, formatDayMonth } from "../../lib/format";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Note, RangePills } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills } from "../ui";
 
 /**
  * The score read daily instead of weekly, against the price it was read from.
@@ -82,7 +82,9 @@ export default function ScoreHistory({
       </CardHeader>
 
       {!data ? (
-        <div className="h-64 animate-pulse rounded-xl bg-sand-soft/70" />
+        <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
+          <Loading compact counter={false} what="Re-scoring every day in the window" />
+        </div>
       ) : (
         <>
           <div className="h-72">

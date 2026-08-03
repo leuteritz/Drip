@@ -9,6 +9,7 @@ import QuestionIcon from "~icons/ph/question";
 import type { BotSettings, BotStatus, Indicators } from "../../api/client";
 import { fmtEur, formatDayMonth, formatWeekdayTime, WEEKDAYS } from "../../lib/format";
 import { ScoreDrops } from "../drops";
+import { Loading } from "../ui";
 import { useNow, WEEK_MS } from "./hooks";
 
 /** Which value on the card is being edited. Owned by SiteHeader, so the command
@@ -439,23 +440,36 @@ export default function NextBuyActions({
                   ))
                 )}
               </div>
+            ) : settings && indicators ? (
+              <button
+                type="button"
+                onClick={onExplain}
+                title="What makes the next buy this size"
+                className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg text-sm font-semibold text-teal/60 transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+              >
+                <ScoreDrops multiplier={indicators.multiplier} size="text-base" />
+                <span>
+                  {fmtEur(settings.base_amount_eur, 0)} base &times;{" "}
+                  {indicators.multiplier}
+                </span>
+                <QuestionIcon className="text-base opacity-70" />
+              </button>
             ) : (
-              settings &&
-              indicators && (
-                <button
-                  type="button"
-                  onClick={onExplain}
-                  title="What makes the next buy this size"
-                  className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg text-sm font-semibold text-teal/60 transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
-                >
-                  <ScoreDrops multiplier={indicators.multiplier} size="text-base" />
-                  <span>
-                    {fmtEur(settings.base_amount_eur, 0)} base &times;{" "}
-                    {indicators.multiplier}
-                  </span>
-                  <QuestionIcon className="text-base opacity-70" />
-                </button>
-              )
+              // The dash above is a figure that cannot be worked out yet, so
+              // this row says which half is missing instead of leaving it to
+              // look like a bot with nothing scheduled.
+              <div className="mt-3">
+                <Loading
+                  compact
+                  counter={false}
+                  what={settings ? "Scoring this week" : "Reading your settings"}
+                  why={
+                    settings
+                      ? "Your base amount is set — the multiplier needs 350 days of prices."
+                      : "The base amount and the schedule behind the next buy."
+                  }
+                />
+              </div>
             )}
           </div>
         </div>

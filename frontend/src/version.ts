@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.8",
+    date: "2026-08-03",
+    changes: [
+      "Nothing waits silently any more: every figure that is not there yet says what is being fetched and why it takes a moment — the reservoir, the four chips on the water, the next buy, every card below and the wall display",
+      "The bar at the top names what the page is still waiting for and clears itself the moment everything has arrived, so a cold Pi is visibly busy from anywhere in the scroll",
+      "The buy history and the cost-basis card no longer say \"no buys yet\" while they are still loading",
+    ],
+  },
+  {
     version: "2.7",
     date: "2026-08-03",
     changes: [

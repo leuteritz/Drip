@@ -1,7 +1,7 @@
 import LockIcon from "~icons/ph/lock-simple";
 import type { ScoringVariant, ScoringVariants } from "../../api/client";
 import { fmtEur, fmtPp, WEEKDAYS } from "../../lib/format";
-import { Card, CardHeader, Note, RangePills } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills } from "../ui";
 
 /**
  * What the bot would have done under a different scoring, put through the same
@@ -68,7 +68,9 @@ export default function ScoringVariants({
       </CardHeader>
 
       {!data ? (
-        <div className="h-48 animate-pulse rounded-xl bg-sand-soft/70" />
+        <div className="flex h-48 items-center justify-center rounded-xl bg-sand-soft/40">
+          <Loading compact counter={false} what="Replaying the alternative scorings" />
+        </div>
       ) : (
         <>
           <div className="-mx-2 overflow-x-auto px-2">

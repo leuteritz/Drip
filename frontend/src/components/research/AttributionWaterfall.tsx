@@ -1,6 +1,6 @@
 import type { Attribution } from "../../api/client";
 import { fmtEur, fmtEurSigned, fmtPp, WEEKDAYS } from "../../lib/format";
-import { Card, CardHeader, Note, RangePills, Stat, toneText } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills, Stat, toneText } from "../ui";
 
 /**
  * Where the edge over plain DCA comes from, as a waterfall.
@@ -196,12 +196,14 @@ function Row({
   );
 }
 
+/** The bars' space, held open and saying what is being worked out in it. */
 function Skeleton({ rows }: { rows: number }) {
   return (
-    <div className="flex flex-col gap-2">
-      {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="h-7 animate-pulse rounded-lg bg-sand-soft/70" />
-      ))}
+    <div
+      className="flex items-center justify-center rounded-xl bg-sand-soft/40"
+      style={{ height: `${rows * 2.25}rem` }}
+    >
+      <Loading compact counter={false} what="Splitting the edge between the three signals" />
     </div>
   );
 }

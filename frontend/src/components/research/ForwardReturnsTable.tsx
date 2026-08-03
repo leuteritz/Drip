@@ -1,5 +1,5 @@
 import type { ForwardReturns, ForwardStats } from "../../api/client";
-import { Card, CardHeader, Note, RangePills, toneText } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills, toneText } from "../ui";
 
 /**
  * Does a high score actually mark a cheap entry?
@@ -72,7 +72,9 @@ export default function ForwardReturnsTable({
       </CardHeader>
 
       {!data ? (
-        <div className="h-48 animate-pulse rounded-xl bg-sand-soft/70" />
+        <div className="flex h-48 items-center justify-center rounded-xl bg-sand-soft/40">
+          <Loading compact counter={false} what="Measuring what came after each score" />
+        </div>
       ) : (
         <>
           <div className="-mx-2 overflow-x-auto px-2">

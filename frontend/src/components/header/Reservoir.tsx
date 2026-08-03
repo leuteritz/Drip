@@ -3,6 +3,7 @@ import TrendUpIcon from "~icons/ph/trend-up";
 import type { Performance } from "../../api/client";
 import { fmtEur, fmtPct } from "../../lib/format";
 import { useStackAmount, useUnit } from "../../lib/units";
+import { Loading } from "../ui";
 
 /**
  * The centered headline: portfolio value, then one line under it.
@@ -70,10 +71,17 @@ export default function Reservoir({
           </div>
         </>
       ) : (
-        <>
-          <div className="mx-auto mt-3 h-24 w-[22rem] max-w-full animate-pulse rounded-2xl bg-cream/20" />
-          <div className="mx-auto mt-5 h-8 w-[28rem] max-w-full animate-pulse rounded-lg bg-cream/15" />
-        </>
+        // The headline is the one figure the whole screen is about, so its
+        // wait says what is being counted rather than pulsing a grey bar the
+        // size of a number nobody can read yet.
+        <div className="mt-6 min-h-[9.5rem]">
+          <Loading
+            on="water"
+            what="Counting your reservoir"
+            why="Every buy you have made, priced at what bitcoin costs right now."
+            slow="Coinbase is taking its time with the price — the figures below arrive as soon as it answers."
+          />
+        </div>
       )}
     </div>
   );

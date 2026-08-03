@@ -17,7 +17,8 @@ Underneath, the dashboard researches its own strategy, reports what you paid aga
 the market, and carries the rate you stack at forward to the next round number of sats.
 Setting the drip happens on the next-buy card: click the amount, or the day and time.
 Once a week the whole thing arrives on Discord. `Ctrl+K` reaches all of it, keys
-included, so the Pi needs no shell after the first install.
+included, so the Pi needs no shell after the first install. Nothing waits silently:
+whatever is not on screen yet says what it is fetching and why.
 
 ## Install
 
@@ -37,9 +38,8 @@ Discord webhook into **Setup** there. To update: `git pull && docker compose up 
 ## On a wall
 
 `http://<pi-address>:8080/#tank` is the whole thing on one screen, sized to read from
-across the room: the reservoir, the price, and what lands next. Point a spare monitor
-at it and leave it - it refreshes itself and nothing on it can spend money. `Ctrl+K`
-gets there from the dashboard, Esc comes back.
+across the room. Point a spare monitor at it and leave it - it refreshes itself and
+nothing on it can spend money. `Ctrl+K` gets there, Esc comes back.
 
 The API has **no authentication** - keep it inside your home network and do not
 forward the port to the internet.

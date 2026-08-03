@@ -12,6 +12,7 @@ import type {
 } from "../api/client";
 import TankBackdrop from "../components/header/TankBackdrop";
 import { ScoreDrops } from "../components/drops";
+import { Loading } from "../components/ui";
 import { fmtEur, fmtPct, formatWeekdayTime, WEEKDAYS } from "../lib/format";
 import { leaveTank } from "../lib/route";
 import { useStackAmount } from "../lib/units";
@@ -101,7 +102,18 @@ export default function Tank({
             </div>
           </>
         ) : (
-          <div className="mt-[4vh] h-[16vh] w-[60vw] animate-pulse rounded-3xl bg-cream/15" />
+          // Nobody is sitting in front of a wall display to press reload, so
+          // it says what it is waiting for rather than pulsing a grey slab —
+          // from across the room that is the difference between "starting up"
+          // and "broken".
+          <div className="mt-[4vh]">
+            <Loading
+              on="water"
+              what="Counting your reservoir"
+              why="Every buy you have made, priced at what bitcoin costs right now."
+              slow="Still waiting on Coinbase — this screen refreshes itself, so it will fill in on its own."
+            />
+          </div>
         )}
 
         {/* Three things worth glancing at, on the waterline */}

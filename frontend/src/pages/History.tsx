@@ -12,15 +12,18 @@ import { buildFilter } from "../lib/query";
 import { ScoreDrops } from "../components/drops";
 import PurchaseSearch from "../components/history/PurchaseSearch";
 import ImportModal from "../components/ImportModal";
-import { Badge, Card, Modal, SectionHeading } from "../components/ui";
+import { Badge, Card, Loading, Modal, SectionHeading } from "../components/ui";
 
 type SortKey = "timestamp" | "price_eur" | "amount_eur" | "score";
 
 export default function HistorySection({
   purchases,
+  loading,
   onChanged,
 }: {
   purchases: Purchase[];
+  /** The first fetch is still out — an empty table is not yet "no buys". */
+  loading: boolean;
   onChanged: () => void;
 }) {
   const stackAmount = useStackAmount();
@@ -253,7 +256,15 @@ export default function HistorySection({
                 {sorted.length === 0 && (
                   <tr>
                     <td colSpan={9} className="px-4 py-12 text-center text-ink-soft">
-                      {filtering ? (
+                      {loading ? (
+                        <div className="flex justify-center">
+                          <Loading
+                            compact
+                            what="Reading your buys"
+                            why="Every drip the bot has recorded, test runs included."
+                          />
+                        </div>
+                      ) : filtering ? (
                         <>
                           <p>
                             No buy matches <b className="text-ink">{query.trim()}</b>.

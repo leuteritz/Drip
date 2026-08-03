@@ -20,10 +20,12 @@ import type {
 } from "../api/client";
 import { isPaletteShortcut } from "../lib/commands";
 import { fmtEur, formatDayMonth } from "../lib/format";
+import type { LoadKey } from "../lib/loading";
 import type { ThemeChoice } from "../lib/theme";
 import { useUnit } from "../lib/units";
 import DigestDialog from "./digest/DigestDialog";
 import { NAV, useScrolled, useScrollSpy, type Section } from "./header/hooks";
+import LoadPill from "./header/LoadPill";
 import ModeToggle from "./header/ModeToggle";
 import NextBuyActions, { type SpoutEdit } from "./header/NextBuyActions";
 import {
@@ -62,6 +64,7 @@ export default function SiteHeader({
   indicators,
   performance,
   balance,
+  loading,
   themeChoice,
   includeDryRun,
   scrollRef,
@@ -90,6 +93,8 @@ export default function SiteHeader({
   indicators: Indicators | null;
   performance: Performance | null;
   balance: AccountBalance | null;
+  /** What the page is still fetching — named in the bar by `LoadPill`. */
+  loading: LoadKey[];
   themeChoice: ThemeChoice;
   includeDryRun: boolean;
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -220,6 +225,10 @@ export default function SiteHeader({
             <DropFillIcon className="text-3xl leading-none" />
             <span className="font-display text-2xl font-bold leading-none">Drip</span>
             <VersionBadge />
+            {/* Beside the brand rather than among the actions: it comes and
+                goes on its own, and nothing you might be aiming at should move
+                when it does. */}
+            <LoadPill loading={loading} />
           </div>
           <div className="flex items-center gap-2.5 md:gap-3.5">
             {status && (
@@ -281,12 +290,11 @@ export default function SiteHeader({
               glass). A grid rather than a wrapping row, so the four keep one
               width and one baseline at every size the app is read at. */}
           <div className="mt-9 grid grid-cols-2 items-stretch gap-4 lg:grid-cols-4">
-            {indicators && (
-              <>
-                <SignalReadout indicators={indicators} />
-                <MarketReadout indicators={indicators} />
-              </>
-            )}
+            {/* All four are always here, waiting or not: the signal is the
+                slowest call in the app, and a grid that fills in from two
+                chips to four moves everything under it while you read. */}
+            <SignalReadout indicators={indicators} />
+            <MarketReadout indicators={indicators} />
             <BtcReadout indicators={indicators} performance={performance} />
             <WellReadout
               balance={balance}

@@ -2,7 +2,7 @@ import WarningIcon from "~icons/ph/warning";
 import type { StrategyGrid } from "../../api/client";
 import { fmtPp, WEEKDAYS } from "../../lib/format";
 import { tintFor } from "../../lib/chart";
-import { Card, CardHeader, Note, RangePills } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills } from "../ui";
 
 /**
  * Buy weekday against multiplier spread, as a heatmap.
@@ -84,7 +84,9 @@ export default function WeekdayGrid({
       </CardHeader>
 
       {!data ? (
-        <div className="h-64 animate-pulse rounded-xl bg-sand-soft/70" />
+        <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
+          <Loading compact counter={false} what="Testing every weekday of the window" />
+        </div>
       ) : (
         <>
           <div className="-mx-2 overflow-x-auto px-2">

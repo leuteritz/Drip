@@ -23,7 +23,7 @@ import {
 import { fmtEur, fmtPct, fmtSats, formatDayMonth } from "../../lib/format";
 import { buildSatsSeries, type SatsPoint } from "../../lib/stack";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Note, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat } from "../ui";
 
 /**
  * How well the drip actually bought, which is not the same question as whether
@@ -83,7 +83,18 @@ export default function CostBasisCard({
         }
       />
 
-      {!basis || basis.purchase_count === 0 ? (
+      {/* "No buys yet" is a claim, and it cannot be made until the answer is
+          actually in — while it is out this is a wait, not an empty stack. */}
+      {!holdings ? (
+        <div className="flex h-40 items-center justify-center rounded-xl bg-sand-soft/40">
+          <Loading
+            compact
+            counter={false}
+            what="Working out what you paid"
+            why="Every buy against the market's own average over the same days."
+          />
+        </div>
+      ) : !basis || basis.purchase_count === 0 ? (
         <p className="py-8 text-center text-sm text-ink-soft">
           No buys counted yet — run a test buy or import your history.
         </p>

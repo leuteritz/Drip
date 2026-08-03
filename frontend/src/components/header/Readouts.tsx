@@ -10,6 +10,7 @@ import type {
 import { fmtEur, fmtPct } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { ScoreDrops } from "../drops";
+import { Loading, Spinner } from "../ui";
 
 /**
  * The four frosted read-outs floating on the waterline.
@@ -34,11 +35,35 @@ function FrostCard({ children }: { children: ReactNode }) {
 }
 
 /**
+ * One chip's wait, in cream on the water.
+ *
+ * Each says what *this* chip is missing rather than "loading", because the
+ * four of them arrive from three different calls and the slow one is worth
+ * naming. No seconds here — four clocks ticking in a row is noise, and the
+ * sticky bar is already counting for the page.
+ */
+function ChipWait({ what }: { what: string }) {
+  return (
+    <div className="flex w-full items-center justify-center px-1 py-3">
+      <Loading compact on="water" counter={false} what={what} />
+    </div>
+  );
+}
+
+/**
  * What the next buy will be, in one number: the multiplier. The drops above it
  * are the same fact drawn, the line under it names the signal and the score it
  * came from.
  */
-export function SignalReadout({ indicators }: { indicators: Indicators }) {
+export function SignalReadout({ indicators }: { indicators: Indicators | null }) {
+  if (!indicators) {
+    return (
+      <FrostCard>
+        <ChipWait what="Scoring this week" />
+      </FrostCard>
+    );
+  }
+
   return (
     <FrostCard>
       <ScoreDrops
@@ -56,7 +81,15 @@ export function SignalReadout({ indicators }: { indicators: Indicators }) {
 }
 
 /** Fear & Greed as the headline, with the RSI as the second opinion under it. */
-export function MarketReadout({ indicators }: { indicators: Indicators }) {
+export function MarketReadout({ indicators }: { indicators: Indicators | null }) {
+  if (!indicators) {
+    return (
+      <FrostCard>
+        <ChipWait what="Reading fear &amp; greed" />
+      </FrostCard>
+    );
+  }
+
   const rsi = Math.round(indicators.rsi);
   const rsiLabel =
     indicators.rsi < 30 ? "oversold" : indicators.rsi > 70 ? "overbought" : "neutral";
@@ -122,17 +155,31 @@ export function BtcReadout({
   indicators: Indicators | null;
   performance: Performance | null;
 }) {
+  if (!performance) {
+    return (
+      <FrostCard>
+        <ChipWait what="Fetching the price" />
+      </FrostCard>
+    );
+  }
+
   return (
     <FrostCard>
       <div className={CAPTION}>Bitcoin</div>
-      <div className={BIG_NUMBER}>
-        {performance ? fmtEur(performance.current_price, 0) : "—"}
-      </div>
-      <div className={SUB}>
-        {indicators
-          ? `${fmtPct(indicators.ma_distance_pct)} vs. its 350-day average`
-          : "—"}
-      </div>
+      <div className={BIG_NUMBER}>{fmtEur(performance.current_price, 0)}</div>
+      {indicators ? (
+        <div className={SUB}>
+          {fmtPct(indicators.ma_distance_pct)} vs. its 350-day average
+        </div>
+      ) : (
+        // The price is in but the average is not: it is the one figure here
+        // that costs 350 days of candles, so it says so rather than showing a
+        // dash that looks like a missing number.
+        <div className={`${SUB} inline-flex items-center gap-2 text-cream/70`}>
+          <Spinner className="h-3 w-3 border-[1.5px]" on="water" />
+          Averaging 350 days
+        </div>
+      )}
     </FrostCard>
   );
 }
@@ -171,17 +218,20 @@ export function WellReadout({
       ? Math.max(0, Math.min(1, eur / (settings.base_amount_eur * WELL_FULL_AT_BUYS)))
       : 0;
 
+  if (balance === null) {
+    return (
+      <FrostCard>
+        <ChipWait what="Checking your well" />
+      </FrostCard>
+    );
+  }
+
   return (
     <FrostCard>
       <div className={`flex items-center gap-1.5 ${CAPTION}`}>
         <CoinsIcon className="text-sm" /> Coinbase well
       </div>
-      {balance === null ? (
-        <>
-          <div className="h-9 w-28 animate-pulse rounded-lg bg-cream/20" />
-          <div className="h-4 w-36 animate-pulse rounded bg-cream/15" />
-        </>
-      ) : balance.configured && eur != null ? (
+      {balance.configured && eur != null ? (
         <>
           <div className={BIG_NUMBER}>{fmtEur(eur)}</div>
           <div className="relative mt-1 h-2 w-full self-stretch rounded-full bg-cream/22">
