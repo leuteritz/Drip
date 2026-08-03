@@ -193,8 +193,9 @@ def _digest_fields(digest: dict) -> list[dict]:
         ripe = (f"{stack['free_sats']:,.0f} of {held:,.0f} sats"
                 if stack["free_sats"] else "Nothing past a year yet")
         if stack["next_free_date"]:
-            ripe += (f" · next lot free {_day_month(stack['next_free_date'])} "
-                     f"(in {stack['next_free_in_days']} days)")
+            days = stack["next_free_in_days"]
+            ripe += (f" · next buy free {_day_month(stack['next_free_date'])} "
+                     f"(in {days} {'day' if days == 1 else 'days'})")
         fields.append({
             "key": "tax",
             "name": "Past the one-year rule",

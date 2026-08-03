@@ -47,7 +47,31 @@ export default function AttributionWaterfall({
 
   return (
     <Card>
-      <CardHeader title="Where the edge comes from">
+      <CardHeader
+        title="Where the edge comes from"
+        info={
+          <>
+            <p>
+              Each bar is one indicator&apos;s share of the head start Drip has over
+              plain DCA, split so the three add up to the total exactly. Fear and a
+              low RSI tend to show up on the same day, so simply removing one at a
+              time would not add up.
+            </p>
+            <p className="mt-2">
+              The scale is{" "}
+              <strong className="font-semibold text-ink">
+                percentage points of return
+              </strong>{" "}
+              (pp) &mdash; profit per euro put in, rather than profit in euros. That
+              is the only fair scale here: the multiplier deliberately puts a
+              different amount of money to work, {fmtEur(Math.abs(extraCapital))}{" "}
+              {extraCapital >= 0 ? "more" : "less"} than plain DCA over this window,
+              so the euro figure can lean the other way in a falling market without
+              the multiplier having done anything wrong.
+            </p>
+          </>
+        }
+      >
         <RangePills
           options={[
             { label: "1y", value: 365 },
@@ -65,22 +89,24 @@ export default function AttributionWaterfall({
         <>
           <div className="mb-4 flex flex-wrap gap-2">
             <Stat
-              label="Return per euro vs. plain DCA"
+              label="vs. plain DCA, per euro"
               tone={total >= 0 ? "up" : "down"}
-              hint={`over ${data.purchase_count} simulated ${
+              hint={`over ${data.purchase_count} test buys, every ${
                 WEEKDAYS[data.weekday]
-              } buys`}
+              }`}
             >
               {fmtPp(total)}
             </Stat>
             <Stat
-              label="Profit in euros"
+              label="vs. plain DCA, in euros"
               tone={data.total_eur >= 0 ? "up" : "down"}
-              hint={`${fmtEur(extraCapital)} more capital deployed`}
+              hint={`with ${fmtEur(Math.abs(extraCapital))} ${
+                extraCapital >= 0 ? "more" : "less"
+              } money put in`}
             >
               {fmtEurSigned(data.total_eur)}
             </Stat>
-            <Stat label="Window" hint={`${data.start_date} → ${data.end_date}`}>
+            <Stat label="Tested over" hint={`${data.start_date} → ${data.end_date}`}>
               {Math.round(data.days / 365) > 1
                 ? `${Math.round(data.days / 365)} years`
                 : "1 year"}
@@ -104,16 +130,8 @@ export default function AttributionWaterfall({
           </div>
 
           <Note>
-            Each bar is one indicator&apos;s share of the gap between Drip and plain
-            DCA, split so the three add up to the total exactly &mdash; a plain
-            leave-one-out split would not, because fear and a low RSI tend to show up
-            on the same day. Read in{" "}
-            <strong className="font-semibold text-ink">percentage points of
-            return</strong>, which is the only scale on which the two are comparable:
-            the multiplier deliberately puts a different amount of money to work, here{" "}
-            {fmtEur(extraCapital)} more than plain DCA over the window, so the euro
-            profit above can lean the other way in a falling market without the
-            multiplier having done anything wrong.
+            Each bar is what one indicator added to Drip&apos;s head start over plain
+            DCA. Together they make the total.
           </Note>
         </>
       )}

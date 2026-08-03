@@ -37,7 +37,33 @@ export default function SignalScreen({
 
   return (
     <Card>
-      <CardHeader title="Signals in and out of the score">
+      <CardHeader
+        title="Which signals actually work"
+        info={
+          <>
+            <p>
+              Six signals, three of them in the score and three that are not, put
+              through one identical test: sort every day by that signal, cut the days
+              into five equal groups, and report what the price did over the next{" "}
+              {data?.horizon ?? 90} days in each group. All six read &ldquo;lower is
+              cheaper&rdquo;, so the cheapest fifth is always on the left.
+            </p>
+            <p className="mt-2">
+              A signal that reads the market has a positive spread: its cheap fifth is
+              followed by better returns than its expensive fifth. A negative one
+              means what looked cheap kept getting cheaper. Read it against the years
+              it covers rather than as a law &mdash; over a stretch in which bitcoin
+              fell a long way, every signal of this kind looks bad, and the same table
+              over a rising stretch would flatter them all.
+            </p>
+            <p className="mt-2">
+              Nothing here is switched on by being in this table. The cycle position
+              is included as a control: it is a calendar with three completed cycles
+              behind it, so whatever it shows is not evidence.
+            </p>
+          </>
+        }
+      >
         <RangePills
           options={[
             { label: "1y", value: 365 },
@@ -80,23 +106,17 @@ export default function SignalScreen({
           </div>
 
           <p className="mt-3 text-xs text-ink-soft">
-            Baseline over all {data.sample_size} days:{" "}
+            An average day over these {data.sample_size} days was followed by{" "}
             <strong className="font-semibold text-ink">
               {baseline >= 0 ? "+" : ""}
               {baseline.toFixed(1)}%
             </strong>{" "}
-            &mdash; shading is relative to that, not to zero.
+            &mdash; the colours are measured against that, not against zero.
           </p>
 
           <Note>
-            A signal that reads the market has a positive spread: its cheap fifth is
-            followed by better returns than its expensive fifth. A negative one means
-            the opposite happened &mdash; what looked cheap kept getting cheaper. Read
-            this against the window it covers rather than as a law: over a stretch in
-            which bitcoin fell a long way, every mean-reversion signal is going to look
-            like this, and the same table over a rising stretch would flatter them all.
-            The cycle position is in here as a control: it is a calendar with three
-            completed observations behind it, so whatever it shows is not evidence.
+            A signal works if its cheapest fifth (left) is followed by better returns
+            than its dearest fifth (right). That difference is the spread.
           </Note>
         </>
       )}
@@ -118,7 +138,7 @@ function Row({
       <td className="py-1 pr-2">
         <div className="text-sm font-semibold text-ink">{signal.label}</div>
         <div className="text-2xs text-ink-soft">
-          {signal.in_score ? "in the score" : "candidate"}
+          {signal.in_score ? "in the score" : "not used"}
         </div>
       </td>
       <td className="pr-2 text-right text-sm font-semibold text-ink tabular-nums">

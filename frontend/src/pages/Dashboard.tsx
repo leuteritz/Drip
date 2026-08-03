@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import InfoIcon from "~icons/ph/info";
 import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
 import {
@@ -18,8 +17,9 @@ import HoldingPeriods from "../components/stack/HoldingPeriods";
 import OutlookCard from "../components/stack/Outlook";
 import {
   Card,
-  CardTitle,
+  CardHeader,
   Loading,
+  Note,
   RangePills,
   Stat,
   Toggle,
@@ -124,16 +124,36 @@ export default function Overview({
 
         {/* Chart */}
         <Card className="flex flex-col">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>My strategy vs. plain DCA</CardTitle>
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="flex items-center gap-2 text-xs font-medium text-ink-soft">
-                Include dry runs
-                <Toggle checked={includeDryRun} onChange={onToggleDryRun} />
-              </label>
-              <RangePills options={RANGES} value={rangeDays} onChange={setRangeDays} />
-            </div>
-          </div>
+          <CardHeader
+            title="My strategy vs. plain DCA"
+            info={
+              <>
+                <p>
+                  Both lines buy on the same day, for the same base amount. The only
+                  difference is Drip&apos;s multiplier: it buys 0.5&times; to 1.5&times;
+                  the base, depending on what the indicators say.
+                </p>
+                <p className="mt-2">
+                  Each line is{" "}
+                  <strong className="font-semibold text-ink">profit</strong> &mdash; how
+                  far that side is above or below the money it paid in &mdash; and not
+                  the value of the stack. Plain DCA pays in less, so its stack would be
+                  the smaller number whatever happened; profit puts the two on the same
+                  footing.
+                </p>
+                <p className="mt-2">
+                  The panel underneath is the BTC price on its own scale, with every buy
+                  marked. Hover anywhere to read both at the same day.
+                </p>
+              </>
+            }
+          >
+            <label className="flex items-center gap-2 text-xs font-medium text-ink-soft">
+              Include dry runs
+              <Toggle checked={includeDryRun} onChange={onToggleDryRun} />
+            </label>
+            <RangePills options={RANGES} value={rangeDays} onChange={setRangeDays} />
+          </CardHeader>
           {hasStrategy && latest && <StrategyKpis latest={latest} />}
           <div className="h-[26rem] md:h-[32rem]">
             {!compLoaded || (!hasStrategy && !candlesLoaded) ? (
@@ -154,30 +174,16 @@ export default function Overview({
             )}
           </div>
           {hasStrategy ? (
-            <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-ink-soft">
-              <InfoIcon className="mt-0.5 shrink-0" aria-hidden="true" />
-              <span>
-                Both lines run the same schedule and the same base amount. The only
-                difference is Drip&apos;s 0.5&times;&ndash;1.5&times; score multiplier: it
-                buys more when the indicators say cheap, less when they say expensive.
-                Each line is <strong className="font-semibold text-ink">profit</strong>{" "}
-                &mdash; how far that side is above or below the money it paid in &mdash;
-                because plain DCA puts in less, so its portfolio would be the smaller
-                number either way. Measured this way the gap between the two lines is
-                what the multiplier actually earned or cost you. The panel underneath
-                shows the BTC price on its own scale, with every buy marked; hover
-                anywhere to read both at the same day.
-              </span>
-            </p>
+            <Note>
+              The gap between the two lines is what buying more on dips has been worth
+              so far.
+            </Note>
           ) : (
             compLoaded && (
-              <p className="mt-3 flex items-start gap-1.5 text-xs text-ink-soft">
-                <InfoIcon className="mt-0.5 shrink-0" aria-hidden="true" />
-                <span>
-                  Showing the BTC price for now &mdash; once there are a couple of buys,
-                  this chart compares your strategy against plain DCA.
-                </span>
-              </p>
+              <Note>
+                Showing the BTC price for now &mdash; the comparison starts once there
+                are a couple of buys.
+              </Note>
             )
           )}
         </Card>
@@ -211,7 +217,7 @@ function StrategyKpis({ latest }: { latest: ComparisonPoint }) {
   const ahead = edge >= 0;
   return (
     <div className="mb-3 flex flex-wrap gap-2">
-      <Stat label="Drip P&L" tone={up ? "up" : "down"}>
+      <Stat label="Your profit" tone={up ? "up" : "down"} hint="what you hold, minus what you paid in">
         <span className="inline-flex items-center gap-1.5">
           {up ? <TrendUpIcon aria-hidden="true" /> : <TrendDownIcon aria-hidden="true" />}
           {up ? "+" : ""}
@@ -219,14 +225,20 @@ function StrategyKpis({ latest }: { latest: ComparisonPoint }) {
           <span className="text-sm font-normal opacity-80">({fmtPct(botPct)})</span>
         </span>
       </Stat>
-      <Stat label="vs. plain DCA" tone={ahead ? "up" : "down"}>
+      <Stat
+        label="vs. plain DCA"
+        tone={ahead ? "up" : "down"}
+        hint="the multiplier's share of that"
+      >
         {ahead ? "+" : ""}
         {fmtEur(edge)}
         <span className="ml-1.5 text-sm font-normal opacity-80">
           {ahead ? "ahead" : "behind"}
         </span>
       </Stat>
-      <Stat label="Invested">{fmtEur(latest.bot_invested)}</Stat>
+      <Stat label="Paid in" hint="every buy added up">
+        {fmtEur(latest.bot_invested)}
+      </Stat>
     </div>
   );
 }

@@ -26,12 +26,6 @@ export function Card({
   );
 }
 
-export function CardTitle({ children }: { children: ReactNode }) {
-  return (
-    <h2 className="mb-4 font-display text-xl font-semibold text-ink">{children}</h2>
-  );
-}
-
 /** Section divider used to introduce each block of the single-page app. */
 export function SectionHeading({
   icon,
@@ -209,10 +203,13 @@ export function Stat({
   );
 }
 
-/** The body of a card's ⓘ. Kept as its own component so the footnotes read the
- *  same wherever they are opened from. */
+/**
+ * The one line under a card: what the thing above it is telling you, in a
+ * sentence. Anything longer belongs in the header's ⓘ — a card that has to be
+ * read before it can be looked at is a card nobody reads.
+ */
 export function Note({ children }: { children: ReactNode }) {
-  return <p className="text-sm leading-relaxed text-ink-soft">{children}</p>;
+  return <p className="mt-4 text-sm leading-relaxed text-ink-soft">{children}</p>;
 }
 
 export function Badge({

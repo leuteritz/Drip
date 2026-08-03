@@ -117,7 +117,7 @@ export default function Research({
       <SectionHeading
         icon={<FlaskIcon />}
         title="Research"
-        subtitle="Seven ways of asking whether the score is worth its multiplier"
+        subtitle="Seven checks on one question: is buying more on dips better than buying the same amount every week?"
         actions={
           <a
             href={api.datasetUrl(1095)}
@@ -133,9 +133,9 @@ export default function Research({
         <div className="rounded-card border-2 border-water/50 bg-water-soft/30 px-4 py-3">
           <Loading
             compact
-            what={`Auditing the strategy — ${ready} of ${analyses.length} analyses ready`}
-            why="They share one scoring table: three years of days, each scored the way the bot scores today."
-            slow="The first request builds that table, and on a cold cache fetches three years of candles from Coinbase. It is kept for an hour afterwards, so the rest of these arrive quickly."
+            what={`Testing the strategy — ${ready} of ${analyses.length} checks ready`}
+            why="All seven share one table: three years of days, each scored the way the bot scores today."
+            slow="Building that table takes a while on a cold cache — three years of prices are fetched from Coinbase. It is kept for an hour, so the rest arrive quickly."
             slowAfter={4}
           />
         </div>

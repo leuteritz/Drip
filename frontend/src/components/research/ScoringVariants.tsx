@@ -29,12 +29,38 @@ export default function ScoringVariants({
 }) {
   return (
     <Card>
-      <CardHeader title="What another scoring would have done">
+      <CardHeader
+        title="What another scoring would have done"
+        info={
+          <>
+            <p>
+              Every row is a different way of turning the indicators into a buy size,
+              put through the same test as the real one: buy every{" "}
+              {WEEKDAYS[data?.weekday ?? 0]} across{" "}
+              {data?.variants[0]?.windows ?? 0} overlapping {windowDays}-day runs, and
+              measure each run against plain DCA.
+            </p>
+            <p className="mt-2">
+              Read{" "}
+              <strong className="font-semibold text-ink">Median</strong> next to{" "}
+              <strong className="font-semibold text-ink">Stake per run</strong>. A
+              scoring that simply buys more will earn more in a stretch that rose, and
+              that is a bigger bet rather than a better signal. The two that add an
+              indicator do exactly that &mdash; and their worst run is worse than the
+              current scoring&apos;s too.
+            </p>
+            <p className="mt-2">
+              The figures are percentage points of return (pp): profit per euro put
+              in, so a row that stakes more does not get credit for that alone.
+            </p>
+          </>
+        }
+      >
         <RangePills
           options={[
-            { label: "6m windows", value: 180 },
-            { label: "1y windows", value: 365 },
-            { label: "2y windows", value: 730 },
+            { label: "6m runs", value: 180 },
+            { label: "1y runs", value: 365 },
+            { label: "2y runs", value: 730 },
           ]}
           value={windowDays}
           onChange={onWindowDays}
@@ -54,7 +80,7 @@ export default function ScoringVariants({
                   <th className="py-2 pr-3 text-right">Median</th>
                   <th className="py-2 pr-3 text-right">Worst</th>
                   <th className="py-2 pr-3 text-right">Best</th>
-                  <th className="py-2 text-right">Stake per window</th>
+                  <th className="py-2 text-right">Stake per run</th>
                 </tr>
               </thead>
               <tbody>
@@ -92,23 +118,14 @@ export default function ScoringVariants({
               <strong className="font-semibold">
                 None of these are switched on, and none of them can be from here.
               </strong>{" "}
-              Your bot runs the first row. Changing that means changing the scoring in
-              the code, which moves live buys, the backtest and every imported buy at
-              the same time.
+              Your bot runs the first row. Changing that means changing the code.
             </span>
           </p>
 
           <Note>
-            Every variant buys every {WEEKDAYS[data.weekday]} across the same{" "}
-            {data.variants[0]?.windows ?? 0} overlapping {windowDays}-day windows, and
-            is measured in percentage points of return against plain DCA. Read{" "}
-            <strong className="font-semibold text-ink">Median</strong> and{" "}
-            <strong className="font-semibold text-ink">Stake per window</strong>{" "}
-            together: a
-            variant that simply buys more will earn more in a window that rose, and
-            that is a bigger bet rather than a better signal. The two that add an
-            indicator do exactly that &mdash; note that their worst window is also
-            worse than the current scoring&apos;s.
+            Read <strong className="font-semibold text-ink">Median</strong> next to{" "}
+            <strong className="font-semibold text-ink">Stake per run</strong>: buying
+            more is a bigger bet, not a better signal.
           </Note>
         </>
       )}

@@ -63,7 +63,7 @@ BLOCKS: list[Block] = [
     Block("next", "Next buy", "When the next drip lands and roughly how big it is"),
     Block("milestone", "Next milestone", "The next round number of sats, and how far off it is"),
     Block("streak", "Streak", "Weeks in a row with at least one buy"),
-    Block("tax", "One-year rule", "Which lots are past the German holding period (§23 EStG)"),
+    Block("tax", "One-year rule", "Which buys are past the German holding period (§23 EStG)"),
     Block("failed", "Failed buys", "Buys recorded as errors, which every other figure leaves out"),
 ]
 

@@ -33,7 +33,33 @@ export default function ForwardReturnsTable({
 
   return (
     <Card>
-      <CardHeader title="Does the score see anything?">
+      <CardHeader
+        title="Does the score see anything?"
+        info={
+          <>
+            <p>
+              Every day in the window is scored, and the price change over the next
+              30, 90 and 180 days written down next to it. The rows group those days
+              by the size of buy the score would have triggered, and each cell is the
+              middle result of its group.
+            </p>
+            <p className="mt-2">
+              The{" "}
+              <strong className="font-semibold text-ink">Any day</strong> row is the
+              same measurement over every day regardless of score. Without it a number
+              here would mean nothing: bitcoin drifts up on its own, so beating zero
+              is not the test &mdash; beating that row is.
+            </p>
+            <p className="mt-2">
+              What it does not prove: buying more when the market looks cheap is not
+              the same as calling the bottom. A strong-buy row that trails the
+              baseline over 90 days simply means the dip kept going. The periods
+              measured overlap heavily, so treat the counts as far fewer independent
+              observations than they look.
+            </p>
+          </>
+        }
+      >
         <RangePills
           options={[
             { label: "1y", value: 365 },
@@ -103,15 +129,10 @@ export default function ForwardReturnsTable({
           </div>
 
           <Note>
-            Median price change after each score, over {data.sample_size} scored days.
-            A bucket only means something against the{" "}
-            <strong className="font-semibold text-ink">Any day</strong> row: bitcoin
-            drifts up on its own, so beating zero is not the test &mdash; beating the
-            baseline is. Note what this measures and what it does not: buying more
-            when the market looks cheap is not the same as calling a bottom, and a
-            strong-buy bucket that trails the baseline over 90 days simply means the
-            dip kept going. The windows overlap heavily, so treat the counts as far
-            fewer independent observations than they look.
+            What the price did after each signal, over {data.sample_size} days. The
+            test is beating the{" "}
+            <strong className="font-semibold text-ink">Any day</strong> row, not
+            beating zero.
           </Note>
         </>
       )}

@@ -30,9 +30,48 @@ export default function WeekdayGrid({
   const cellAt = (weekday: number, spread: number) =>
     data?.cells.find((c) => c.weekday === weekday && c.spread === spread);
 
+  // Each column named by where it sits next to the one you run, so no two
+  // columns share a caption however many steps the backend offers.
+  const current = data?.current_spread ?? 1;
+  const bolder = (data?.spreads ?? [])
+    .map((s) => s.value)
+    .filter((v) => v > current)
+    .sort((a, b) => a - b);
+  const gentler = (data?.spreads ?? [])
+    .map((s) => s.value)
+    .filter((v) => v > 0 && v < current)
+    .sort((a, b) => b - a);
+  const columnLabel = (value: number): string => {
+    if (value === 0) return "plain DCA";
+    if (value === current) return "what you run";
+    if (value > current) return bolder.indexOf(value) === 0 ? "bolder" : "boldest";
+    return gentler.indexOf(value) === 0 ? "gentler" : "gentlest";
+  };
+
   return (
     <Card>
-      <CardHeader title="Weekday against spread">
+      <CardHeader
+        title="Buying day against buying size"
+        info={
+          <>
+            <p>
+              Each cell is a full backtest: buy every week on that weekday, with the
+              multiplier&apos;s swings widened or narrowed by the amount in the column
+              heading. The outlined cell is the combination you are running.
+            </p>
+            <p className="mt-2">
+              The <strong className="font-semibold text-ink">plain DCA</strong> column
+              flattens every multiplier to a constant 1.0&times;, so it must read
+              0.0 pp everywhere. It is the control that shows the rest of the grid is
+              measured from the right zero.
+            </p>
+            <p className="mt-2">
+              The swings are widened by multiplying, never by adding, so no cell can
+              ever produce a 0&times; buy &mdash; Drip always buys.
+            </p>
+          </>
+        }
+      >
         <RangePills
           options={[
             { label: "1y", value: 365 },
@@ -63,13 +102,7 @@ export default function WeekdayGrid({
                           ? `${spread.min_multiplier.toFixed(1)}×`
                           : `${spread.min_multiplier}–${spread.max_multiplier}×`}
                       </div>
-                      <div className="font-normal">
-                        {spread.value === 0
-                          ? "plain DCA"
-                          : spread.value === data.current_spread
-                            ? "current"
-                            : `×${spread.value} spread`}
-                      </div>
+                      <div className="font-normal">{columnLabel(spread.value)}</div>
                     </th>
                   ))}
                 </tr>
@@ -114,22 +147,16 @@ export default function WeekdayGrid({
             <span>
               <strong className="font-semibold">Do not tune your bot from this
               grid.</strong>{" "}
-              Which weekday won over {Math.round(data.days / 365)} year
-              {data.days >= 730 ? "s" : ""} is close to noise &mdash; there is no
-              mechanism that makes bitcoin cheaper on a Thursday &mdash; and a wider
-              spread scoring higher here mostly means the window happened to reward
-              conviction. Both would flip on a different stretch of history. The
-              outlined cell is what you are running.
+              Nothing makes bitcoin cheaper on a Thursday: which day won over{" "}
+              {Math.round(data.days / 365)} year{data.days >= 730 ? "s" : ""} is close
+              to chance, and a different stretch of history would crown a different
+              cell.
             </span>
           </p>
 
           <Note>
-            Each cell is a full backtest: buy every week on that weekday, with every
-            multiplier raised to that power. The{" "}
-            <strong className="font-semibold text-ink">plain DCA</strong> column
-            flattens the ladder to a constant 1.0&times;, so it must read 0.0 pp
-            everywhere &mdash; it is the control that shows the rest is measured from
-            the right zero.
+            Every cell is a backtest of one weekday and one buying size. The outlined
+            one is what you run.
           </Note>
         </>
       )}

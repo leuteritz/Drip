@@ -30,7 +30,29 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
 
   return (
     <Card className="flex flex-col">
-      <CardHeader title="Holding periods" />
+      <CardHeader
+        title="How long you have held"
+        info={
+          <>
+            <p>
+              In Germany, bitcoin held for more than a year leaves the private-sale
+              window (&sect;23 EStG). Each buy is counted on its own, from the day it
+              was made.
+            </p>
+            <p className="mt-2">
+              The rows are the months in which the next buys pass their first
+              birthday, valued at today&apos;s price because no other price exists
+              yet.
+            </p>
+            <p className="mt-2">
+              This is a holding report, not a tax calculation and not tax advice: it
+              knows nothing about the annual exemption limit, any other disposals you
+              may have, or the rules that apply to your situation. Dry runs are never
+              counted here &mdash; they are not bitcoin.
+            </p>
+          </>
+        }
+      />
 
       {!data ? (
         <div className="h-40 animate-pulse rounded-xl bg-sand-soft/70" />
@@ -50,7 +72,7 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                   tone={!free?.lots ? "plain" : free.gain_eur >= 0 ? "up" : "down"}
                   hint={
                     free
-                      ? `${free.lots} lots · ${stackAmount(free.btc)} · ${fmtEurSigned(
+                      ? `${free.lots} buys · ${stackAmount(free.btc)} · ${fmtEurSigned(
                           free.gain_eur,
                         )} gain`
                       : undefined
@@ -63,7 +85,7 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                   tone={!locked?.lots ? "plain" : locked.gain_eur >= 0 ? "up" : "down"}
                   hint={
                     locked
-                      ? `${locked.lots} lots · ${stackAmount(locked.btc)} · ${fmtEurSigned(
+                      ? `${locked.lots} buys · ${stackAmount(locked.btc)} · ${fmtEurSigned(
                           locked.gain_eur,
                         )} gain`
                       : undefined
@@ -72,10 +94,12 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                   {fmtEur(locked?.value_eur ?? 0)}
                 </Stat>
                 <Stat
-                  label="Next lot passes it"
+                  label="Next buy turns a year"
                   hint={
                     data.next_free_date
-                      ? `in ${data.next_free_in_days} days`
+                      ? `in ${data.next_free_in_days} ${
+                          data.next_free_in_days === 1 ? "day" : "days"
+                        }`
                       : "everything is past it"
                   }
                 >
@@ -103,20 +127,16 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                   {excluded.count} buys are not counted anywhere on this dashboard.
                 </strong>{" "}
                 They are recorded as failed orders &mdash; {fmtEur(excluded.eur)} and{" "}
-                {stackAmount(excluded.btc)} between them &mdash; so every figure here and
-                in the overview leaves them out. If those orders did go through at the
-                exchange, your real stack is larger than anything shown. Worth
-                checking against your Coinbase history.
+                {stackAmount(excluded.btc)} between them. If they did go through at the
+                exchange, your real stack is bigger than anything shown here. Worth a
+                look at your Coinbase history.
               </span>
             </p>
           )}
 
           <Note>
-            One row per month in which a lot passes its first birthday, valued at
-            today&apos;s price because no other price exists yet. This is a holding
-            report, not a tax calculation and not tax advice: it does not know about
-            the annual exemption limit, any other disposals you may have, or the rules
-            that apply to your situation.
+            Each row is a month in which more of your buys turn a year old. Not tax
+            advice.
           </Note>
         </>
       )}
@@ -146,7 +166,7 @@ function MonthRow({ month, maxValue }: { month: RipeningMonth; maxValue: number 
           {fmtEur(month.value_eur)}
         </div>
         <div className="text-2xs text-ink-soft">
-          {month.lots} {month.lots === 1 ? "lot" : "lots"}
+          {month.lots} {month.lots === 1 ? "buy" : "buys"}
         </div>
       </div>
     </div>

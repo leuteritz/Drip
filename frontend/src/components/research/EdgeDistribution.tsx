@@ -45,12 +45,37 @@ export default function EdgeDistribution({
 
   return (
     <Card className="flex flex-col">
-      <CardHeader title="How often it worked">
+      <CardHeader
+        title="How often it worked"
+        info={
+          <>
+            <p>
+              One backtest is one path and proves nothing, so this runs the same
+              backtest again and again, each time starting a week later, and plots
+              every result as its own bar. Each bar is a complete {windowDays}-day run
+              that bought every {WEEKDAYS[data?.weekday ?? 0]} and is measured against
+              plain DCA over exactly the same days.
+            </p>
+            <p className="mt-2">
+              The runs overlap by design &mdash; they step one week at a time &mdash;
+              so neighbouring bars share most of their buys and this is not{" "}
+              {data?.count ?? 0} independent trials. What it does show honestly is
+              whether the edge survives a bad starting point, or only existed because
+              one particular start date happened to work.
+            </p>
+            <p className="mt-2">
+              Measured in percentage points of return (pp): profit per euro put in,
+              which is the only fair scale when the two sides deliberately invest
+              different amounts.
+            </p>
+          </>
+        }
+      >
         <RangePills
           options={[
-            { label: "6m windows", value: 180 },
-            { label: "1y windows", value: 365 },
-            { label: "2y windows", value: 730 },
+            { label: "6m runs", value: 180 },
+            { label: "1y runs", value: 365 },
+            { label: "2y runs", value: 730 },
           ]}
           value={windowDays}
           onChange={onWindowDays}
@@ -61,29 +86,29 @@ export default function EdgeDistribution({
         <div className="h-64 animate-pulse rounded-xl bg-sand-soft/70" />
       ) : windows.length === 0 ? (
         <p className="py-10 text-center text-sm text-ink-soft">
-          Not enough candle history for a {windowDays}-day window yet.
+          Not enough price history for a {windowDays}-day run yet.
         </p>
       ) : (
         <>
           <div className="mb-3 flex flex-wrap gap-2">
             <Stat
-              label="Windows Drip won"
+              label="Runs Drip won"
               tone={data.win_rate >= 50 ? "up" : "down"}
               hint={`${data.wins} of ${data.count}`}
             >
               {data.win_rate.toFixed(0)}%
             </Stat>
             <Stat
-              label="Median edge"
+              label="Typical run"
               tone={data.median_pp >= 0 ? "up" : "down"}
-              hint={`middle 80%: ${fmtPp(data.p10_pp)} to ${fmtPp(data.p90_pp)}`}
+              hint={`most land between ${fmtPp(data.p10_pp)} and ${fmtPp(data.p90_pp)}`}
             >
               {fmtPp(data.median_pp)}
             </Stat>
-            <Stat label="Worst window" tone={data.worst_pp >= 0 ? "up" : "down"}>
+            <Stat label="Worst run" tone={data.worst_pp >= 0 ? "up" : "down"}>
               {fmtPp(data.worst_pp)}
             </Stat>
-            <Stat label="Best window" tone={data.best_pp >= 0 ? "up" : "down"}>
+            <Stat label="Best run" tone={data.best_pp >= 0 ? "up" : "down"}>
               {fmtPp(data.best_pp)}
             </Stat>
           </div>
@@ -118,13 +143,8 @@ export default function EdgeDistribution({
           </div>
 
           <Note>
-            Every bar is a complete {windowDays}-day backtest that started on that
-            date and bought every {WEEKDAYS[data.weekday]}, measured against plain
-            DCA over the same window. The windows overlap by design &mdash; they step
-            one week at a time &mdash; so neighbouring bars share most of their
-            buys and this is not {data.count} independent trials. What it does show
-            honestly is whether the edge survives a bad entry point, or only exists
-            because one particular start date happened to work.
+            Each bar is a {windowDays}-day test run that started on that date. Above
+            the line Drip beat plain DCA, below it plain DCA won.
           </Note>
         </>
       )}

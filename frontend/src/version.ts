@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.4",
+    date: "2026-08-03",
+    changes: [
+      "Every card in Overview and Research now says in one short line what it is telling you — the long explanation moved into the ⓘ in its corner, where it can be read on purpose rather than skipped",
+      "Plainer words throughout: lots are buys, windows are test runs, and each figure's label now says what the number actually means",
+      "The weekly report speaks the same way, and no longer says \"in 1 days\"",
+    ],
+  },
+  {
     version: "2.3",
     date: "2026-08-03",
     changes: [

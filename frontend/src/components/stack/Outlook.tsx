@@ -48,7 +48,29 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
 
   return (
     <Card className="flex flex-col">
-      <CardHeader title="If the drip keeps running" />
+      <CardHeader
+        title="If the drip keeps running"
+        info={
+          <>
+            <p>
+              The rate is what Drip actually stacked over the last {data.rate_weeks}{" "}
+              weeks, not what the schedule says it should &mdash; a paused fortnight
+              or a run of half-size buys is already in it.
+            </p>
+            <p className="mt-2">
+              The euro figures follow from that rate and nothing else. The bitcoin
+              figures do not: they price a year of future buys at today&apos;s{" "}
+              {fmtEur(data.current_price, 0)}, which is the one number nobody has.
+              Read them as an order of magnitude and expect the real answer to be a
+              different one.
+            </p>
+            <p className="mt-2">
+              The ring is the next round number of sats worth reaching, and the date
+              is when this rate would get you there.
+            </p>
+          </>
+        }
+      />
 
       <div className="flex flex-col items-center gap-6 md:flex-row md:items-stretch md:gap-8">
         {/* The next round number, as a filling ring */}
@@ -126,26 +148,25 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
           >
             {stalled ? "—" : fmtEur(data.per_week_eur)}
           </Stat>
-          <Stat label="Streak" hint={`${streak.total_weeks} weeks with a buy in all`}>
+          <Stat
+            label="Streak"
+            hint={`${streak.total_weeks} weeks with a buy in total`}
+          >
             {streak.weeks} {streak.weeks === 1 ? "week" : "weeks"}
           </Stat>
-          <Stat label="A year of that" hint="at the rate above, unchanged">
+          <Stat label="In a year" hint="at the same rate">
             {stalled ? "—" : fmtEur(data.year_eur, 0)}
           </Stat>
-          <Stat label="Which buys" hint="at today's price">
+          <Stat label="That buys about" hint="if the price never moved">
             {stalled ? "—" : stackAmount(data.year_sats / SATS_PER_BTC)}
           </Stat>
         </div>
       </div>
 
       <Note>
-        The rate is what Drip actually stacked over the last {data.rate_weeks} weeks,
-        not what the schedule says it should — a paused fortnight or a run of
-        half-size buys is already in it. The euro figures follow from that rate and
-        nothing else. The sats do not: they price a year of future buys at today&apos;s
-        {" "}
-        {fmtEur(data.current_price, 0)}, which is the one number nobody has. Read them
-        as an order of magnitude, and expect the real answer to be a different one.
+        Measured from the last {data.rate_weeks} weeks of real buys, then carried
+        forward. Nobody knows next year&apos;s price, so treat the bitcoin figures as
+        a rough size, not a promise.
       </Note>
     </Card>
   );

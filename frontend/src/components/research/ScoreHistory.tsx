@@ -47,7 +47,29 @@ export default function ScoreHistory({
 }) {
   return (
     <Card className="flex flex-col">
-      <CardHeader title="The score over time">
+      <CardHeader
+        title="The score over time"
+        info={
+          <>
+            <p>
+              Everywhere else the score only appears on the days Drip happened to buy
+              &mdash; 52 disconnected dots a year. Read every day it becomes a shape,
+              and the question is whether the multiplier really moves with the market
+              or just jitters.
+            </p>
+            <p className="mt-2">
+              The bars are the daily score, on the right-hand axis, coloured by the
+              size of buy they trigger: teal is more than the base amount, rose is
+              less, sand is exactly the base. The dark line is the BTC price on the
+              left-hand axis.
+            </p>
+            <p className="mt-2">
+              The dashed markers are the only facts here rather than readings &mdash;
+              a halving, and the highest and lowest price this window contains.
+            </p>
+          </>
+        }
+      >
         <RangePills
           options={[
             { label: "1y", value: 365 },
@@ -132,14 +154,8 @@ export default function ScoreHistory({
           </div>
 
           <Note>
-            Bars are the daily score on the right axis, coloured by the multiplier
-            they trigger &mdash; teal buys more than the base amount, rose buys less,
-            sand is exactly the base. The dark line is the BTC price on the left axis.
-            Read it as a sanity check on the machinery: if the teal clusters do not
-            sit in the price&apos;s dips, the score is not reading what it claims to.
-            The dashed markers are the only things here that are facts rather than
-            readings &mdash; a halving, and the highest and lowest close this window
-            contains.
+            Teal bars buy more than the base amount, rose bars less. They should
+            cluster in the dips of the price line &mdash; that is the whole idea.
           </Note>
         </>
       )}

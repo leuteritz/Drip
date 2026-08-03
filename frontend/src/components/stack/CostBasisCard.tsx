@@ -57,7 +57,31 @@ export default function CostBasisCard({
 
   return (
     <Card className="flex flex-col">
-      <CardHeader title="Your cost basis" />
+      <CardHeader
+        title="What you paid, on average"
+        info={
+          <>
+            <p>
+              Your average price is compared against what the market itself averaged
+              over the same days &mdash; the price someone would have paid by
+              spreading the identical money evenly across every single day. Beating
+              it is what &ldquo;bought well&rdquo; can honestly mean, and it stays a
+              real answer even in a year when the price fell.
+            </p>
+            <p className="mt-2">
+              The chart says the same thing per buy, in sats per euro: how much
+              bitcoin each euro bought that day. It is simply the price upside down,
+              so the tallest bars are the cheapest buys.
+            </p>
+            <p className="mt-2">
+              The bars sit evenly apart whatever the gap between the buys was, so read
+              them as a sequence rather than a timeline. The dashed line is your
+              stack&apos;s overall rate, weighted by what each buy cost &mdash; a
+              &euro;10 buy does not count the same as a &euro;100 one.
+            </p>
+          </>
+        }
+      />
 
       {!basis || basis.purchase_count === 0 ? (
         <p className="py-8 text-center text-sm text-ink-soft">
@@ -67,14 +91,14 @@ export default function CostBasisCard({
         <>
           <div className="mb-3 flex flex-wrap gap-2">
             <Stat
-              label="Your average entry"
+              label="You paid on average"
               hint={`${basis.purchase_count} buys over ${basis.days} days`}
             >
               {fmtEur(basis.avg_price_eur, 0)}
             </Stat>
             <Stat
-              label="Market average, same days"
-              hint="what buying evenly would have paid"
+              label="The market averaged"
+              hint="over the same days, buying evenly"
             >
               {fmtEur(basis.market_twap_eur, 0)}
             </Stat>
@@ -133,13 +157,8 @@ export default function CostBasisCard({
           </div>
 
           <Note>
-            One bar per buy, measured in sats per euro &mdash; taller is cheaper. The
-            bars sit evenly apart whatever the gap between the buys was, so read
-            them as a sequence, not a timeline.
-            The dashed line is your stack&apos;s overall rate, weighted by what each
-            buy cost rather than counting a &euro;10 buy the same as a &euro;100 one,
-            which makes it exactly the reciprocal of your average entry above. Bars
-            over the line are the buys that pulled your cost basis down.
+            One bar per buy: how much bitcoin that euro bought. Bars above the dashed
+            line are the buys that pulled your average down.
           </Note>
         </>
       )}
