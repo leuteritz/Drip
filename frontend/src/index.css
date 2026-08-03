@@ -118,11 +118,11 @@ body,
  * the container widths above — so moving the root size moves the entire
  * layout together instead of leaving big numbers stranded in small padding.
  *
- * Read it as: 15px on a 1280px laptop, ~19.6px on Full HD, 24px at 2560 and
+ * Read it as: 13px on a 1280px laptop, ~16.6px on Full HD, 20px at 2560 and
  * wider. Never set a font size in px again; `text-2xs` is the floor.
  */
 html {
-  font-size: clamp(15px, 0.36rem + 0.72vw, 24px);
+  font-size: clamp(13px, 0.34rem + 0.58vw, 20px);
 }
 
 /* Lets native controls, scrollbars and form widgets follow the theme */

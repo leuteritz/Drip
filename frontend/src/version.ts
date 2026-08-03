@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.3",
+    date: "2026-08-03",
+    changes: [
+      "Everything is a step smaller on a desktop screen — the type had grown to where a dashboard meant for one glance no longer fitted one",
+    ],
+  },
+  {
     version: "2.2",
     date: "2026-08-01",
     changes: [

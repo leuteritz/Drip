@@ -18,7 +18,7 @@ reports your cost basis against the market and how old each lot is, and carries 
 rate you stack at forward to the next round number of sats. Once a week it sends you
 the whole thing on Discord. `Ctrl+K` reaches all of it, keys and backend included, so
 the Pi needs no shell after the first install. After dark the tank dims with the room,
-and on a large monitor the whole page scales up rather than turning into small print.
+and the whole page scales with the screen it is read on.
 
 ## Install
 
