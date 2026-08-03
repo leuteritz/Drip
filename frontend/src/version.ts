@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.5",
+    date: "2026-08-03",
+    changes: [
+      "The next buy card is now where the drip is set: click the amount to change your base, click the day and time to move the schedule or pause for a week or two",
+      "The sliders button and the settings drawer under it are gone — nothing to open and close, and no second copy of a number the card already shows",
+      "Ctrl+K has an entry for each: \"Set the buy amount\" and \"Change the schedule\"",
+    ],
+  },
+  {
     version: "2.4",
     date: "2026-08-03",
     changes: [

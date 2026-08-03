@@ -156,14 +156,6 @@ body {
   background: rgba(147, 183, 190, 0.45);
 }
 
-/* Native dropdown lists of the header's glass selects: without this the options
-   inherit cream text on the OS default white popup and become invisible. The
-   deep teal is fixed, because the popup sits on the water in both themes. */
-.faucet-select option {
-  background-color: var(--color-teal-deep);
-  color: var(--color-cream);
-}
-
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-sand) transparent;

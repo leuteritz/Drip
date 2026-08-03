@@ -1,3 +1,4 @@
+import CalendarIcon from "~icons/ph/calendar-blank";
 import ChartLineUpIcon from "~icons/ph/chart-line-up";
 import CircleHalfTiltIcon from "~icons/ph/circle-half-tilt";
 import CurrencyBtcIcon from "~icons/ph/currency-btc";
@@ -35,7 +36,8 @@ export interface CommandContext {
   openDigest: () => void;
   openBuy: () => void;
   openExplain: () => void;
-  openPanel: () => void;
+  editAmount: () => void;
+  editSchedule: () => void;
   onSimulate: () => void;
   onTestBuy: () => void;
   onPause: (days: number) => Promise<void>;
@@ -117,13 +119,24 @@ export function buildCommands(ctx: CommandContext): Command[] {
       Icon: MonitorIcon,
       run: enterTank,
     },
+    // Both land on the next-buy card itself: the palette scrolls back to it and
+    // opens the figure for typing, rather than holding a settings panel of its
+    // own that could word the same number differently.
     {
-      id: "open-panel",
-      label: "Adjust the next buy",
-      hint: "Base amount, schedule, pause",
+      id: "edit-amount",
+      label: "Set the buy amount",
+      hint: "The base the signal multiplies",
       group: "Open",
       Icon: SlidersIcon,
-      run: ctx.openPanel,
+      run: ctx.editAmount,
+    },
+    {
+      id: "edit-schedule",
+      label: "Change the schedule",
+      hint: "Which day and time the drip lands — and pausing it",
+      group: "Open",
+      Icon: CalendarIcon,
+      run: ctx.editSchedule,
     },
   );
 

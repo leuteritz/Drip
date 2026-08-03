@@ -15,9 +15,9 @@ explicit, confirmed opt-in.
 The dashboard also researches its own strategy - what each indicator contributed,
 whether the score predicts anything, what a different scoring would have done -
 reports what you paid against the market and how old each buy is, and carries the rate
-you stack at forward to the next round number of sats. Every card says in one line what
-it is telling you, with the long answer one click away under the ⓘ. Once a week it
-sends you the whole thing on Discord. `Ctrl+K` reaches all of it, keys and backend
+you stack at forward to the next round number of sats. Setting the drip happens on the
+next-buy card itself: click the amount to change your base, click the day and time to
+move the schedule or pause it. Once a week it sends you the whole thing on Discord. `Ctrl+K` reaches all of it, keys and backend
 included, so the Pi needs no shell after the first install.
 
 ## Install

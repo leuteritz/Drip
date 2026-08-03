@@ -23,10 +23,9 @@ import { fmtEur, formatDayMonth } from "../lib/format";
 import type { ThemeChoice } from "../lib/theme";
 import { useUnit } from "../lib/units";
 import DigestDialog from "./digest/DigestDialog";
-import FaucetControls from "./header/FaucetControls";
 import { NAV, useScrolled, useScrollSpy, type Section } from "./header/hooks";
 import ModeToggle from "./header/ModeToggle";
-import NextBuyActions from "./header/NextBuyActions";
+import NextBuyActions, { type SpoutEdit } from "./header/NextBuyActions";
 import {
   BtcReadout,
   MarketReadout,
@@ -52,8 +51,9 @@ import SetupDialog, { type SetupTab } from "./setup/SetupDialog";
  *
  * This file is only the composition: the sticky bar (brand, mode toggle,
  * jump-nav) and the hero's layout. Each part lives in ./header — the tank
- * decoration in TankBackdrop, the stat chips in Readouts, the inline settings
- * in FaucetControls — so this stays readable as a page outline.
+ * decoration in TankBackdrop, the stat chips in Readouts, the next buy and the
+ * settings it carries in NextBuyActions — so this stays readable as a page
+ * outline.
  */
 export default function SiteHeader({
   status,
@@ -114,7 +114,9 @@ export default function SiteHeader({
 }) {
   const active = useScrollSpy(scrollRef);
   const scrolled = useScrolled(scrollRef);
-  const [panelOpen, setPanelOpen] = useState(false);
+  // Which figure on the next-buy card is open for editing — held here rather
+  // than in the card so the palette can open one from anywhere in the scroll.
+  const [editing, setEditing] = useState<SpoutEdit | null>(null);
   const [buyOpen, setBuyOpen] = useState(false);
   const [digestOpen, setDigestOpen] = useState(false);
   const [explainOpen, setExplainOpen] = useState(false);
@@ -134,6 +136,16 @@ export default function SiteHeader({
   const jumpTo = useCallback((id: Section) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
+
+  // The card's editors are opened by clicking the figure they change, so a
+  // palette entry has to bring that figure back on screen first.
+  const editSpout = useCallback(
+    (target: SpoutEdit) => {
+      scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      setEditing(target);
+    },
+    [scrollRef],
+  );
 
   // Ctrl/Cmd-K from anywhere in the scroll. Registered here rather than in the
   // palette because the palette only exists once it is open.
@@ -161,7 +173,8 @@ export default function SiteHeader({
         openDigest: () => setDigestOpen(true),
         openBuy: () => setBuyOpen(true),
         openExplain: () => setExplainOpen(true),
-        openPanel: () => setPanelOpen(true),
+        editAmount: () => editSpout("amount"),
+        editSchedule: () => editSpout("when"),
         onSimulate,
         onTestBuy,
         onPause,
@@ -172,6 +185,7 @@ export default function SiteHeader({
         onToggleDryRun,
       }),
     [
+      editSpout,
       includeDryRun,
       indicators,
       jumpTo,
@@ -281,34 +295,23 @@ export default function SiteHeader({
             />
           </div>
 
-          {/* The spout: next buy + every action, on its own full-width row */}
+          {/* The spout: next buy, every action, and the settings behind both —
+              each figure on it doubling as the control that changes it */}
           <NextBuyActions
             indicators={indicators}
             settings={settings}
             status={status}
+            editing={editing}
+            onEdit={setEditing}
+            onSaveSettings={onSaveSettings}
+            onPause={onPause}
+            onResume={onResume}
             onTestBuy={onTestBuy}
             onSimulate={onSimulate}
             onBuy={() => setBuyOpen(true)}
             onExplain={() => setExplainOpen(true)}
-            onTogglePanel={() => setPanelOpen((v) => !v)}
-            panelOpen={panelOpen}
             running={running}
             buying={buying}
-          />
-
-          {/* Collapsible faucet control bar (amount · schedule · Discord · pause) */}
-          <FaucetControls
-            open={panelOpen}
-            settings={settings}
-            digest={digest}
-            indicators={indicators}
-            onClose={() => setPanelOpen(false)}
-            onSave={onSaveSettings}
-            onPause={onPause}
-            onResume={onResume}
-            onTestWebhook={onTestWebhook}
-            onOpenDigest={() => setDigestOpen(true)}
-            onOpenSetup={() => setSetupTab("coinbase")}
           />
 
           {runResult?.analysis && (
