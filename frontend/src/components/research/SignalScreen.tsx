@@ -77,7 +77,7 @@ export default function SignalScreen({
 
       {!data ? (
         <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact counter={false} what="Screening the signals that are not in the score" />
+          <Loading compact what="Screening the signals that are not in the score" />
         </div>
       ) : (
         <>

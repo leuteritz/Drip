@@ -45,7 +45,7 @@ function FrostCard({ children }: { children: ReactNode }) {
 function ChipWait({ what }: { what: string }) {
   return (
     <div className="flex w-full items-center justify-center px-1 py-3">
-      <Loading compact on="water" counter={false} what={what} />
+      <Loading compact on="water" what={what} />
     </div>
   );
 }

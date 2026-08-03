@@ -18,7 +18,7 @@ the market, and carries the rate you stack at forward to the next round number o
 Setting the drip happens on the next-buy card: click the amount, or the day and time.
 Once a week the whole thing arrives on Discord. `Ctrl+K` reaches all of it, keys
 included, so the Pi needs no shell after the first install. Nothing waits silently:
-whatever is not on screen yet says what it is fetching and why.
+whatever is not on screen yet says what it is fetching, why, and for how long.
 
 ## Install
 

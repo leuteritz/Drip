@@ -73,7 +73,7 @@ export default function ForwardReturnsTable({
 
       {!data ? (
         <div className="flex h-48 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact counter={false} what="Measuring what came after each score" />
+          <Loading compact what="Measuring what came after each score" />
         </div>
       ) : (
         <>

@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.9",
+    date: "2026-08-03",
+    changes: [
+      "Every wait now carries its own clock: the seconds sit inside the ring, and its arc creeps further round the longer the fetch takes — so a slow call looks slow at a glance, from the tank down to the last research card",
+      "The bar at the top counts along with it, so you can see how long the page has been busy from anywhere in the scroll",
+    ],
+  },
+  {
     version: "2.8",
     date: "2026-08-03",
     changes: [

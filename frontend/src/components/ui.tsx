@@ -306,9 +306,89 @@ const WAIT_TEXT: Record<Ground, { what: string; why: string; hint: string }> = {
   water: { what: "text-cream", why: "text-cream/70", hint: "text-cream/85" },
 };
 
+/**
+ * The wait's own clock: a ring with the seconds in the middle of it.
+ *
+ * The arc creeps around as the wait goes on and the ring turns slowly under it,
+ * so a still frame still reads as "working" and a long wait *looks* long. It is
+ * deliberately asymptotic and never closes: nothing here knows how long the
+ * fetch will take, and a bar that fills to the end would be a promise the app
+ * cannot keep. The number sits inside rather than beside — it costs no width,
+ * moves no text, and four of them in a row read as four stopwatches instead of
+ * four flickering labels.
+ */
+const CIRCUMFERENCE = 2 * Math.PI * 15.5; // r = 15.5 in the 36-unit viewBox
+/** Seconds at which the arc is ~63% round; it approaches the cap from there. */
+const CREEP = 9;
+const ARC_CAP = 0.93;
+
+function ClockRing({
+  seconds,
+  on,
+  size = "md",
+}: {
+  seconds: number;
+  on: Ground;
+  size?: "sm" | "md";
+}) {
+  const filled = Math.min(ARC_CAP, 0.14 + (1 - Math.exp(-seconds / CREEP)) * 0.86);
+  const water = on === "water";
+
+  return (
+    <div
+      role="status"
+      aria-label={`Loading, ${seconds} seconds`}
+      className={`relative flex flex-none items-center justify-center ${
+        size === "sm" ? "h-7 w-7" : "h-11 w-11"
+      }`}
+    >
+      <svg
+        viewBox="0 0 36 36"
+        className="absolute inset-0 h-full w-full animate-spin"
+        style={{ animationDuration: "3.2s" }}
+      >
+        <circle
+          cx="18"
+          cy="18"
+          r="15.5"
+          fill="none"
+          strokeWidth={size === "sm" ? 3.5 : 3}
+          className={water ? "stroke-cream/20" : "stroke-sand"}
+        />
+        <circle
+          cx="18"
+          cy="18"
+          r="15.5"
+          fill="none"
+          strokeWidth={size === "sm" ? 3.5 : 3}
+          strokeLinecap="round"
+          strokeDasharray={CIRCUMFERENCE}
+          strokeDashoffset={CIRCUMFERENCE * (1 - filled)}
+          transform="rotate(-90 18 18)"
+          className={`transition-[stroke-dashoffset] duration-500 ease-out ${
+            water ? "stroke-cream" : "stroke-teal"
+          }`}
+        />
+      </svg>
+      {/* Under two seconds there is no number worth reading — and most calls
+          never get one. Past a hundred it turns into minutes: three digits do
+          not fit the small ring, and by then the minute is the news anyway. */}
+      {seconds >= 2 && (
+        <span
+          className={`relative font-sans text-2xs font-bold leading-none tabular-nums ${
+            water ? "text-cream/80" : "text-teal"
+          }`}
+        >
+          {seconds < 100 ? seconds : `${Math.floor(seconds / 60)}m`}
+        </span>
+      )}
+    </div>
+  );
+}
+
 /** Seconds since this mounted. Half-second ticks so the first "1s" is not a
  *  whole second late; the value itself stays whole seconds. */
-function useElapsed(): number {
+export function useElapsed(): number {
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
@@ -330,8 +410,12 @@ function useElapsed(): number {
  * wrong answer here: Drip's slow calls are slow for a *reason* a saver can
  * understand — a cold cache means Coinbase is being paged 300 days at a time,
  * a backtest re-scores a thousand days. So every wait names what is being
- * built, shows the seconds once there are enough of them to be worth reading,
- * and says why it is taking its time when it drags on.
+ * built, carries its own clock, and says why it is taking its time when it
+ * drags on.
+ *
+ * The seconds live *inside* the ring (`ClockRing`), never beside the words: the
+ * clock then costs no width wherever a wait fits at all, and a row of them
+ * ticks in step instead of jostling the text next to each one.
  *
  * `slow` is the escalation, not a second sentence: keep it for what only
  * matters once the wait is already long.
@@ -346,7 +430,6 @@ export function Loading({
   slowAfter = 6,
   compact = false,
   on = "paper",
-  counter = true,
 }: {
   what: string;
   why?: string;
@@ -354,27 +437,17 @@ export function Loading({
   slowAfter?: number;
   compact?: boolean;
   on?: Ground;
-  /** Off where several waits sit side by side — four ticking clocks in one row
-   *  is noise, and the page already carries one in the sticky bar. */
-  counter?: boolean;
 }) {
   const seconds = useElapsed();
   const text = WAIT_TEXT[on];
-  // Below two seconds the number is noise — most calls never reach it.
-  const clock = counter && seconds >= 2 && (
-    <span className={`ml-2 font-medium tabular-nums ${text.why}`}>{seconds}s</span>
-  );
   const hint = seconds >= slowAfter ? slow : undefined;
 
   if (compact) {
     return (
-      <div className="flex items-start gap-3 py-1">
-        <Spinner className="mt-1 h-4 w-4 border-2" on={on} />
+      <div className="flex items-center gap-3 py-1">
+        <ClockRing seconds={seconds} on={on} size="sm" />
         <div className="min-w-0">
-          <p className={`text-sm font-bold ${text.what}`}>
-            {what}
-            {clock}
-          </p>
+          <p className={`text-sm font-bold ${text.what}`}>{what}</p>
           {why && (
             <p className={`mt-1 text-xs leading-relaxed ${text.why}`}>{why}</p>
           )}
@@ -388,12 +461,9 @@ export function Loading({
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 py-12 text-center">
-      <Spinner on={on} />
+      <ClockRing seconds={seconds} on={on} />
       <div>
-        <p className={`text-base font-bold ${text.what}`}>
-          {what}
-          {clock}
-        </p>
+        <p className={`text-base font-bold ${text.what}`}>{what}</p>
         {why && (
           <p className={`mx-auto mt-1.5 max-w-md text-sm leading-relaxed ${text.why}`}>
             {why}

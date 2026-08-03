@@ -89,7 +89,6 @@ export default function CostBasisCard({
         <div className="flex h-40 items-center justify-center rounded-xl bg-sand-soft/40">
           <Loading
             compact
-            counter={false}
             what="Working out what you paid"
             why="Every buy against the market's own average over the same days."
           />

@@ -83,7 +83,7 @@ export default function ScoreHistory({
 
       {!data ? (
         <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact counter={false} what="Re-scoring every day in the window" />
+          <Loading compact what="Re-scoring every day in the window" />
         </div>
       ) : (
         <>

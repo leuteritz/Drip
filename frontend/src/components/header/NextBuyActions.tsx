@@ -461,7 +461,6 @@ export default function NextBuyActions({
               <div className="mt-3">
                 <Loading
                   compact
-                  counter={false}
                   what={settings ? "Scoring this week" : "Reading your settings"}
                   why={
                     settings

@@ -56,7 +56,7 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
 
       {!data ? (
         <div className="flex h-40 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact counter={false} what="Ageing every buy you have made" />
+          <Loading compact what="Ageing every buy you have made" />
         </div>
       ) : (
         <>

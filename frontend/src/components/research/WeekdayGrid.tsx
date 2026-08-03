@@ -85,7 +85,7 @@ export default function WeekdayGrid({
 
       {!data ? (
         <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact counter={false} what="Testing every weekday of the window" />
+          <Loading compact what="Testing every weekday of the window" />
         </div>
       ) : (
         <>

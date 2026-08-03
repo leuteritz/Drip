@@ -84,7 +84,7 @@ export default function EdgeDistribution({
 
       {!data ? (
         <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact counter={false} what="Rolling the test window across the years" />
+          <Loading compact what="Rolling the test window across the years" />
         </div>
       ) : windows.length === 0 ? (
         <p className="py-10 text-center text-sm text-ink-soft">

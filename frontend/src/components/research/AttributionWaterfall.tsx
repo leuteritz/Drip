@@ -203,7 +203,7 @@ function Skeleton({ rows }: { rows: number }) {
       className="flex items-center justify-center rounded-xl bg-sand-soft/40"
       style={{ height: `${rows * 2.25}rem` }}
     >
-      <Loading compact counter={false} what="Splitting the edge between the three signals" />
+      <Loading compact what="Splitting the edge between the three signals" />
     </div>
   );
 }

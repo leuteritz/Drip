@@ -69,7 +69,7 @@ export default function ScoringVariants({
 
       {!data ? (
         <div className="flex h-48 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact counter={false} what="Replaying the alternative scorings" />
+          <Loading compact what="Replaying the alternative scorings" />
         </div>
       ) : (
         <>
