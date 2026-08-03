@@ -9,46 +9,66 @@
  * night theme comes on, instead of leaving a lit crest on a dark tank.
  */
 
+import type { CSSProperties } from "react";
+
 const WAVE_BACK = "var(--wave-back)";
 const WAVE_FRONT = "var(--wave-front)";
 const FOAM = "var(--wave-foam)";
 
-/** Rising bubbles — position, size, tempo, delay and climb height. */
+/**
+ * Rising bubbles.
+ *
+ * `from` is where one is born and `rise` how far it climbs — both a share of
+ * the water's own height, which is what lets the same table look right in the
+ * hero and on the full-screen wall display. The two add up to somewhere between
+ * three quarters and just under the surface, so the tallest climbers vanish a
+ * hair below the waterline and never punch through it. `drift` is the sideways
+ * sway on the way up, `tone` the cream's alpha: the big ones sit fainter, the
+ * way a bubble further back would. Sizes are in rem like everything else here,
+ * so a 2560px monitor gets a bigger tank rather than the same specks in it.
+ *
+ * The delays are spread across the durations rather than bunched, so no two
+ * neighbours leave the floor together and the tank is never briefly empty.
+ */
 const BUBBLES: {
   left: string;
-  bottom: string;
+  from: string;
+  rise: string;
   size: string;
-  color: string;
+  tone: string;
+  drift: string;
   duration: string;
   delay: string;
-  kind?: "short" | "tall";
 }[] = [
-  { left: "4%", bottom: "10px", size: "7px", color: "rgba(241,255,250,.48)", duration: "6.2s", delay: "2.8s" },
-  { left: "12%", bottom: "12px", size: "9px", color: "rgba(241,255,250,.5)", duration: "6.5s", delay: ".2s" },
-  { left: "19%", bottom: "5px", size: "5px", color: "rgba(241,255,250,.45)", duration: "7.6s", delay: "1.1s", kind: "tall" },
-  { left: "26%", bottom: "6px", size: "6px", color: "rgba(241,255,250,.45)", duration: "5s", delay: "1.4s", kind: "short" },
-  { left: "34%", bottom: "14px", size: "11px", color: "rgba(241,255,250,.38)", duration: "8s", delay: "3.2s", kind: "tall" },
-  { left: "41%", bottom: "8px", size: "4px", color: "rgba(241,255,250,.5)", duration: "4.5s", delay: ".7s", kind: "short" },
-  { left: "47%", bottom: "10px", size: "12px", color: "rgba(241,255,250,.4)", duration: "7.4s", delay: ".9s" },
-  { left: "55%", bottom: "4px", size: "8px", color: "rgba(241,255,250,.44)", duration: "6.8s", delay: "2.4s", kind: "tall" },
-  { left: "63%", bottom: "4px", size: "7px", color: "rgba(241,255,250,.5)", duration: "5.6s", delay: "2.1s", kind: "short" },
-  { left: "70%", bottom: "12px", size: "5px", color: "rgba(241,255,250,.46)", duration: "5.4s", delay: "3.5s" },
-  { left: "78%", bottom: "14px", size: "10px", color: "rgba(241,255,250,.42)", duration: "6.9s", delay: ".5s" },
-  { left: "84%", bottom: "6px", size: "13px", color: "rgba(241,255,250,.35)", duration: "7.8s", delay: "1.6s", kind: "tall" },
-  { left: "90%", bottom: "8px", size: "5px", color: "rgba(241,255,250,.5)", duration: "4.6s", delay: "1.8s", kind: "short" },
-  { left: "96%", bottom: "10px", size: "6px", color: "rgba(241,255,250,.48)", duration: "5.8s", delay: ".4s" },
-  { left: "8%", bottom: "6px", size: "8px", color: "rgba(241,255,250,.42)", duration: "8.4s", delay: "1.9s", kind: "tall" },
-  { left: "30%", bottom: "10px", size: "6px", color: "rgba(241,255,250,.46)", duration: "7.9s", delay: ".3s", kind: "tall" },
-  { left: "51%", bottom: "8px", size: "9px", color: "rgba(241,255,250,.4)", duration: "8.6s", delay: "2.7s", kind: "tall" },
-  { left: "59%", bottom: "12px", size: "5px", color: "rgba(241,255,250,.5)", duration: "6.4s", delay: "1.2s" },
-  { left: "74%", bottom: "6px", size: "10px", color: "rgba(241,255,250,.38)", duration: "8.2s", delay: "3.9s", kind: "tall" },
-  { left: "87%", bottom: "10px", size: "7px", color: "rgba(241,255,250,.44)", duration: "7.7s", delay: "2.2s", kind: "tall" },
+  { left: "2%", from: "1%", rise: "92%", size: "0.45rem", tone: ".5", drift: "0.5rem", duration: "9.5s", delay: "0.6s" },
+  { left: "6%", from: "8%", rise: "74%", size: "0.3rem", tone: ".52", drift: "-0.3rem", duration: "7.2s", delay: "4.8s" },
+  { left: "10%", from: "3%", rise: "84%", size: "0.55rem", tone: ".44", drift: "-0.4rem", duration: "9s", delay: "2.1s" },
+  { left: "14%", from: "0%", rise: "95%", size: "0.7rem", tone: ".4", drift: "0.75rem", duration: "11s", delay: "7.4s" },
+  { left: "17%", from: "11%", rise: "70%", size: "0.35rem", tone: ".5", drift: "-0.35rem", duration: "6.8s", delay: "1.3s" },
+  { left: "21%", from: "2%", rise: "89%", size: "0.5rem", tone: ".46", drift: "0.6rem", duration: "9.8s", delay: "5.5s" },
+  { left: "25%", from: "6%", rise: "62%", size: "0.25rem", tone: ".55", drift: "-0.25rem", duration: "6.2s", delay: "3s" },
+  { left: "28%", from: "1%", rise: "93%", size: "0.6rem", tone: ".42", drift: "0.45rem", duration: "10.6s", delay: "0.2s" },
+  { left: "32%", from: "13%", rise: "72%", size: "0.4rem", tone: ".48", drift: "-0.55rem", duration: "8.6s", delay: "6.2s" },
+  { left: "36%", from: "4%", rise: "86%", size: "0.35rem", tone: ".5", drift: "0.35rem", duration: "8.2s", delay: "2.6s" },
+  { left: "39%", from: "2%", rise: "96%", size: "0.8rem", tone: ".36", drift: "0.5rem", duration: "12s", delay: "8.1s" },
+  { left: "43%", from: "9%", rise: "66%", size: "0.3rem", tone: ".52", drift: "-0.3rem", duration: "6.6s", delay: "4.3s" },
+  { left: "46%", from: "0%", rise: "90%", size: "0.45rem", tone: ".46", drift: "0.65rem", duration: "10.4s", delay: "1.6s" },
+  { left: "50%", from: "5%", rise: "79%", size: "0.6rem", tone: ".42", drift: "-0.5rem", duration: "9.2s", delay: "6.9s" },
+  { left: "53%", from: "16%", rise: "64%", size: "0.3rem", tone: ".5", drift: "0.3rem", duration: "7s", delay: "3.6s" },
+  { left: "57%", from: "2%", rise: "94%", size: "0.4rem", tone: ".48", drift: "0.4rem", duration: "10.8s", delay: "0.9s" },
+  { left: "61%", from: "10%", rise: "75%", size: "0.5rem", tone: ".44", drift: "-0.45rem", duration: "8.8s", delay: "5.8s" },
+  { left: "64%", from: "3%", rise: "87%", size: "0.35rem", tone: ".5", drift: "0.3rem", duration: "8.4s", delay: "2.2s" },
+  { left: "68%", from: "1%", rise: "91%", size: "0.7rem", tone: ".38", drift: "0.8rem", duration: "11.6s", delay: "7.7s" },
+  { left: "71%", from: "7%", rise: "68%", size: "0.25rem", tone: ".55", drift: "-0.25rem", duration: "6.4s", delay: "4s" },
+  { left: "75%", from: "0%", rise: "97%", size: "0.5rem", tone: ".44", drift: "0.5rem", duration: "11.2s", delay: "1.1s" },
+  { left: "78%", from: "12%", rise: "73%", size: "0.4rem", tone: ".48", drift: "-0.4rem", duration: "8s", delay: "6.5s" },
+  { left: "82%", from: "4%", rise: "83%", size: "0.6rem", tone: ".42", drift: "0.55rem", duration: "9.6s", delay: "3.2s" },
+  { left: "85%", from: "6%", rise: "60%", size: "0.3rem", tone: ".52", drift: "-0.3rem", duration: "6.6s", delay: "0.4s" },
+  { left: "88%", from: "2%", rise: "92%", size: "0.45rem", tone: ".46", drift: "0.6rem", duration: "10.2s", delay: "5.2s" },
+  { left: "91%", from: "14%", rise: "71%", size: "0.35rem", tone: ".5", drift: "-0.35rem", duration: "7.6s", delay: "2.8s" },
+  { left: "94%", from: "1%", rise: "88%", size: "0.65rem", tone: ".4", drift: "-0.7rem", duration: "10s", delay: "8.4s" },
+  { left: "97%", from: "8%", rise: "78%", size: "0.35rem", tone: ".48", drift: "0.35rem", duration: "8.6s", delay: "1.9s" },
 ];
-
-const BUBBLE_ANIMATION = {
-  short: "animate-bubble-short",
-  tall: "animate-bubble-tall",
-} as const;
 
 // Each wave path repeats every 120px so the marquee shift loops seamlessly.
 const WAVE_BACK_PATH =
@@ -73,18 +93,19 @@ export default function TankBackdrop() {
         {BUBBLES.map((b, i) => (
           <span
             key={i}
-            className={`absolute rounded-full ${
-              b.kind ? BUBBLE_ANIMATION[b.kind] : "animate-bubble"
-            }`}
-            style={{
-              left: b.left,
-              bottom: b.bottom,
-              width: b.size,
-              height: b.size,
-              backgroundColor: b.color,
-              animationDuration: b.duration,
-              animationDelay: b.delay,
-            }}
+            className="bubble"
+            style={
+              {
+                left: b.left,
+                bottom: b.from,
+                "--rise": b.rise,
+                "--size": b.size,
+                "--tone": b.tone,
+                "--drift": b.drift,
+                "--dur": b.duration,
+                "--delay": b.delay,
+              } as CSSProperties
+            }
           />
         ))}
       </div>

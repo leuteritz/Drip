@@ -12,13 +12,12 @@ explicit, confirmed opt-in.
 
 *Example history, not a real account. Shown in the night theme; there is a day one too.*
 
-The dashboard also researches its own strategy - what each indicator contributed,
-whether the score predicts anything, what a different scoring would have done -
-reports what you paid against the market and how old each buy is, and carries the rate
-you stack at forward to the next round number of sats. Setting the drip happens on the
-next-buy card itself: click the amount to change your base, click the day and time to
-move the schedule or pause it. Once a week it sends you the whole thing on Discord. `Ctrl+K` reaches all of it, keys and backend
-included, so the Pi needs no shell after the first install.
+Your stack is a tank of water, and it fills. Underneath, the dashboard researches its
+own strategy, reports what you paid against the market, and carries the rate you stack
+at forward to the next round number of sats. Setting the drip happens on the next-buy
+card: click the amount, or the day and time. Once a week the whole thing arrives on
+Discord. `Ctrl+K` reaches all of it, keys and backend included, so the Pi needs no
+shell after the first install.
 
 ## Install
 

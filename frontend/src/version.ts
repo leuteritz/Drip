@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.6",
+    date: "2026-08-03",
+    changes: [
+      "The tank's bubbles rise the full depth of the water now — from anywhere along the floor to just under the surface — instead of stopping halfway up on a tall header or on the wall display",
+      "More of them, each on its own path, and they no longer bunch up along the bottom",
+    ],
+  },
+  {
     version: "2.5",
     date: "2026-08-03",
     changes: [

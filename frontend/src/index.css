@@ -197,56 +197,65 @@ body {
   animation: swell 7s ease-in-out infinite;
 }
 
-/* Bubbles rising through the tank: swell in, drift up, shrink and fade */
-@keyframes bubble {
+/* Bubbles rising through the tank.
+   The climb is a *share of the water*, never a pixel distance: the `.bubble`
+   span is the lane itself — `height: var(--rise)` against the tank — so moving
+   it by -100% of its own height carries the drop at its foot exactly that far.
+   A bubble that reaches just under the surface in the hero reaches just under
+   it on the full-screen wall display too, whatever the header is sized to. */
+@keyframes bubble-rise {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/* The drop itself, on the same clock: swell in, sway around its lane, widen as
+   the water thins above it, and fade out just short of the waterline. */
+@keyframes bubble-drop {
   0% {
-    transform: translateY(0) scale(1);
+    transform: translateX(0) scale(0.7);
     opacity: 0;
   }
   12% {
-    opacity: 0.7;
+    opacity: 0.85;
+  }
+  35% {
+    transform: translateX(var(--drift)) scale(0.95);
+  }
+  70% {
+    transform: translateX(calc(var(--drift) * -0.75)) scale(1.05);
   }
   88% {
-    opacity: 0.45;
+    opacity: 0.7;
   }
   100% {
-    transform: translateY(-300px) scale(0.35);
+    transform: translateX(0) scale(1.12);
     opacity: 0;
   }
 }
 
-@keyframes bubble-short {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.6;
-  }
-  85% {
-    opacity: 0.4;
-  }
-  100% {
-    transform: translateY(-150px) scale(0.4);
-    opacity: 0;
-  }
+/* The climb is linear on purpose: eased, every bubble would hang around the
+   floor and the top half of the tank would stand empty. */
+.bubble {
+  position: absolute;
+  width: var(--size);
+  height: var(--rise);
+  animation: bubble-rise var(--dur) linear infinite;
+  animation-delay: var(--delay);
 }
 
-@keyframes bubble-tall {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.65;
-  }
-  90% {
-    opacity: 0.4;
-  }
-  100% {
-    transform: translateY(-460px) scale(0.3);
-    opacity: 0;
-  }
+/* `both` matters: without the backwards fill every bubble sits at the tank
+   floor as a static dot until its delay has run out. */
+.bubble::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 9999px;
+  background: rgba(241, 255, 250, var(--tone));
+  animation: bubble-drop var(--dur) linear infinite both;
+  animation-delay: var(--delay);
 }
 
 /* A buy landing in the tank: rings spreading from the waterline, once. The
@@ -271,26 +280,13 @@ body {
   opacity: 0;
 }
 
-.animate-bubble {
-  animation: bubble 6.5s ease-in infinite;
-}
-
-.animate-bubble-short {
-  animation: bubble-short 5s ease-in infinite;
-}
-
-.animate-bubble-tall {
-  animation: bubble-tall 7.5s ease-in infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .animate-wave-slow,
   .animate-wave,
   .animate-wave-fast,
   .animate-swell,
-  .animate-bubble,
-  .animate-bubble-short,
-  .animate-bubble-tall,
+  .bubble,
+  .bubble::before,
   .animate-splash {
     animation: none;
   }
