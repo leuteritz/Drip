@@ -28,8 +28,13 @@ const PAUSE_OPTIONS = [
 
 const SAVED_FLASH_MS = 1800;
 
+/** The two money actions sit in one capsule — the group is the shape, so no
+ *  rule is needed to say they belong together. `p-1` plus `h-12` keeps the
+ *  tray at the 3.5rem the buttons used to stand at on their own. */
+const ACTION_TRAY =
+  "flex w-full flex-none items-center gap-1 rounded-full bg-teal/10 p-1 md:ml-auto md:w-auto";
 const ACTION =
-  "flex h-14 items-center justify-center gap-2 rounded-2xl px-7 text-base font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60";
+  "flex h-12 items-center justify-center gap-2 rounded-full px-6 text-base font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60";
 const CAPTION = "text-2xs font-bold uppercase tracking-[0.18em] text-teal/60";
 
 /** A value you can click to change it — the pencil only surfaces on hover, so
@@ -472,15 +477,16 @@ export default function NextBuyActions({
           </div>
         </div>
 
-        {/* Right: everything that can move money. Both wear the brand's drop —
-            the same mark as the header's — hollow for a run that spends nothing,
-            filled for one that does. */}
-        <div className="flex flex-none items-center gap-2.5 max-md:justify-end md:ml-auto md:border-l md:border-teal/12 md:pl-7">
+        {/* Right: everything that can move money, in one tray. Both wear the
+            brand's drop — the same mark as the header's — hollow for a run that
+            spends nothing, filled for one that does; only the filled one is a
+            solid button, which is the whole difference the group has to say. */}
+        <div className={ACTION_TRAY}>
           <button
             onClick={onTestBuy}
             disabled={running}
             title="Run the strategy once without spending anything"
-            className={`${ACTION} flex-1 bg-teal/12 text-teal hover:bg-teal/20 focus-visible:outline-teal md:flex-none`}
+            className={`${ACTION} flex-1 text-teal hover:bg-teal/15 focus-visible:outline-teal md:flex-none`}
           >
             <DropIcon className="text-lg" /> {running ? "Testing…" : "Test"}
           </button>
@@ -488,7 +494,7 @@ export default function NextBuyActions({
             onClick={onBuy}
             disabled={buying}
             title={live ? "Place a real market buy" : "Place a dry-run buy"}
-            className={`${ACTION} flex-1 md:flex-none ${
+            className={`${ACTION} flex-1 shadow-sm md:flex-none ${
               live
                 ? "bg-rose-deep text-cream hover:opacity-90 focus-visible:outline-rose"
                 : "bg-teal-deep text-cream hover:bg-teal-deep/90 focus-visible:outline-teal"
