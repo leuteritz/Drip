@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import CheckIcon from "~icons/ph/check";
+import ClockIcon from "~icons/ph/clock";
 import DropIcon from "~icons/ph/drop";
 import DropFillIcon from "~icons/ph/drop-fill";
 import PauseIcon from "~icons/ph/pause";
@@ -37,11 +38,26 @@ const ACTION =
   "flex h-12 items-center justify-center gap-2 rounded-full px-6 text-base font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60";
 const CAPTION = "text-2xs font-bold uppercase tracking-[0.18em] text-teal/60";
 
-/** A value you can click to change it — the pencil only surfaces on hover, so
- *  the row still reads as a figure rather than as a form. */
-const VALUE_CHIP =
-  "group inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-0.5 tracking-[0.1em] text-teal/80 transition hover:bg-teal/20 hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
-const PENCIL = "text-2xs opacity-0 transition-opacity group-hover:opacity-100";
+/**
+ * A value you can click to change it. One fixed height and an icon slot at each
+ * end, so the value sits **centred** between them: the pencil used to be the
+ * only slot and it pushed the text off to the left, which is what an invisible
+ * item in the flow does. The left slot carries a mark that says what the value
+ * is about, the right one the pencil, which only surfaces on hover — the chip
+ * still reads as a figure rather than as a form, and nothing moves when it does.
+ */
+const CHIP =
+  "group inline-flex h-6 items-center gap-1.5 rounded-full px-1.5 leading-none transition focus-visible:outline-2 focus-visible:outline-offset-2";
+const VALUE_CHIP = `${CHIP} bg-teal/10 text-teal/80 hover:bg-teal/20 hover:text-teal focus-visible:outline-teal`;
+const RESUME_CHIP = `${CHIP} bg-rose/12 text-rose hover:bg-rose/25 focus-visible:outline-rose`;
+/** Both slots are one width, which is the whole trick. */
+const CHIP_ICON = "h-3 w-3 flex-none";
+const CHIP_VALUE = "tracking-[0.1em]";
+/** Letter-spacing puts a trailing gap after the last glyph, so the value nearest
+ *  the pencil takes it back: centred optically, not just mathematically. */
+const CHIP_TRIM = "-mr-[0.1em]";
+const CHIP_DOT = "h-0.5 w-0.5 flex-none rounded-full bg-current opacity-40";
+const PENCIL = "opacity-0 transition-opacity group-hover:opacity-100";
 
 const STEP_BUTTON =
   "flex h-9 w-9 flex-none items-center justify-center rounded-full bg-teal/12 text-xl leading-none text-teal transition hover:bg-teal/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
@@ -134,6 +150,9 @@ export default function NextBuyActions({
   const remaining = status?.next_run
     ? new Date(status.next_run).getTime() - now
     : null;
+  // The countdown rides in the schedule chip while the drip runs; paused, the
+  // chip gives that half over to the pill that resumes.
+  const counting = !paused && remaining != null;
   // The pipe fills as the week drains toward the next buy.
   const filled =
     remaining == null ? 0 : Math.max(0, Math.min(1, 1 - remaining / WEEK_MS));
@@ -306,6 +325,11 @@ export default function NextBuyActions({
                 </span>
               </div>
             ) : (
+              /* When it lands and how far off that is are one thing, so they are
+                 one token: the clock, the slot, and — while the drip is running
+                 — the countdown behind a dot. Paused, the countdown gives way to
+                 the pill that resumes, which is a different action and so stays
+                 its own chip. */
               <div className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${CAPTION}`}>
                 <span>Next buy</span>
                 <button
@@ -315,25 +339,35 @@ export default function NextBuyActions({
                   title="Change the day, the time or pause the drip"
                   className={VALUE_CHIP}
                 >
-                  {nextWhen}
-                  <PencilIcon className={PENCIL} />
+                  <ClockIcon className={`${CHIP_ICON} opacity-50`} />
+                  <span className={`${CHIP_VALUE} ${counting ? "" : CHIP_TRIM}`}>
+                    {nextWhen}
+                  </span>
+                  {counting && (
+                    <>
+                      <span aria-hidden className={CHIP_DOT} />
+                      <span
+                        className={`${CHIP_VALUE} ${CHIP_TRIM} normal-case opacity-60`}
+                      >
+                        {untilLabel(remaining!)}
+                      </span>
+                    </>
+                  )}
+                  <PencilIcon className={`${CHIP_ICON} ${PENCIL}`} />
                 </button>
-                {paused && status?.paused_until ? (
+                {paused && status?.paused_until && (
                   <button
                     type="button"
                     onClick={() => void onResume()}
                     title="Resume the drip"
-                    className="group inline-flex items-center gap-1.5 rounded-full bg-rose/12 px-2.5 py-0.5 tracking-[0.1em] text-rose transition hover:bg-rose/25"
+                    className={RESUME_CHIP}
                   >
-                    Paused until {formatDayMonth(status.paused_until)}
-                    <PlayIcon className={PENCIL} />
-                  </button>
-                ) : (
-                  remaining != null && (
-                    <span className="normal-case tracking-normal text-teal/50">
-                      {untilLabel(remaining)}
+                    <PauseIcon className={`${CHIP_ICON} opacity-50`} />
+                    <span className={`${CHIP_VALUE} ${CHIP_TRIM}`}>
+                      Paused until {formatDayMonth(status.paused_until)}
                     </span>
-                  )
+                    <PlayIcon className={`${CHIP_ICON} ${PENCIL}`} />
+                  </button>
                 )}
                 {savedFlash}
               </div>

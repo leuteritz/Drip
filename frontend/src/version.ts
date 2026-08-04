@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.15",
+    date: "2026-08-04",
+    changes: [
+      "The next buy's day and time now carries the countdown with it in one chip, centred between a clock and the pencil that edits it",
+    ],
+  },
+  {
     version: "2.14",
     date: "2026-08-04",
     changes: [
