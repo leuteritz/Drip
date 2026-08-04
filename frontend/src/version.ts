@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.13",
+    date: "2026-08-04",
+    changes: [
+      "When motion is switched off, the tank's bubbles now hold their place along the way up instead of dropping back to the floor — the water looks like water in a screenshot too",
+    ],
+  },
+  {
     version: "2.12",
     date: "2026-08-04",
     changes: [

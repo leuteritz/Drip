@@ -285,9 +285,19 @@ body {
   .animate-wave,
   .animate-wave-fast,
   .animate-swell,
-  .bubble,
-  .bubble::before,
   .animate-splash {
     animation: none;
+  }
+
+  /* The bubbles are stopped rather than switched off. `animation: none` would
+     drop every one of them back to the tank floor — the state they are born in —
+     and the water would read as a row of dots along the bottom, which is also
+     what every screenshot showed, since the shooter forces this media query.
+     Paused at a negative offset each one holds wherever `--still` puts it on its
+     climb, so a motionless tank still looks like a tank that has been running. */
+  .bubble,
+  .bubble::before {
+    animation-delay: calc(var(--dur) * var(--still) * -1);
+    animation-play-state: paused;
   }
 }

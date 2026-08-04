@@ -62,6 +62,14 @@ const mix = (from: number, to: number, fizz: number) => from + (to - from) * fiz
  * there, so the calm tank keeps half the field, its full width and its whole
  * range of sizes. The rest fill in between their neighbours as the signal
  * strengthens: 14 bubbles at 0.5x, 21 at 1.0x, all 28 at 1.5x.
+ *
+ * `still` is how far up its climb the bubble is caught when the water cannot
+ * move — under `prefers-reduced-motion`, which is also what every screenshot is
+ * taken under. Without it the whole field freezes at the moment it was born and
+ * the tank reads as a row of dots along the floor; with it a still shows the
+ * water as it looks while running. Neighbours are far apart on purpose, and all
+ * of them sit inside 0.15–0.85, the stretch of the climb where a drop is fully
+ * faded in.
  */
 const BUBBLES: {
   left: string;
@@ -74,35 +82,37 @@ const BUBBLES: {
   duration: number;
   delay: string;
   at: number;
+  /** Share of the climb, 0 to 1, where a motionless tank catches it. */
+  still: number;
 }[] = [
-  { left: "2%", from: "1%", rise: "92%", size: "0.45rem", tone: 0.5, drift: "0.5rem", duration: 9.5, delay: "0.6s", at: 0 },
-  { left: "6%", from: "8%", rise: "74%", size: "0.3rem", tone: 0.52, drift: "-0.3rem", duration: 7.2, delay: "4.8s", at: 0.55 },
-  { left: "10%", from: "3%", rise: "84%", size: "0.55rem", tone: 0.44, drift: "-0.4rem", duration: 9, delay: "2.1s", at: 0 },
-  { left: "14%", from: "0%", rise: "95%", size: "0.7rem", tone: 0.4, drift: "0.75rem", duration: 11, delay: "7.4s", at: 0.2 },
-  { left: "17%", from: "11%", rise: "70%", size: "0.35rem", tone: 0.5, drift: "-0.35rem", duration: 6.8, delay: "1.3s", at: 0 },
-  { left: "21%", from: "2%", rise: "89%", size: "0.5rem", tone: 0.46, drift: "0.6rem", duration: 9.8, delay: "5.5s", at: 0.75 },
-  { left: "25%", from: "6%", rise: "62%", size: "0.25rem", tone: 0.55, drift: "-0.25rem", duration: 6.2, delay: "3s", at: 0 },
-  { left: "28%", from: "1%", rise: "93%", size: "0.6rem", tone: 0.42, drift: "0.45rem", duration: 10.6, delay: "0.2s", at: 0.35 },
-  { left: "32%", from: "13%", rise: "72%", size: "0.4rem", tone: 0.48, drift: "-0.55rem", duration: 8.6, delay: "6.2s", at: 0 },
-  { left: "36%", from: "4%", rise: "86%", size: "0.35rem", tone: 0.5, drift: "0.35rem", duration: 8.2, delay: "2.6s", at: 0.9 },
-  { left: "39%", from: "2%", rise: "96%", size: "0.8rem", tone: 0.36, drift: "0.5rem", duration: 12, delay: "8.1s", at: 0 },
-  { left: "43%", from: "9%", rise: "66%", size: "0.3rem", tone: 0.52, drift: "-0.3rem", duration: 6.6, delay: "4.3s", at: 0.15 },
-  { left: "46%", from: "0%", rise: "90%", size: "0.45rem", tone: 0.46, drift: "0.65rem", duration: 10.4, delay: "1.6s", at: 0 },
-  { left: "50%", from: "5%", rise: "79%", size: "0.6rem", tone: 0.42, drift: "-0.5rem", duration: 9.2, delay: "6.9s", at: 0.6 },
-  { left: "53%", from: "16%", rise: "64%", size: "0.3rem", tone: 0.5, drift: "0.3rem", duration: 7, delay: "3.6s", at: 0 },
-  { left: "57%", from: "2%", rise: "94%", size: "0.4rem", tone: 0.48, drift: "0.4rem", duration: 10.8, delay: "0.9s", at: 0.3 },
-  { left: "61%", from: "10%", rise: "75%", size: "0.5rem", tone: 0.44, drift: "-0.45rem", duration: 8.8, delay: "5.8s", at: 0 },
-  { left: "64%", from: "3%", rise: "87%", size: "0.35rem", tone: 0.5, drift: "0.3rem", duration: 8.4, delay: "2.2s", at: 0.85 },
-  { left: "68%", from: "1%", rise: "91%", size: "0.7rem", tone: 0.38, drift: "0.8rem", duration: 11.6, delay: "7.7s", at: 0 },
-  { left: "71%", from: "7%", rise: "68%", size: "0.25rem", tone: 0.55, drift: "-0.25rem", duration: 6.4, delay: "4s", at: 0.45 },
-  { left: "75%", from: "0%", rise: "97%", size: "0.5rem", tone: 0.44, drift: "0.5rem", duration: 11.2, delay: "1.1s", at: 0 },
-  { left: "78%", from: "12%", rise: "73%", size: "0.4rem", tone: 0.48, drift: "-0.4rem", duration: 8, delay: "6.5s", at: 0.7 },
-  { left: "82%", from: "4%", rise: "83%", size: "0.6rem", tone: 0.42, drift: "0.55rem", duration: 9.6, delay: "3.2s", at: 0 },
-  { left: "85%", from: "6%", rise: "60%", size: "0.3rem", tone: 0.52, drift: "-0.3rem", duration: 6.6, delay: "0.4s", at: 0.25 },
-  { left: "88%", from: "2%", rise: "92%", size: "0.45rem", tone: 0.46, drift: "0.6rem", duration: 10.2, delay: "5.2s", at: 0 },
-  { left: "91%", from: "14%", rise: "71%", size: "0.35rem", tone: 0.5, drift: "-0.35rem", duration: 7.6, delay: "2.8s", at: 0.95 },
-  { left: "94%", from: "1%", rise: "88%", size: "0.65rem", tone: 0.4, drift: "-0.7rem", duration: 10, delay: "8.4s", at: 0 },
-  { left: "97%", from: "8%", rise: "78%", size: "0.35rem", tone: 0.48, drift: "0.35rem", duration: 8.6, delay: "1.9s", at: 0.4 },
+  { left: "2%", from: "1%", rise: "92%", size: "0.45rem", tone: 0.5, drift: "0.5rem", duration: 9.5, delay: "0.6s", at: 0, still: 0.62 },
+  { left: "6%", from: "8%", rise: "74%", size: "0.3rem", tone: 0.52, drift: "-0.3rem", duration: 7.2, delay: "4.8s", at: 0.55, still: 0.28 },
+  { left: "10%", from: "3%", rise: "84%", size: "0.55rem", tone: 0.44, drift: "-0.4rem", duration: 9, delay: "2.1s", at: 0, still: 0.81 },
+  { left: "14%", from: "0%", rise: "95%", size: "0.7rem", tone: 0.4, drift: "0.75rem", duration: 11, delay: "7.4s", at: 0.2, still: 0.17 },
+  { left: "17%", from: "11%", rise: "70%", size: "0.35rem", tone: 0.5, drift: "-0.35rem", duration: 6.8, delay: "1.3s", at: 0, still: 0.46 },
+  { left: "21%", from: "2%", rise: "89%", size: "0.5rem", tone: 0.46, drift: "0.6rem", duration: 9.8, delay: "5.5s", at: 0.75, still: 0.73 },
+  { left: "25%", from: "6%", rise: "62%", size: "0.25rem", tone: 0.55, drift: "-0.25rem", duration: 6.2, delay: "3s", at: 0, still: 0.34 },
+  { left: "28%", from: "1%", rise: "93%", size: "0.6rem", tone: 0.42, drift: "0.45rem", duration: 10.6, delay: "0.2s", at: 0.35, still: 0.55 },
+  { left: "32%", from: "13%", rise: "72%", size: "0.4rem", tone: 0.48, drift: "-0.55rem", duration: 8.6, delay: "6.2s", at: 0, still: 0.22 },
+  { left: "36%", from: "4%", rise: "86%", size: "0.35rem", tone: 0.5, drift: "0.35rem", duration: 8.2, delay: "2.6s", at: 0.9, still: 0.68 },
+  { left: "39%", from: "2%", rise: "96%", size: "0.8rem", tone: 0.36, drift: "0.5rem", duration: 12, delay: "8.1s", at: 0, still: 0.41 },
+  { left: "43%", from: "9%", rise: "66%", size: "0.3rem", tone: 0.52, drift: "-0.3rem", duration: 6.6, delay: "4.3s", at: 0.15, still: 0.85 },
+  { left: "46%", from: "0%", rise: "90%", size: "0.45rem", tone: 0.46, drift: "0.65rem", duration: 10.4, delay: "1.6s", at: 0, still: 0.3 },
+  { left: "50%", from: "5%", rise: "79%", size: "0.6rem", tone: 0.42, drift: "-0.5rem", duration: 9.2, delay: "6.9s", at: 0.6, still: 0.58 },
+  { left: "53%", from: "16%", rise: "64%", size: "0.3rem", tone: 0.5, drift: "0.3rem", duration: 7, delay: "3.6s", at: 0, still: 0.19 },
+  { left: "57%", from: "2%", rise: "94%", size: "0.4rem", tone: 0.48, drift: "0.4rem", duration: 10.8, delay: "0.9s", at: 0.3, still: 0.77 },
+  { left: "61%", from: "10%", rise: "75%", size: "0.5rem", tone: 0.44, drift: "-0.45rem", duration: 8.8, delay: "5.8s", at: 0, still: 0.36 },
+  { left: "64%", from: "3%", rise: "87%", size: "0.35rem", tone: 0.5, drift: "0.3rem", duration: 8.4, delay: "2.2s", at: 0.85, still: 0.65 },
+  { left: "68%", from: "1%", rise: "91%", size: "0.7rem", tone: 0.38, drift: "0.8rem", duration: 11.6, delay: "7.7s", at: 0, still: 0.25 },
+  { left: "71%", from: "7%", rise: "68%", size: "0.25rem", tone: 0.55, drift: "-0.25rem", duration: 6.4, delay: "4s", at: 0.45, still: 0.49 },
+  { left: "75%", from: "0%", rise: "97%", size: "0.5rem", tone: 0.44, drift: "0.5rem", duration: 11.2, delay: "1.1s", at: 0, still: 0.83 },
+  { left: "78%", from: "12%", rise: "73%", size: "0.4rem", tone: 0.48, drift: "-0.4rem", duration: 8, delay: "6.5s", at: 0.7, still: 0.32 },
+  { left: "82%", from: "4%", rise: "83%", size: "0.6rem", tone: 0.42, drift: "0.55rem", duration: 9.6, delay: "3.2s", at: 0, still: 0.71 },
+  { left: "85%", from: "6%", rise: "60%", size: "0.3rem", tone: 0.52, drift: "-0.3rem", duration: 6.6, delay: "0.4s", at: 0.25, still: 0.16 },
+  { left: "88%", from: "2%", rise: "92%", size: "0.45rem", tone: 0.46, drift: "0.6rem", duration: 10.2, delay: "5.2s", at: 0, still: 0.53 },
+  { left: "91%", from: "14%", rise: "71%", size: "0.35rem", tone: 0.5, drift: "-0.35rem", duration: 7.6, delay: "2.8s", at: 0.95, still: 0.44 },
+  { left: "94%", from: "1%", rise: "88%", size: "0.65rem", tone: 0.4, drift: "-0.7rem", duration: 10, delay: "8.4s", at: 0, still: 0.79 },
+  { left: "97%", from: "8%", rise: "78%", size: "0.35rem", tone: 0.48, drift: "0.35rem", duration: 8.6, delay: "1.9s", at: 0.4, still: 0.26 },
 ];
 
 // Each wave path repeats every 120px so the marquee shift loops seamlessly.
@@ -145,6 +155,7 @@ export default function TankBackdrop({ multiplier }: { multiplier?: number | nul
                   "--drift": b.drift,
                   "--dur": `${(b.duration * tempo).toFixed(2)}s`,
                   "--delay": b.delay,
+                  "--still": b.still,
                 } as CSSProperties
               }
             />
