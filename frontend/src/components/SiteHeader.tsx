@@ -315,9 +315,10 @@ export default function SiteHeader({
           {/* Centered reservoir headline, fully submerged below the waterline */}
           <Reservoir performance={performance} onToggleUnit={onToggleUnit} />
 
-          {/* Submerged read-outs: signal · market · bitcoin · well (frosted
-              glass). A grid rather than a wrapping row, so the four keep one
-              width and one baseline at every size the app is read at. */}
+          {/* Submerged read-outs: signal · market · bitcoin · well — four
+              instruments in one glass grammar (see Readouts). A grid rather
+              than a wrapping row, so the four keep one width and one baseline
+              at every size the app is read at. */}
           <div className="mt-7 grid grid-cols-2 items-stretch gap-2.5 sm:mt-9 sm:gap-4 lg:grid-cols-4">
             {/* All four are always here, waiting or not: the signal is the
                 slowest call in the app, and a grid that fills in from two

@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.18",
+    date: "2026-08-04",
+    changes: [
+      "The four read-outs on the water are now one set of instruments: each names itself, states its figure and draws its own scale along the foot, so the signal, the mood, the price and the well can be compared at a glance instead of read one by one",
+      "The well counts its runway in ticks — one per buy it can still pay for — and the bitcoin scale marks the 350-day average, so how far under or over it the price sits is something you can see",
+      "The glass they sit in is clearer: the tank shows through, the lit top edge states the shape, and a chip still waiting now says which of the four it is",
+    ],
+  },
+  {
     version: "2.17",
     date: "2026-08-04",
     changes: [

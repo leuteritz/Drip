@@ -1,19 +1,22 @@
-import type { ReactNode } from "react";
+import type { FunctionComponent, ReactNode, SVGProps } from "react";
 import CoinsIcon from "~icons/ph/coins";
+import CurrencyBtcIcon from "~icons/ph/currency-btc";
+import DropIcon from "~icons/ph/drop";
 import KeyIcon from "~icons/ph/key";
+import PulseIcon from "~icons/ph/pulse";
 import type {
   AccountBalance,
   BotSettings,
   Indicators,
   Performance,
 } from "../../api/client";
+import { potencyFromMultiplier } from "../drops";
 import { fmtEur, fmtPct } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { ScoreDrops } from "../drops";
 import { Loading, Spinner } from "../ui";
 
 /**
- * The four frosted read-outs floating on the waterline.
+ * The four read-outs floating on the waterline — instruments on the tank wall.
  *
  * There used to be five, one per indicator, which meant the hero showed the
  * score next to the two readings that produce it — the same fact three times,
@@ -22,25 +25,94 @@ import { Loading, Spinner } from "../ui";
  * (`Market`), what bitcoin costs (`Bitcoin`), and whether there is money left
  * to buy with (`Well`). The arithmetic between them lives one click away in
  * `SignalBreakdown`.
+ *
+ * All four are one grammar, read top to bottom, so the set reads as a panel of
+ * gauges rather than four unrelated cards:
+ *
+ *   1. an **eyebrow** — an icon and the name of the instrument, always present,
+ *      so a chip that is still fetching still says what it is going to show;
+ *   2. the **figure**, pushed to the bottom of the card so all four sit on one
+ *      line whatever the label above them wraps to;
+ *   3. one line of **plain words** saying what the figure means; and
+ *   4. a **rail** across the foot — the same track in all four, filled four
+ *      different ways, each panel measuring its own scale.
+ *
+ * The rail is what makes them a set. Two of them used to have a bar and two did
+ * not, so the four had no shared bottom edge and the eye had to start over on
+ * each one. Everything is left-aligned for the same reason: a rail runs left to
+ * right, and a centred figure above one never resolves.
  */
-const FROST_CARD =
-  "flex h-full flex-col items-center justify-center gap-2 text-center rounded-[1.5rem] border border-cream/45 bg-cream/25 px-3 py-5 text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-md sm:rounded-[1.75rem] sm:px-5 sm:py-6";
 
-const CAPTION = "text-2xs font-bold uppercase tracking-[0.16em] text-cream/72";
+/**
+ * The glass itself.
+ *
+ * A heavy cream wash over the tank reads as fog, not as glass — a pale patch
+ * with a line round it. What makes it glass is that the pane is nearly clear
+ * and the *light* does the drawing: the tank is lit from the surface above, so
+ * the top edge catches a bright specular line, the wash falls off downward, the
+ * bottom edge sits in its own shade, and the blur behind is deep enough to
+ * genuinely defocus the bubbles rising past. The rim is what states the shape;
+ * the fill only has to tint.
+ */
+const GAUGE =
+  "relative flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-cream/30 " +
+  "bg-linear-to-b from-cream/16 to-cream/[.04] px-3.5 py-4 text-cream backdrop-blur-2xl " +
+  "shadow-[inset_0_1px_0_rgba(241,255,250,.5),inset_0_-1px_0_rgba(0,0,0,.3),0_20px_40px_-24px_rgba(0,0,0,.65)] " +
+  "sm:rounded-[1.75rem] sm:px-5 sm:py-5";
+
+/** The sunlight landing on the top-left corner of each pane. */
+const SHEEN =
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(130%_90%_at_8%_-20%,rgba(241,255,250,0.28),transparent_58%)]";
+
+const EYEBROW =
+  "flex items-center gap-1.5 text-2xs font-bold uppercase tracking-[0.16em] text-cream/80";
+
 /**
  * The figure each chip is about.
  *
  * Two of these are euro amounts that can reach five figures, and on a phone the
  * chip they sit in is half the width of the glass — so below ~550px the size is
  * measured in vw and shrinks with it. Above that it is capped at the 2.25rem it
- * has always been, so nothing on a desk moved.
+ * has always been, so nothing on a desk moved. `mt-auto` is what parks it on the
+ * card's bottom edge, above its own words and rail.
  */
-const BIG_NUMBER =
-  "font-display text-[clamp(1.45rem,6.4vw,2.25rem)] font-semibold leading-none";
-const SUB = "text-xs font-semibold text-cream/80 sm:text-sm";
+const FIGURE =
+  "mt-auto pt-4 font-display text-[clamp(1.45rem,6.4vw,2.25rem)] font-semibold leading-none tracking-tight";
+/**
+ * The line of plain words under the figure. Two lines are reserved for it on a
+ * phone, where the chip is half the glass wide and the bitcoin one wraps: the
+ * figures above only sit on a shared line while the words below them are the
+ * same height. From `sm` up every one of them fits on a line of its own.
+ */
+const SUB =
+  "mt-1.5 text-xs font-semibold text-cream/75 max-sm:min-h-[2.7em] sm:text-sm";
 
-function FrostCard({ children }: { children: ReactNode }) {
-  return <div className={FROST_CARD}>{children}</div>;
+/** The shared track every rail is drawn on. */
+const TRACK = "relative mt-4 h-1.5 w-full rounded-full bg-cream/20";
+/** A scale mark, overhanging the track on both sides so it survives the fill. */
+const NOTCH = "absolute top-1/2 h-3 w-px -translate-y-1/2 bg-cream/70";
+
+function Gauge({
+  label,
+  icon: Icon,
+  children,
+}: {
+  label: string;
+  icon: FunctionComponent<SVGProps<SVGSVGElement>>;
+  children: ReactNode;
+}) {
+  return (
+    <div className={GAUGE}>
+      <span aria-hidden="true" className={SHEEN} />
+      <div className="relative flex h-full flex-col">
+        <div className={EYEBROW}>
+          <Icon className="shrink-0 text-sm opacity-80" />
+          {label}
+        </div>
+        {children}
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -49,43 +121,113 @@ function FrostCard({ children }: { children: ReactNode }) {
  * Each says what *this* chip is missing rather than "loading", because the
  * four of them arrive from three different calls and the slow one is worth
  * naming. No seconds here — four clocks ticking in a row is noise, and the
- * sticky bar is already counting for the page.
+ * sticky bar is already counting for the page. The empty rail stays under it so
+ * the card is the same height before and after the answer lands.
  */
 function ChipWait({ what }: { what: string }) {
   return (
-    <div className="flex w-full items-center justify-center px-1 py-3">
-      <Loading compact on="water" what={what} />
+    <>
+      <div className="mt-auto pt-4">
+        <Loading compact on="water" what={what} />
+      </div>
+      <div aria-hidden="true" className={TRACK} />
+    </>
+  );
+}
+
+/** The 0.5x–1.5x ladder, drawn: five rungs, lit up to the one in force. */
+function LadderRail({ lit }: { lit: number }) {
+  return (
+    <div aria-hidden="true" className="mt-4 flex w-full gap-1">
+      {[1, 2, 3, 4, 5].map((rung) => (
+        <span
+          key={rung}
+          className={`h-1.5 flex-1 rounded-full ${rung <= lit ? "bg-cream" : "bg-cream/20"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** A 0–100 scale with the reading pinned on it and neutral marked at the middle. */
+function PinRail({ value }: { value: number }) {
+  const pos = Math.max(0, Math.min(100, value));
+  return (
+    <div aria-hidden="true" className={TRACK}>
+      <div
+        className="absolute inset-y-0 left-0 rounded-full bg-cream/70"
+        style={{ width: `${pos}%` }}
+      />
+      <span className={NOTCH} style={{ left: "50%" }} />
+      <div
+        className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cream shadow-[0_0_0_3px_rgba(0,0,0,.18)]"
+        style={{ left: `${pos}%` }}
+      />
+    </div>
+  );
+}
+
+/** How far either side of the average the rail can show before it pegs. */
+const SPAN_PCT = 40;
+
+/**
+ * A distance from a middle: the notch is the 350-day average and the bar grows
+ * out of it — left when bitcoin is under that average, right when it is over.
+ * Pegged at ±40%, which is far enough that the bar is still moving in an
+ * ordinary year.
+ */
+function SpanRail({ pct }: { pct: number }) {
+  const share = Math.min(1, Math.abs(pct) / SPAN_PCT);
+  const width = `${share * 50}%`;
+  return (
+    <div aria-hidden="true" className={TRACK}>
+      <div
+        className="absolute inset-y-0 rounded-full bg-cream/75"
+        style={pct < 0 ? { right: "50%", width } : { left: "50%", width }}
+      />
+      <span className={NOTCH} style={{ left: "50%" }} />
+    </div>
+  );
+}
+
+/** One tick per buy still in the well, so the runway can be counted. */
+function TickRail({ lit, total, dry }: { lit: number; total: number; dry: boolean }) {
+  return (
+    <div aria-hidden="true" className="mt-4 flex w-full gap-0.5">
+      {Array.from({ length: total }, (_, i) => (
+        <span
+          key={i}
+          className={`h-1.5 flex-1 rounded-full ${
+            i < lit ? (dry ? "bg-rose-pale" : "bg-cream") : "bg-cream/20"
+          }`}
+        />
+      ))}
     </div>
   );
 }
 
 /**
- * What the next buy will be, in one number: the multiplier. The drops above it
- * are the same fact drawn, the line under it names the signal and the score it
- * came from.
+ * What the next buy will be, in one number: the multiplier. The line under it
+ * names the signal and the score it came from, and the rungs at the foot are
+ * the 0.5x–1.5x ladder the multiplier came off. The drops stay on the spout
+ * below, where the money is.
  */
 export function SignalReadout({ indicators }: { indicators: Indicators | null }) {
-  if (!indicators) {
-    return (
-      <FrostCard>
-        <ChipWait what="Scoring this week" />
-      </FrostCard>
-    );
-  }
-
   return (
-    <FrostCard>
-      <ScoreDrops
-        multiplier={indicators.multiplier}
-        size="text-xl"
-        variant="solid"
-      />
-      <div className={BIG_NUMBER}>&times;{indicators.multiplier}</div>
-      <div className={CAPTION}>
-        {indicators.signal.replace(/ signal$/i, "")} &middot; score{" "}
-        {indicators.score}/{indicators.score_max}
-      </div>
-    </FrostCard>
+    <Gauge label="Buy signal" icon={DropIcon}>
+      {indicators ? (
+        <>
+          <div className={FIGURE}>&times;{indicators.multiplier}</div>
+          <div className={SUB}>
+            {indicators.signal.replace(/ signal$/i, "")} &middot; score{" "}
+            {indicators.score}/{indicators.score_max}
+          </div>
+          <LadderRail lit={potencyFromMultiplier(indicators.multiplier)} />
+        </>
+      ) : (
+        <ChipWait what="Scoring this week" />
+      )}
+    </Gauge>
   );
 }
 
@@ -93,66 +235,27 @@ export function SignalReadout({ indicators }: { indicators: Indicators | null })
 export function MarketReadout({ indicators }: { indicators: Indicators | null }) {
   if (!indicators) {
     return (
-      <FrostCard>
-        <ChipWait what="Reading fear &amp; greed" />
-      </FrostCard>
+      <Gauge label="Fear & greed" icon={PulseIcon}>
+        <ChipWait what="Reading the mood" />
+      </Gauge>
     );
   }
 
+  // The RSI's own word is only said when it is worth saying — a neutral RSI is
+  // the second opinion agreeing that there is nothing to add.
   const rsi = Math.round(indicators.rsi);
   const rsiLabel =
-    indicators.rsi < 30 ? "oversold" : indicators.rsi > 70 ? "overbought" : "neutral";
-  const pos = Math.max(0, Math.min(100, rsi));
+    indicators.rsi < 30 ? " oversold" : indicators.rsi > 70 ? " overbought" : "";
 
   return (
-    <FrostCard>
-      <FearGreedArc value={indicators.fear_greed} />
-      <div className={BIG_NUMBER}>{indicators.fear_greed}</div>
-      <div className={CAPTION}>{indicators.fng_classification}</div>
-
-      <div className="mt-1 w-full self-stretch border-t border-cream/25 pt-3">
-        <div className="relative h-2 w-full rounded-full bg-cream/22">
-          <div
-            className="absolute inset-y-0 left-0 rounded-full bg-cream"
-            style={{ width: `${pos}%` }}
-          />
-          <div
-            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cream shadow-[0_0_0_4px_rgba(60,109,120,0.5)]"
-            style={{ left: `${pos}%` }}
-          />
-        </div>
-        <div className="mt-2 text-xs font-semibold text-cream/70">
-          RSI {rsi} &middot; {rsiLabel}
-        </div>
+    <Gauge label="Fear & greed" icon={PulseIcon}>
+      <div className={FIGURE}>{indicators.fear_greed}</div>
+      <div className={SUB}>
+        {indicators.fng_classification} &middot; RSI {rsi}
+        {rsiLabel}
       </div>
-    </FrostCard>
-  );
-}
-
-/** The cream semicircle gauge behind the Fear & Greed number. */
-function FearGreedArc({ value }: { value: number }) {
-  const clamped = Math.max(0, Math.min(100, value));
-  const arcLen = 131.9; // π · r with r = 42
-  const arc = "M8 50 A42 42 0 0 1 92 50";
-  return (
-    <svg viewBox="0 0 100 54" className="block h-[2.6rem] w-[4.8rem]">
-      <path
-        d={arc}
-        fill="none"
-        stroke="rgba(241,255,250,.22)"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-      <path
-        d={arc}
-        fill="none"
-        stroke="var(--color-cream)"
-        strokeWidth="8"
-        strokeLinecap="round"
-        strokeDasharray={arcLen}
-        strokeDashoffset={arcLen * (1 - clamped / 100)}
-      />
-    </svg>
+      <PinRail value={indicators.fear_greed} />
+    </Gauge>
   );
 }
 
@@ -166,30 +269,35 @@ export function BtcReadout({
 }) {
   if (!performance) {
     return (
-      <FrostCard>
+      <Gauge label="Bitcoin" icon={CurrencyBtcIcon}>
         <ChipWait what="Fetching the price" />
-      </FrostCard>
+      </Gauge>
     );
   }
 
   return (
-    <FrostCard>
-      <div className={CAPTION}>Bitcoin</div>
-      <div className={BIG_NUMBER}>{fmtEur(performance.current_price, 0)}</div>
+    <Gauge label="Bitcoin" icon={CurrencyBtcIcon}>
+      <div className={FIGURE}>{fmtEur(performance.current_price, 0)}</div>
       {indicators ? (
-        <div className={SUB}>
-          {fmtPct(indicators.ma_distance_pct)} vs. its 350-day average
-        </div>
+        <>
+          <div className={SUB}>
+            {fmtPct(indicators.ma_distance_pct)} vs. its 350-day average
+          </div>
+          <SpanRail pct={indicators.ma_distance_pct} />
+        </>
       ) : (
         // The price is in but the average is not: it is the one figure here
         // that costs 350 days of candles, so it says so rather than showing a
         // dash that looks like a missing number.
-        <div className={`${SUB} inline-flex items-center gap-2 text-cream/70`}>
-          <Spinner className="h-3 w-3 border-[1.5px]" on="water" />
-          Averaging 350 days
-        </div>
+        <>
+          <div className={`${SUB} inline-flex items-center gap-2 text-cream/70`}>
+            <Spinner className="h-3 w-3 border-[1.5px]" on="water" />
+            Averaging 350 days
+          </div>
+          <div aria-hidden="true" className={TRACK} />
+        </>
       )}
-    </FrostCard>
+    </Gauge>
   );
 }
 
@@ -200,9 +308,10 @@ const WELL_LOW_BUYS = 2;
 
 /**
  * The Coinbase "well" — the source that feeds the reservoir. Shows the EUR
- * balance available for buying and a water-level runway bar: how many
- * scheduled drips the well still covers at today's potency. Buying lives in
- * the Next-buy card.
+ * balance available for buying and a runway rail: one tick per scheduled drip
+ * the well still covers at today's potency, so the number of buys left can be
+ * counted off it rather than estimated from a bar. Buying lives in the Next-buy
+ * card.
  */
 export function WellReadout({
   balance,
@@ -214,7 +323,16 @@ export function WellReadout({
   indicators: Indicators | null;
 }) {
   const stackAmount = useStackAmount();
-  const eur = balance?.configured ? balance.eur_available : null;
+
+  if (balance === null) {
+    return (
+      <Gauge label="Coinbase well" icon={CoinsIcon}>
+        <ChipWait what="Checking your well" />
+      </Gauge>
+    );
+  }
+
+  const eur = balance.configured ? balance.eur_available : null;
   const nextAmount =
     settings && indicators ? settings.base_amount_eur * indicators.multiplier : null;
   const buysLeft =
@@ -222,52 +340,35 @@ export function WellReadout({
       ? Math.floor(eur / nextAmount)
       : null;
   const runningDry = buysLeft != null && buysLeft <= WELL_LOW_BUYS;
-  const level =
-    eur != null && settings
-      ? Math.max(0, Math.min(1, eur / (settings.base_amount_eur * WELL_FULL_AT_BUYS)))
-      : 0;
-
-  if (balance === null) {
-    return (
-      <FrostCard>
-        <ChipWait what="Checking your well" />
-      </FrostCard>
-    );
-  }
 
   return (
-    <FrostCard>
-      <div className={`flex items-center gap-1.5 ${CAPTION}`}>
-        <CoinsIcon className="text-sm" /> Coinbase well
-      </div>
+    <Gauge label="Coinbase well" icon={CoinsIcon}>
       {balance.configured && eur != null ? (
         <>
-          <div className={BIG_NUMBER}>{fmtEur(eur)}</div>
-          <div className="relative mt-1 h-2 w-full self-stretch rounded-full bg-cream/22">
-            <div
-              className={`absolute inset-y-0 left-0 rounded-full ${runningDry ? "bg-rose-pale" : "bg-cream"}`}
-              style={{ width: `${level * 100}%` }}
-            />
-          </div>
-          <div
-            className={`text-xs font-semibold sm:text-sm ${runningDry ? "text-rose-pale" : "text-cream/70"}`}
-          >
+          <div className={FIGURE}>{fmtEur(eur)}</div>
+          <div className={`${SUB} ${runningDry ? "text-rose-pale" : ""}`}>
             {buysLeft == null
               ? `${stackAmount(balance.btc_available ?? 0)} on Coinbase`
               : runningDry
                 ? `Running dry · ~${buysLeft} ${buysLeft === 1 ? "buy" : "buys"} left`
                 : `Feeds ~${buysLeft} more buys`}
           </div>
+          <TickRail
+            lit={Math.min(WELL_FULL_AT_BUYS, buysLeft ?? 0)}
+            total={WELL_FULL_AT_BUYS}
+            dry={runningDry}
+          />
         </>
       ) : (
         <>
-          <div className={`${BIG_NUMBER} text-cream/60`}>—</div>
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-cream/70 sm:text-sm">
-            <KeyIcon className="text-sm" />
+          <div className={`${FIGURE} text-cream/55`}>&mdash;</div>
+          <div className={`${SUB} inline-flex items-center gap-1.5`}>
+            <KeyIcon className="shrink-0 text-sm" />
             {balance.configured ? "Balance unavailable" : "No API keys yet"}
           </div>
+          <TickRail lit={0} total={WELL_FULL_AT_BUYS} dry={false} />
         </>
       )}
-    </FrostCard>
+    </Gauge>
   );
 }
