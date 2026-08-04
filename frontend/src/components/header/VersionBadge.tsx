@@ -32,7 +32,9 @@ export default function VersionBadge() {
   }, [open]);
 
   return (
-    <div ref={wrapRef} className="relative">
+    /* Dropped on a phone: the trays on the right are what the bar is for, and
+       the build number is the one thing there you can also read in Setup. */
+    <div ref={wrapRef} className="relative max-sm:hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

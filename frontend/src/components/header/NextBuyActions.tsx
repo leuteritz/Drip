@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import ChartLineUpIcon from "~icons/ph/chart-line-up";
 import CheckIcon from "~icons/ph/check";
 import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
 import PauseIcon from "~icons/ph/pause";
@@ -30,8 +29,6 @@ const SAVED_FLASH_MS = 1800;
 
 const ACTION =
   "flex h-14 items-center justify-center gap-2 rounded-2xl px-7 text-base font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60";
-const ICON_ACTION =
-  "flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-teal/12 text-teal transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
 const CAPTION = "text-2xs font-bold uppercase tracking-[0.18em] text-teal/60";
 
 /** A value you can click to change it — the pencil only surfaces on hover, so
@@ -65,7 +62,10 @@ function untilLabel(ms: number): string {
 /**
  * The spout of the tank: a full-width bar under the read-outs carrying the
  * next scheduled buy — when it lands and how big it is — plus every action
- * that can move money: the dry-run test, a manual buy and the backtest.
+ * that can move money, and only those: the dry-run test and a manual buy. The
+ * backtest used to sit here as a third button; it spends nothing and answers a
+ * question about the strategy rather than about this week, so it lives in the
+ * sticky bar's tools tray now, with the other things that only open a dialog.
  *
  * It is also where the drip is *set*. There used to be a sliders button here
  * opening a settings drawer under the card; the numbers it held are the same
@@ -88,7 +88,6 @@ export default function NextBuyActions({
   onPause,
   onResume,
   onTestBuy,
-  onSimulate,
   onBuy,
   onExplain,
   running,
@@ -103,7 +102,6 @@ export default function NextBuyActions({
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
   onTestBuy: () => void;
-  onSimulate: () => void;
   onBuy: () => void;
   onExplain: () => void;
   running: boolean;
@@ -495,14 +493,6 @@ export default function NextBuyActions({
           >
             <DropHalfBottomIcon className="text-lg" />
             {buying ? "Buying…" : "Buy"}
-          </button>
-          <button
-            onClick={onSimulate}
-            aria-label="Simulate the strategy"
-            title="Backtest the strategy"
-            className={ICON_ACTION}
-          >
-            <ChartLineUpIcon className="text-lg" />
           </button>
         </div>
       </div>

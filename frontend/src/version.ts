@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.10",
+    date: "2026-08-04",
+    changes: [
+      "The bar at the top is tidied into three groups: the dry-run/live switch, the tools, and the three sections of the page — so eight loose buttons now read as three things",
+      "The backtest moved up there with them. It spends nothing, so it no longer sits beside Buy, and it can be opened from anywhere in the scroll instead of only from the top",
+    ],
+  },
+  {
     version: "2.9",
     date: "2026-08-03",
     changes: [

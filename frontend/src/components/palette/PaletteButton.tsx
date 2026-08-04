@@ -1,4 +1,5 @@
 import MagnifyingGlassIcon from "~icons/ph/magnifying-glass";
+import { TRAY_ITEM } from "../header/chrome";
 
 /** Mac writes it ⌘K, everything else Ctrl K. Read once — nobody switches OS
  *  mid-session, and it is only ever a label. */
@@ -8,7 +9,8 @@ export const PALETTE_SHORTCUT = MAC ? "⌘K" : "Ctrl K";
 
 /**
  * The way into the command palette for anyone who does not already know the
- * shortcut — and the only place the shortcut is written down.
+ * shortcut — and the only place the shortcut is written down. It opens the
+ * sticky bar's tools tray, since it is the way into everything else in it.
  */
 export default function PaletteButton({ onOpen }: { onOpen: () => void }) {
   return (
@@ -18,7 +20,7 @@ export default function PaletteButton({ onOpen }: { onOpen: () => void }) {
       title={`Search commands (${PALETTE_SHORTCUT})`}
       aria-label="Search commands"
       aria-keyshortcuts="Meta+K Control+K"
-      className="flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1.5 text-2xs font-bold text-teal transition hover:bg-teal/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+      className={TRAY_ITEM}
     >
       <MagnifyingGlassIcon className="text-sm" />
       <span className="max-lg:hidden">{PALETTE_SHORTCUT}</span>

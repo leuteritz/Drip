@@ -24,6 +24,8 @@ import type { LoadKey } from "../lib/loading";
 import type { ThemeChoice } from "../lib/theme";
 import { useUnit } from "../lib/units";
 import DigestDialog from "./digest/DigestDialog";
+import BacktestButton from "./header/BacktestButton";
+import { SEGMENT, SEGMENT_OFF, SEGMENT_ON, TRAY } from "./header/chrome";
 import { NAV, useScrolled, useScrollSpy, type Section } from "./header/hooks";
 import LoadPill from "./header/LoadPill";
 import ModeToggle from "./header/ModeToggle";
@@ -210,9 +212,13 @@ export default function SiteHeader({
 
   return (
     <>
-      {/* Sticky condensed bar: brand (left) · mode toggle + jump-nav (right).
-          Stays pinned across the whole scroll — transparent over the hero,
-          blurred teal once scrolled. */}
+      {/* Sticky condensed bar. Two halves, and each has one job.
+          Left is what Drip *is* right now — the brand, the build, what it is
+          still fetching, whether it is switched off — so everything that comes
+          and goes on its own lives here and nothing you might be aiming at
+          moves when it does. Right is what you can *do*, in three trays of the
+          same shape (see ./header/chrome): the mode switch, the tools, the
+          jump-nav. Transparent over the hero, blurred teal once scrolled. */}
       <header
         className={`sticky top-0 z-30 shrink-0 text-teal transition-colors duration-300 ${
           scrolled
@@ -221,16 +227,23 @@ export default function SiteHeader({
         }`}
       >
         <div className="mx-auto flex h-16 w-full max-w-shell items-center justify-between px-6 md:px-10">
-          <div className="flex items-center gap-3">
-            <DropFillIcon className="text-3xl leading-none" />
-            <span className="font-display text-2xl font-bold leading-none">Drip</span>
+          <div className="flex min-w-0 items-center gap-3">
+            {/* On a phone the drop alone is the brand: the word and the build
+                give way before the trays on the right do. */}
+            <DropFillIcon className="shrink-0 text-3xl leading-none" />
+            <span className="font-display text-2xl font-bold leading-none max-sm:hidden">
+              Drip
+            </span>
             <VersionBadge />
-            {/* Beside the brand rather than among the actions: it comes and
-                goes on its own, and nothing you might be aiming at should move
-                when it does. */}
             <LoadPill loading={loading} />
+            {status?.paused && status.paused_until && (
+              <HeaderPill>
+                <DropSlashIcon /> Off until {formatDayMonth(status.paused_until)}
+              </HeaderPill>
+            )}
           </div>
-          <div className="flex items-center gap-2.5 md:gap-3.5">
+
+          <div className="flex items-center gap-2 md:gap-3">
             {status && (
               <ModeToggle
                 status={status}
@@ -238,21 +251,26 @@ export default function SiteHeader({
                 onSetDryRun={onSetDryRun}
               />
             )}
-            {digest && (
-              <ReportBadge digest={digest} onOpen={() => setDigestOpen(true)} />
-            )}
-            {status?.paused && status.paused_until && (
-              <HeaderPill>
-                <DropSlashIcon /> Off until {formatDayMonth(status.paused_until)}
-              </HeaderPill>
-            )}
-            <PaletteButton onOpen={() => setPaletteOpen(true)} />
-            <ThemeToggle choice={themeChoice} onChange={onSetTheme} />
-            <SetupButton
-              status={status}
-              onOpen={() => setSetupTab(status?.has_credentials ? "system" : "coinbase")}
-            />
-            <nav className="flex gap-1.5">
+
+            {/* The tools tray: everything that only opens something — search,
+                report, backtest, theme, setup. Nothing in here spends money,
+                which is what keeps it one undivided group. */}
+            <div className={TRAY}>
+              <PaletteButton onOpen={() => setPaletteOpen(true)} />
+              {digest && (
+                <ReportBadge digest={digest} onOpen={() => setDigestOpen(true)} />
+              )}
+              <BacktestButton onOpen={onSimulate} />
+              <ThemeToggle choice={themeChoice} onChange={onSetTheme} />
+              <SetupButton
+                status={status}
+                onOpen={() => setSetupTab(status?.has_credentials ? "system" : "coinbase")}
+              />
+            </div>
+
+            {/* The jump-nav, segmented like the mode switch: three places, one
+                of them you are in. */}
+            <nav className={TRAY} aria-label="Sections">
               {NAV.map(({ id, label, Icon }) => {
                 const on = active === id;
                 return (
@@ -260,14 +278,10 @@ export default function SiteHeader({
                     key={id}
                     onClick={() => jumpTo(id)}
                     aria-current={on ? "true" : undefined}
-                    className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
-                      on
-                        ? "bg-teal-deep text-cream shadow-sm"
-                        : "bg-teal/10 text-teal hover:bg-teal/15"
-                    }`}
+                    className={`${SEGMENT} ${on ? SEGMENT_ON : SEGMENT_OFF}`}
                   >
-                    <Icon className="text-base" />
-                    <span className="max-sm:hidden">{label}</span>
+                    <Icon className="text-sm" />
+                    <span className="max-md:hidden">{label}</span>
                   </button>
                 );
               })}
@@ -315,7 +329,6 @@ export default function SiteHeader({
             onPause={onPause}
             onResume={onResume}
             onTestBuy={onTestBuy}
-            onSimulate={onSimulate}
             onBuy={() => setBuyOpen(true)}
             onExplain={() => setExplainOpen(true)}
             running={running}

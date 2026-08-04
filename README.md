@@ -16,9 +16,9 @@ Your stack is a tank of water, and it fizzes at the strength of the week's signa
 Underneath, the dashboard researches its own strategy, reports what you paid against
 the market, and carries the rate you stack at forward to the next round number of sats.
 Setting the drip happens on the next-buy card: click the amount, or the day and time.
-Once a week the whole thing arrives on Discord. `Ctrl+K` reaches all of it, keys
-included, so the Pi needs no shell after the first install. Nothing waits silently:
-whatever is not on screen yet says what it is fetching, why, and for how long.
+Everything else lives in three groups in the bar at the top - mode, tools, sections -
+and `Ctrl+K` reaches all of it, keys included, so the Pi needs no shell after the first
+install. Once a week the whole thing arrives on Discord.
 
 ## Install
 

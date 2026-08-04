@@ -2,6 +2,7 @@ import CircleHalfTiltIcon from "~icons/ph/circle-half-tilt";
 import MoonStarsIcon from "~icons/ph/moon-stars";
 import SunIcon from "~icons/ph/sun";
 import type { ThemeChoice } from "../../lib/theme";
+import { TRAY_ITEM } from "./chrome";
 
 const NEXT: Record<ThemeChoice, ThemeChoice> = {
   system: "light",
@@ -28,7 +29,7 @@ const FACE: Record<
 
 /**
  * Day, night, or whatever the device says — the tank's own light switch, in the
- * sticky bar beside Setup.
+ * sticky bar's tools tray beside Setup.
  *
  * Three states rather than two, because "follow the system" is the default and
  * has to be reachable again once it has been overridden. Each state has its own
@@ -50,7 +51,7 @@ export default function ThemeToggle({
       onClick={() => onChange(NEXT[choice])}
       title={title}
       aria-label={label}
-      className="flex items-center rounded-full bg-teal/10 px-2.5 py-1.5 text-2xs font-bold text-teal transition hover:bg-teal/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+      className={TRAY_ITEM}
     >
       <Icon className="text-sm" />
     </button>

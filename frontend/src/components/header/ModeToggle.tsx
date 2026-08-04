@@ -3,9 +3,11 @@ import FlaskIcon from "~icons/ph/flask";
 import LightningIcon from "~icons/ph/lightning-fill";
 import type { BotSettings, BotStatus } from "../../api/client";
 import LiveModeDialog from "../LiveModeDialog";
+import { SEGMENT, SEGMENT_OFF, SEGMENT_ON, SEGMENT_ON_LIVE, TRAY } from "./chrome";
 
 /**
- * Interactive Dry run / Live segmented switch, living in the sticky bar.
+ * Interactive Dry run / Live segmented switch — the first tray in the sticky
+ * bar, and the only one that can change what a buy costs.
  * Going Live is guarded by the shared LiveModeDialog (real-money confirmation);
  * going back to Dry run — the safe direction — applies immediately.
  */
@@ -20,31 +22,25 @@ export default function ModeToggle({
 }) {
   const [confirmLive, setConfirmLive] = useState(false);
   const dry = status.dry_run;
-  const seg =
-    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-2xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
 
   return (
     <>
-      <div
-        role="group"
-        aria-label="Trading mode"
-        className="flex items-center gap-0.5 rounded-full bg-teal/12 p-0.5"
-      >
+      <div role="group" aria-label="Trading mode" className={TRAY}>
         <button
           type="button"
           aria-pressed={dry}
           onClick={() => !dry && onSetDryRun(true)}
-          className={`${seg} ${dry ? "bg-cream text-teal-deep shadow-sm" : "text-teal/70 hover:text-teal"}`}
+          className={`${SEGMENT} ${dry ? SEGMENT_ON : SEGMENT_OFF}`}
         >
-          <FlaskIcon /> Dry run
+          <FlaskIcon /> <span className="max-sm:hidden">Dry run</span>
         </button>
         <button
           type="button"
           aria-pressed={!dry}
           onClick={() => dry && setConfirmLive(true)}
-          className={`${seg} ${!dry ? "bg-rose-deep text-cream shadow-sm" : "text-teal/70 hover:text-teal"}`}
+          className={`${SEGMENT} ${!dry ? SEGMENT_ON_LIVE : SEGMENT_OFF}`}
         >
-          <LightningIcon /> Live
+          <LightningIcon /> <span className="max-sm:hidden">Live</span>
         </button>
       </div>
       {confirmLive && settings && (

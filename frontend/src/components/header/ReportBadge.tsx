@@ -1,11 +1,13 @@
 import NewspaperIcon from "~icons/ph/newspaper";
 import type { DigestSettings } from "../../api/client";
 import { WEEKDAYS } from "../../lib/format";
+import { TRAY_ITEM, TRAY_ITEM_MUTED } from "./chrome";
 import { useNow, WEEK_MS } from "./hooks";
 
 /**
- * The weekly report in the sticky bar — reachable from anywhere in the scroll,
- * which is the point: it is the one thing Drip sends you rather than shows you.
+ * The weekly report in the sticky bar's tools tray — reachable from anywhere in
+ * the scroll, which is the point: it is the one thing Drip sends you rather
+ * than shows you.
  *
  * The pill fills like the tank as the week runs down toward the next send, the
  * same mechanic (and the same `WEEK_MS`) as the pipe under the next buy. So it
@@ -45,11 +47,7 @@ export default function ReportBadge({
           ? `Weekly report, next ${slot}. Open to edit or send it.`
           : "Weekly report, switched off. Open to turn it on."
       }
-      className={`relative flex items-center gap-1.5 overflow-hidden rounded-full px-3 py-1.5 text-2xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
-        digest.enabled
-          ? "bg-teal/10 text-teal hover:bg-teal/15"
-          : "bg-teal/8 text-teal/55 hover:bg-teal/15"
-      }`}
+      className={`relative overflow-hidden ${digest.enabled ? TRAY_ITEM : TRAY_ITEM_MUTED}`}
     >
       {/* The week filling up behind the label */}
       <span
@@ -58,7 +56,7 @@ export default function ReportBadge({
         style={{ width: `${filled * 100}%` }}
       />
       <NewspaperIcon className="relative text-sm" />
-      <span className="relative max-sm:hidden">{label}</span>
+      <span className="relative max-lg:hidden">{label}</span>
     </button>
   );
 }
