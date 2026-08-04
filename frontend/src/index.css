@@ -12,12 +12,21 @@
   --color-ink: #454545; /* gunmetal - body text */
 
   /* Derived tints/shades of the palette (no foreign hues) */
-  --color-teal: #45818c; /* deepened water - profit, links, focus */
+  --color-teal: #45818c; /* deepened water - links, focus, the bot's own line */
   --color-water-soft: #d7e6e9; /* water tint - fills, hover */
   --color-sand-soft: #ece4dd; /* sand tint - table stripes */
   --color-rose-soft: #e6d9dd; /* rose tint - danger backgrounds */
   --color-paper: #fbfffd; /* near-white card surface */
   --color-ink-soft: #6f6f6f; /* muted text */
+
+  /* The one hue from outside the five, and the reason it earns its place: a
+     loss has always had a colour of its own, while a gain wore the same teal as
+     every link, icon and heading on the page — so the good half of a P&L read
+     as chrome rather than as good news. Green is the only answer a saver does
+     not have to learn. It is mixed toward the water rather than taken off a
+     colour wheel (a sea green, not a traffic light), so it sits beside `teal`
+     as a sibling and still separates from it at a glance. */
+  --color-kelp: #2e7a58; /* profit - the counterpart to rose */
 
   /* Roles that have to survive the day/night flip on their own.
      `cream` and `ink` each carry two jobs in the light theme that pull apart at
@@ -36,6 +45,7 @@
      the type up there and `rose-soft` - a background tint that darkens at night
      to #3a2b31 - cannot be the colour of a red number on it. */
   --color-rose-pale: #f0c9d3;
+  --color-kelp-pale: #bceccd; /* and the same for a gain up there */
   --color-chrome: #454545; /* Discord's own panel in the report preview */
   --color-scrim: rgba(69, 69, 69, 0.5); /* behind every dialog */
 
@@ -69,9 +79,9 @@
 /**
  * The tank at night.
  *
- * Same five colors, no new hues: the surfaces walk down toward ink and the type
- * walks up toward cream, so every utility in the app flips by resolving the
- * same custom property to a different value. `data-theme` is stamped on <html>
+ * Same palette, nothing new added: the surfaces walk down toward ink and the
+ * type walks up toward cream, so every utility in the app flips by resolving
+ * the same custom property to a different value. `data-theme` is stamped on <html>
  * before first paint (see index.html) and set by lib/theme.ts.
  */
 :root[data-theme="dark"] {
@@ -80,6 +90,7 @@
   --color-ink: #e4f0ec;
 
   --color-teal: #7fb8c2;
+  --color-kelp: #7fc79a;
   --color-water-soft: #1d3941;
   --color-sand-soft: #1a2d32;
   --color-rose-soft: #3a2b31;

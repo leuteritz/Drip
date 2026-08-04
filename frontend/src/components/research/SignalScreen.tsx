@@ -168,7 +168,7 @@ function Row({
         </td>
       ))}
       <td className="pl-2 text-right text-sm font-semibold tabular-nums">
-        <span className={signal.spread_pct >= 0 ? "text-teal" : "text-rose"}>
+        <span className={signal.spread_pct >= 0 ? "text-kelp" : "text-rose"}>
           {signal.spread_pct >= 0 ? "+" : ""}
           {signal.spread_pct.toFixed(1)}
         </span>

@@ -47,7 +47,7 @@ export default function Reservoir({
           </div>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xl font-bold [text-shadow:0_1px_8px_rgba(0,0,0,0.25)] md:text-2xl">
             <span
-              className={`inline-flex items-center gap-2 ${profitable ? "text-cream" : "text-rose-pale"}`}
+              className={`inline-flex items-center gap-2 ${profitable ? "text-kelp-pale" : "text-rose-pale"}`}
             >
               {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
               {profitable ? "+" : ""}

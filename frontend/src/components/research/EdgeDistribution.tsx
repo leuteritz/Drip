@@ -136,7 +136,7 @@ export default function EdgeDistribution({
                   {windows.map((w) => (
                     <Cell
                       key={w.start}
-                      fill={w.edge_pp >= 0 ? CHART_COLORS.teal : CHART_COLORS.rose}
+                      fill={w.edge_pp >= 0 ? CHART_COLORS.kelp : CHART_COLORS.rose}
                     />
                   ))}
                 </Bar>
@@ -173,7 +173,7 @@ function WindowTooltip({
       <div className="mt-1 text-ink-soft">
         Drip {fmtPct(row.bot_pct)} · plain DCA {fmtPct(row.dca_pct)}
       </div>
-      <div className={row.edge_pp >= 0 ? "text-teal" : "text-rose"}>
+      <div className={row.edge_pp >= 0 ? "text-kelp" : "text-rose"}>
         {fmtPp(row.edge_pp)} buying every {WEEKDAYS[weekday]}
       </div>
     </ChartTooltipCard>

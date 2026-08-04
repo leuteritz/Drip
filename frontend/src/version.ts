@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.16",
+    date: "2026-08-04",
+    changes: [
+      "A profit is now written in green wherever it appears, the way a loss has always been written in red — the reservoir, the charts and every figure in Research, day and night",
+    ],
+  },
+  {
     version: "2.15",
     date: "2026-08-04",
     changes: [

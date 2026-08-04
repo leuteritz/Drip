@@ -180,7 +180,7 @@ function Row({
             background: emphasis
               ? "var(--color-ink)"
               : up
-                ? "var(--color-teal)"
+                ? "var(--color-kelp)"
                 : "var(--color-rose)",
           }}
         />

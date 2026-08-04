@@ -57,7 +57,7 @@ export default function ComparisonChart({
   data: ComparisonPoint[];
   purchases?: Purchase[];
 }) {
-  // Range bands between Drip's profit and break-even: teal above the zero
+  // Range bands between Drip's profit and break-even: kelp above the zero
   // line, rose below it. Each band collapses onto zero when it doesn't apply,
   // so crossovers stay smooth. Buys are pinned onto the BTC price line (last
   // buy per day wins).
@@ -101,7 +101,7 @@ export default function ComparisonChart({
               dataKey="gainBand"
               name="Profit"
               stroke="none"
-              fill={CHART_COLORS.teal}
+              fill={CHART_COLORS.kelp}
               fillOpacity={0.18}
               tooltipType="none"
               isAnimationActive={false}
@@ -180,7 +180,7 @@ function ChartLegend() {
         </li>
       ))}
       <li className="flex items-center gap-1.5 text-ink-soft">
-        <span className="h-3 w-3 shrink-0 rounded-[3px] bg-teal/20 ring-1 ring-teal/40" />
+        <span className="h-3 w-3 shrink-0 rounded-[3px] bg-kelp/20 ring-1 ring-kelp/40" />
         Drip in profit
       </li>
       <li className="flex items-center gap-1.5 text-ink-soft">
@@ -215,7 +215,7 @@ function ComparisonTooltip({ active, payload }: any) {
   const point: EnrichedPoint =
     payload.find((p: any) => p.dataKey === SERIES.drip.key)?.payload ?? payload[0].payload;
   const edge = point.bot_profit - point.dca_profit;
-  const tone = (v: number) => (v >= 0 ? "text-teal" : "text-rose");
+  const tone = (v: number) => (v >= 0 ? "text-kelp" : "text-rose");
 
   // The point's own date, not Recharts' `label`: this chart hides its x-axis.
   return (
@@ -264,7 +264,7 @@ function TooltipRow({
       </td>
       <td className="text-ink-soft">{series.label}</td>
       <td
-        className={`text-right font-bold ${profit >= 0 ? "text-teal" : "text-rose"}`}
+        className={`text-right font-bold ${profit >= 0 ? "text-kelp" : "text-rose"}`}
       >
         {fmtEurSigned(profit)}
       </td>

@@ -237,9 +237,11 @@ export function Badge({
 
 export type Tone = "up" | "down" | "plain";
 
-/** Profit/loss colouring, shared by every number that can go either way. */
+/** Profit/loss colouring, shared by every number that can go either way.
+ *  Green up, rose down — and green only ever means this. `teal` is the brand's
+ *  own colour and says nothing about whether a figure is good news. */
 export function toneText(tone?: Tone): string {
-  if (tone === "up") return "text-teal";
+  if (tone === "up") return "text-kelp";
   if (tone === "down") return "text-rose";
   return "text-ink";
 }

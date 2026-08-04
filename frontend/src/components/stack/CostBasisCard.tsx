@@ -195,7 +195,7 @@ function SatsTooltip({
         {fmtEur(row.amountEur)} at {fmtEur(row.priceEur, 0)}
         {row.dryRun && " · dry run"}
       </div>
-      <div className={better ? "text-teal" : "text-ink-soft"}>
+      <div className={better ? "text-kelp" : "text-ink-soft"}>
         {fmtSats(row.satsPerEur)} per euro
       </div>
     </ChartTooltipCard>

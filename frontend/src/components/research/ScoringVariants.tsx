@@ -162,7 +162,7 @@ function VariantRow({
       </td>
       <td
         className={`py-2 pr-3 text-right font-semibold tabular-nums ${
-          variant.median_pp >= 0 ? "text-teal" : "text-rose"
+          variant.median_pp >= 0 ? "text-kelp" : "text-rose"
         }`}
       >
         {fmtPp(variant.median_pp)}
@@ -170,7 +170,7 @@ function VariantRow({
       <td className="py-2 pr-3 text-right font-semibold tabular-nums text-rose">
         {fmtPp(variant.worst_pp)}
       </td>
-      <td className="py-2 pr-3 text-right font-semibold tabular-nums text-teal">
+      <td className="py-2 pr-3 text-right font-semibold tabular-nums text-kelp">
         {fmtPp(variant.best_pp)}
       </td>
       <td className="py-2 text-right font-semibold text-ink tabular-nums">

@@ -88,7 +88,7 @@ export default function Tank({
               style={{ fontSize: READOUT }}
             >
               <span
-                className={`inline-flex items-center gap-3 ${profitable ? "text-cream" : "text-rose-pale"}`}
+                className={`inline-flex items-center gap-3 ${profitable ? "text-kelp-pale" : "text-rose-pale"}`}
               >
                 {profitable ? <TrendUpIcon /> : <TrendDownIcon />}
                 {profitable ? "+" : ""}

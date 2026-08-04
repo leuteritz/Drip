@@ -9,6 +9,7 @@ import { formatDayMonth } from "./format";
 export const CHART_COLORS = {
   water: "var(--color-water)",
   teal: "var(--color-teal)",
+  kelp: "var(--color-kelp)",
   rose: "var(--color-rose)",
   sand: "var(--color-sand)",
   ink: "var(--color-ink)",
@@ -91,8 +92,9 @@ export const CURSOR_PROPS = {
  * Measured from what each side paid in, the two are comparable, and the gap
  * between them is exactly the "vs. plain DCA" figure above the chart.
  *
- * Rose is deliberately absent here: in the overview it means "at a loss" and
- * marks a buy, and nothing else, so no line competes for that meaning.
+ * Rose and kelp are deliberately absent here: in the overview they mean "at a
+ * loss" and "in profit", they shade the bands the lines are read against, and
+ * nothing else, so no line competes for that meaning.
  */
 export const SERIES = {
   drip: {
@@ -130,11 +132,12 @@ export const fmtThousands = (v: number) => `${Math.round(v / 1000)}k`;
 export const DROP_PATH = "M6 0 C4.2 3.2 2 5.4 2 8 a4 4 0 0 0 8 0 c0-2.6-2.2-4.8-4-8Z";
 
 /**
- * A cell tint from the fixed palette: teal for good, rose for bad, mixed into
- * the paper surface by magnitude. `color-mix` on the CSS custom properties
- * keeps the `@theme` block the single source of truth — no hex reaches here.
+ * A cell tint from the palette: kelp for good, rose for bad, mixed into the
+ * paper surface by magnitude — the same two colours every P&L figure on the
+ * page is written in. `color-mix` on the CSS custom properties keeps the
+ * `@theme` block the single source of truth — no hex reaches here.
  *
- * The mix tops out well short of the full hue on purpose. Both teal and rose
+ * The mix tops out well short of the full hue on purpose. Both kelp and rose
  * land mid-tone, where neither ink nor paper text has much contrast left, so
  * the scale stays light enough for ink to stay readable in every cell rather
  * than flipping to paper at the dark end and being worse at both.
@@ -142,7 +145,7 @@ export const DROP_PATH = "M6 0 C4.2 3.2 2 5.4 2 8 a4 4 0 0 0 8 0 c0-2.6-2.2-4.8-
 export function tintFor(value: number, maxAbs: number) {
   const share = maxAbs > 0 ? Math.min(Math.abs(value) / maxAbs, 1) : 0;
   const strength = Math.round(8 + share * 52);
-  const hue = value >= 0 ? "var(--color-teal)" : "var(--color-rose)";
+  const hue = value >= 0 ? "var(--color-kelp)" : "var(--color-rose)";
   return {
     background: `color-mix(in srgb, ${hue} ${strength}%, var(--color-paper))`,
     color: "var(--color-ink)",

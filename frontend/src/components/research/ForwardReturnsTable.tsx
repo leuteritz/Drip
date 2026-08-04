@@ -160,7 +160,7 @@ function ReturnCell({ stats, maxAbs }: { stats?: ForwardStats; maxAbs: number })
           style={{
             width: `${share}%`,
             marginLeft: up ? undefined : "auto",
-            background: up ? "var(--color-teal)" : "var(--color-rose)",
+            background: up ? "var(--color-kelp)" : "var(--color-rose)",
           }}
         />
       </div>
