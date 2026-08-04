@@ -16,6 +16,7 @@ Your stack is a tank of water, and it fizzes at the strength of the week's signa
 Underneath, the dashboard researches its own strategy, reports what you paid against
 the market, and carries the rate you stack at forward to the next round number of sats.
 Setting the drip happens on the next-buy card: click the amount, or the day and time.
+Beside them Test and Buy wear Drip's own drop - hollow for a run that spends nothing.
 Everything else lives in three groups in the bar at the top - mode, tools, sections -
 and `Ctrl+K` reaches all of it, keys included, so the Pi needs no shell after the first
 install. Once a week the whole thing arrives on Discord.
@@ -39,7 +40,7 @@ Discord webhook into **Setup** there. To update: `git pull && docker compose up 
 
 `http://<pi-address>:8080/#tank` is the whole thing on one screen, sized to read from
 across the room. Point a spare monitor at it and leave it - it refreshes itself and
-nothing on it can spend money. `Ctrl+K` gets there, Esc comes back.
+cannot spend money. `Ctrl+K` gets there, Esc comes back.
 
 The API has **no authentication** - keep it inside your home network and do not
 forward the port to the internet.
@@ -66,8 +67,8 @@ Drip reports itself to Discord: what you stacked, what the price did, how your s
 stands against plain DCA and against the market's own average, and what the signal
 says now.
 
-Twelve sections, each one switchable. The preview beside them is built by the same code
-that builds the real message, so it is exactly what will arrive.
+Twelve sections, each switchable. The preview is built by the code that builds the real
+message, so it is exactly what arrives.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)
 

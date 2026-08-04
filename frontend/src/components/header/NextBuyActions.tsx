@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import CheckIcon from "~icons/ph/check";
+import DropIcon from "~icons/ph/drop";
+import DropFillIcon from "~icons/ph/drop-fill";
 import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
 import PauseIcon from "~icons/ph/pause";
 import PencilIcon from "~icons/ph/pencil-simple";
@@ -471,7 +473,9 @@ export default function NextBuyActions({
           </div>
         </div>
 
-        {/* Right: everything that can move money */}
+        {/* Right: everything that can move money. Both wear the brand's drop —
+            the same mark as the header's — hollow for a run that spends nothing,
+            filled for one that does. */}
         <div className="flex flex-none items-center gap-2.5 max-md:justify-end md:ml-auto md:border-l md:border-teal/12 md:pl-7">
           <button
             onClick={onTestBuy}
@@ -479,7 +483,7 @@ export default function NextBuyActions({
             title="Run the strategy once without spending anything"
             className={`${ACTION} flex-1 bg-teal/12 text-teal hover:bg-teal/20 focus-visible:outline-teal md:flex-none`}
           >
-            <PlayIcon /> {running ? "Testing…" : "Test"}
+            <DropIcon className="text-lg" /> {running ? "Testing…" : "Test"}
           </button>
           <button
             onClick={onBuy}
@@ -491,7 +495,7 @@ export default function NextBuyActions({
                 : "bg-teal-deep text-cream hover:bg-teal-deep/90 focus-visible:outline-teal"
             }`}
           >
-            <DropHalfBottomIcon className="text-lg" />
+            <DropFillIcon className="text-lg" />
             {buying ? "Buying…" : "Buy"}
           </button>
         </div>

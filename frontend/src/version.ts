@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.11",
+    date: "2026-08-04",
+    changes: [
+      "Test and Buy now wear Drip's own drop, the same mark as the one at the top left — hollow for a test run, filled for a buy that spends",
+    ],
+  },
+  {
     version: "2.10",
     date: "2026-08-04",
     changes: [
