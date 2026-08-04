@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import ArrowLeftIcon from "~icons/ph/arrow-left";
-import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
+import DropFillIcon from "~icons/ph/drop-fill";
 import PauseIcon from "~icons/ph/pause";
 import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
@@ -124,7 +124,7 @@ export default function Tank({
 
           <Panel caption={paused ? "Paused" : `Next buy · ${nextWhen}`}>
             <span className="inline-flex items-center gap-3">
-              {paused ? <PauseIcon /> : <DropHalfBottomIcon />}
+              {paused ? <PauseIcon /> : <DropFillIcon />}
               {paused ? "—" : nextAmount != null ? fmtEur(nextAmount, 0) : "—"}
             </span>
           </Panel>

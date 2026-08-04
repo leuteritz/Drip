@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import CheckIcon from "~icons/ph/check";
 import DropIcon from "~icons/ph/drop";
 import DropFillIcon from "~icons/ph/drop-fill";
-import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
 import PauseIcon from "~icons/ph/pause";
 import PencilIcon from "~icons/ph/pencil-simple";
 import PlayIcon from "~icons/ph/play-fill";
@@ -248,7 +247,7 @@ export default function NextBuyActions({
             }`}
           >
             <span className="absolute inset-0 rounded-full ring-8 ring-teal/8" />
-            {paused ? <PauseIcon /> : <DropHalfBottomIcon />}
+            {paused ? <PauseIcon /> : <DropFillIcon />}
           </span>
 
           <div className="min-w-0 flex-1">

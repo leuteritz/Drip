@@ -17,6 +17,13 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.12",
+    date: "2026-08-04",
+    changes: [
+      "The drop beside the next buy — on the card, on the wall display and in the command list — is now Drip's own, the same one the page wears at the top left",
+    ],
+  },
+  {
     version: "2.11",
     date: "2026-08-04",
     changes: [

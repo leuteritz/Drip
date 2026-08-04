@@ -2,7 +2,7 @@ import CalendarIcon from "~icons/ph/calendar-blank";
 import ChartLineUpIcon from "~icons/ph/chart-line-up";
 import CircleHalfTiltIcon from "~icons/ph/circle-half-tilt";
 import CurrencyBtcIcon from "~icons/ph/currency-btc";
-import DropHalfBottomIcon from "~icons/ph/drop-half-bottom";
+import DropFillIcon from "~icons/ph/drop-fill";
 import EyeIcon from "~icons/ph/eye";
 import FlaskIcon from "~icons/ph/flask";
 import GearIcon from "~icons/ph/gear-six";
@@ -100,7 +100,7 @@ export function buildCommands(ctx: CommandContext): Command[] {
       label: "Buy now",
       hint: live ? "A real market buy for an amount you pick" : "A dry-run buy for an amount you pick",
       group: "Open",
-      Icon: DropHalfBottomIcon,
+      Icon: DropFillIcon,
       run: ctx.openBuy,
     },
     {
