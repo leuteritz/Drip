@@ -53,7 +53,7 @@ export default function ManualBuyDialog({
       key={v}
       type="button"
       onClick={() => setDraft(String(v))}
-      className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+      className={`rounded-full px-4 py-2.5 text-xs font-bold transition sm:px-3.5 sm:py-1.5 ${
         amount === v
           ? live
             ? "bg-rose-deep text-cream"
@@ -106,7 +106,7 @@ export default function ManualBuyDialog({
         >
           Amount
         </label>
-        <div className="mt-1.5 flex items-center gap-2">
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-ink/50">
               &euro;
@@ -145,14 +145,14 @@ export default function ManualBuyDialog({
       <div className="mt-5 flex justify-end gap-2">
         <button
           onClick={onCancel}
-          className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink"
+          className="rounded-full bg-sand-soft px-5 py-3 text-sm font-bold text-ink max-sm:flex-1 sm:py-2.5"
         >
           Cancel
         </button>
         <button
           onClick={confirm}
           disabled={!canConfirm}
-          className={`rounded-full px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90 disabled:opacity-50 ${
+          className={`rounded-full px-5 py-3 text-sm font-bold text-cream transition hover:opacity-90 disabled:opacity-50 max-sm:flex-1 sm:py-2.5 ${
             live ? "bg-rose-deep" : "bg-teal-deep"
           }`}
         >

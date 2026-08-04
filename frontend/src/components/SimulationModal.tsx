@@ -73,12 +73,12 @@ export default function SimulationModal({
           </button>
         </div>
 
-        <div className="mt-4 flex gap-1">
+        <div className="mt-4 flex flex-wrap gap-1">
           {PERIODS.map((p) => (
             <button
               key={p.days}
               onClick={() => setDays(p.days)}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+              className={`rounded-full px-4 py-2.5 text-xs font-bold transition sm:py-1.5 ${
                 days === p.days
                   ? "bg-ink-solid text-cream"
                   : "bg-sand-soft text-ink-soft hover:text-ink"
@@ -134,7 +134,7 @@ export default function SimulationModal({
 
             {result && result.series.length > 1 ? (
               <div className="mt-4">
-                <div className="h-[21rem]">
+                <div className="h-[20rem] sm:h-[21rem]">
                   <ComparisonChart data={result.series} />
                 </div>
                 <p className="mt-3 flex items-center gap-2 text-sm text-ink-soft">

@@ -222,7 +222,7 @@ export default function DigestDialog({
         )}
         <button
           onClick={onClose}
-          className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink transition hover:opacity-80"
+          className="rounded-full bg-sand-soft px-5 py-3 text-sm font-bold text-ink transition hover:opacity-80 max-sm:flex-1 sm:py-2.5"
         >
           Close
         </button>
@@ -230,7 +230,7 @@ export default function DigestDialog({
           onClick={sendNow}
           disabled={sending || !digest.discord_configured || visible.size === 0}
           title="Send this week's report now, whatever the schedule says"
-          className="flex items-center gap-2 rounded-full bg-teal-deep px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90 disabled:opacity-50"
+          className="flex items-center justify-center gap-2 rounded-full bg-teal-deep px-5 py-3 text-sm font-bold text-cream transition hover:opacity-90 disabled:opacity-50 max-sm:flex-1 sm:py-2.5"
         >
           <PaperPlaneIcon /> {sending ? "Sending…" : "Send now"}
         </button>

@@ -22,7 +22,7 @@ export default function PaletteButton({ onOpen }: { onOpen: () => void }) {
       aria-keyshortcuts="Meta+K Control+K"
       className={TRAY_ITEM}
     >
-      <MagnifyingGlassIcon className="text-sm" />
+      <MagnifyingGlassIcon className="text-sm max-sm:text-base" />
       <span className="max-lg:hidden">{PALETTE_SHORTCUT}</span>
     </button>
   );

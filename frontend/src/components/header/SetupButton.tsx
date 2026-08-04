@@ -27,7 +27,7 @@ export default function SetupButton({
       aria-label="Setup"
       className={missing ? TRAY_ITEM_ALERT : TRAY_ITEM}
     >
-      <GearIcon className="text-sm" />
+      <GearIcon className="text-sm max-sm:text-base" />
       {missing && <span className="max-sm:hidden">No API keys</span>}
     </button>
   );

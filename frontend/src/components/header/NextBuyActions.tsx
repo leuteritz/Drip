@@ -35,7 +35,7 @@ const SAVED_FLASH_MS = 1800;
 const ACTION_TRAY =
   "flex w-full flex-none items-center gap-1 rounded-full bg-teal/10 p-1 md:ml-auto md:w-auto";
 const ACTION =
-  "flex h-12 items-center justify-center gap-2 rounded-full px-6 text-base font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60";
+  "flex h-14 items-center justify-center gap-2 rounded-full px-6 text-lg font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 sm:h-12 sm:text-base";
 const CAPTION = "text-2xs font-bold uppercase tracking-[0.18em] text-teal/60";
 
 /**
@@ -47,26 +47,35 @@ const CAPTION = "text-2xs font-bold uppercase tracking-[0.18em] text-teal/60";
  * still reads as a figure rather than as a form, and nothing moves when it does.
  */
 const CHIP =
-  "group inline-flex h-6 items-center gap-1.5 rounded-full px-1.5 leading-none transition focus-visible:outline-2 focus-visible:outline-offset-2";
+  "group inline-flex h-9 items-center gap-1.5 rounded-full px-2.5 leading-none transition focus-visible:outline-2 focus-visible:outline-offset-2 sm:h-6 sm:px-1.5";
 const VALUE_CHIP = `${CHIP} bg-teal/10 text-teal/80 hover:bg-teal/20 hover:text-teal focus-visible:outline-teal`;
 const RESUME_CHIP = `${CHIP} bg-rose/12 text-rose hover:bg-rose/25 focus-visible:outline-rose`;
 /** Both slots are one width, which is the whole trick. */
-const CHIP_ICON = "h-3 w-3 flex-none";
+const CHIP_ICON = "h-4 w-4 flex-none sm:h-3 sm:w-3";
 const CHIP_VALUE = "tracking-[0.1em]";
 /** Letter-spacing puts a trailing gap after the last glyph, so the value nearest
  *  the pencil takes it back: centred optically, not just mathematically. */
 const CHIP_TRIM = "-mr-[0.1em]";
 const CHIP_DOT = "h-0.5 w-0.5 flex-none rounded-full bg-current opacity-40";
-const PENCIL = "opacity-0 transition-opacity group-hover:opacity-100";
+/**
+ * The pencil that says a figure is editable.
+ *
+ * Hover is a pointer's way of asking, and a touch screen has no way of asking:
+ * the chip would simply look like a figure and the editor behind it would go
+ * unfound. So where there is no hover the pencil is on from the start, quietly
+ * — the same affordance, stated rather than revealed.
+ */
+const PENCIL =
+  "opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-55";
 
 const STEP_BUTTON =
-  "flex h-9 w-9 flex-none items-center justify-center rounded-full bg-teal/12 text-xl leading-none text-teal transition hover:bg-teal/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+  "flex h-11 w-11 flex-none items-center justify-center rounded-full bg-teal/12 text-2xl leading-none text-teal transition hover:bg-teal/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal sm:h-9 sm:w-9 sm:text-xl";
 const SMALL_PILL =
-  "rounded-full px-3 py-1 text-2xs font-bold uppercase tracking-[0.14em] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+  "rounded-full px-4 py-2.5 text-2xs font-bold uppercase tracking-[0.14em] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal sm:px-3 sm:py-1";
 const DONE =
-  "flex items-center gap-1 rounded-full bg-teal-deep px-3 py-1 text-2xs font-bold uppercase tracking-[0.14em] text-cream transition hover:opacity-90";
+  "flex items-center gap-1 rounded-full bg-teal-deep px-4 py-2.5 text-2xs font-bold uppercase tracking-[0.14em] text-cream transition hover:opacity-90 sm:px-3 sm:py-1";
 const TIME_FIELD =
-  "rounded-full bg-teal/12 px-3 py-1 font-sans text-sm font-bold text-teal outline-none transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+  "rounded-full bg-teal/12 px-3 py-2 font-sans text-sm font-bold text-teal outline-none transition hover:bg-teal/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal sm:py-1";
 
 const clampAmount = (v: number) =>
   Math.round(Math.max(AMOUNT_MIN, Math.min(AMOUNT_MAX, v)));
@@ -252,7 +261,7 @@ export default function NextBuyActions({
   return (
     <div
       ref={cardRef}
-      className="relative mx-auto mt-8 w-full max-w-spout overflow-hidden rounded-[2rem] bg-spout pb-2.5 shadow-[0_28px_64px_-26px_rgba(0,0,0,.62)]"
+      className="relative mx-auto mt-6 w-full max-w-spout overflow-hidden rounded-[1.75rem] bg-spout pb-2.5 shadow-[0_28px_64px_-26px_rgba(0,0,0,.62)] sm:mt-8 sm:rounded-[2rem]"
     >
       {/* A pool of water around the drop, so the bar reads as the tank's spout
           rather than a white slab dropped onto it */}
@@ -261,12 +270,12 @@ export default function NextBuyActions({
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(16rem_11rem_at_5rem_50%,rgba(147,183,190,.22),transparent_72%)]"
       />
 
-      <div className="relative flex flex-col gap-6 px-6 py-6 md:flex-row md:flex-wrap md:items-center md:gap-7 md:px-8 md:py-7">
+      <div className="relative flex flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 sm:py-6 md:flex-row md:flex-wrap md:items-center md:gap-7 md:px-8 md:py-7">
         {/* Left: the drop, the amount, and what makes it that size — every
             figure here doubling as the way to change it */}
-        <div className="flex min-w-0 flex-1 items-center gap-5">
+        <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-5">
           <span
-            className={`relative flex h-16 w-16 flex-none items-center justify-center rounded-full text-3xl text-cream shadow-[0_10px_22px_-10px_rgba(47,90,99,.9)] ${
+            className={`relative flex h-14 w-14 flex-none items-center justify-center rounded-full text-2xl text-cream shadow-[0_10px_22px_-10px_rgba(47,90,99,.9)] sm:h-16 sm:w-16 sm:text-3xl ${
               paused ? "bg-rose-deep" : "bg-teal-deep"
             }`}
           >
@@ -280,7 +289,10 @@ export default function NextBuyActions({
             {editingWhen ? (
               <div className={`flex flex-wrap items-center gap-x-2 gap-y-2 ${CAPTION}`}>
                 <span>Every</span>
-                <div className="flex flex-wrap gap-1">
+                {/* Seven across on a phone rather than six and an orphan: a
+                    week reads as a week, and each pill takes the width it is
+                    given instead of a fixed one. */}
+                <div className="grid w-full grid-cols-7 gap-1 sm:flex sm:w-auto sm:flex-wrap">
                   {WEEKDAYS.map((day, idx) => (
                     <button
                       key={day}
@@ -288,7 +300,7 @@ export default function NextBuyActions({
                       title={day}
                       aria-pressed={settings.schedule_weekday === idx}
                       onClick={() => void save({ schedule_weekday: idx })}
-                      className={`h-8 w-10 rounded-full text-xs font-bold transition ${
+                      className={`h-10 w-full rounded-full text-sm font-bold transition sm:h-8 sm:w-10 sm:text-xs ${
                         settings.schedule_weekday === idx
                           ? "bg-teal-deep text-cream"
                           : "bg-teal/10 text-teal/70 hover:bg-teal/25 hover:text-teal"
@@ -384,7 +396,7 @@ export default function NextBuyActions({
                 >
                   &minus;
                 </button>
-                <span className="flex items-baseline font-display text-5xl font-semibold leading-none text-teal md:text-6xl">
+                <span className="flex items-baseline font-display text-4xl font-semibold leading-none text-teal sm:text-5xl md:text-6xl">
                   <span className="text-teal/45">&euro;</span>
                   <input
                     ref={amountRef}
@@ -397,7 +409,11 @@ export default function NextBuyActions({
                     onKeyDown={(e) => {
                       if (e.key === "Enter") closeEdit();
                     }}
-                    className="w-[2.8em] bg-transparent outline-none"
+                    /* `text-[1em]` is load-bearing: index.css lifts every field
+                       on a touch screen to 16px so iOS does not zoom the page
+                       in on focus, and this is the one field that is supposed
+                       to be the size of the heading it sits in. */
+                    className="w-[2.8em] bg-transparent text-[1em] outline-none"
                   />
                 </span>
                 <button
@@ -418,13 +434,13 @@ export default function NextBuyActions({
                 disabled={!settings}
                 onClick={() => startEdit("amount")}
                 title="Set the base amount"
-                className="group -mx-2 mt-1.5 flex items-center gap-3 rounded-2xl px-2 font-display text-5xl font-semibold leading-none text-teal transition hover:bg-teal/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal md:text-6xl"
+                className="group -mx-2 mt-1.5 flex items-center gap-3 rounded-2xl px-2 py-1 font-display text-[clamp(2.4rem,10.5vw,3rem)] font-semibold leading-none text-teal transition hover:bg-teal/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal md:text-6xl"
               >
                 <span>
                   {amountMain}
                   <span className="text-teal/45">{amountCents}</span>
                 </span>
-                <PencilIcon className="text-base opacity-0 transition-opacity group-hover:opacity-100" />
+                <PencilIcon className={`text-base ${PENCIL}`} />
               </button>
             )}
 
@@ -443,7 +459,7 @@ export default function NextBuyActions({
                   onChange={(e) => setAmountDraft(e.target.value)}
                   onPointerUp={commitAmount}
                   onKeyUp={commitAmount}
-                  className="w-full max-w-[18rem] cursor-pointer accent-teal"
+                  className="h-6 w-full max-w-[18rem] cursor-pointer touch-manipulation accent-teal"
                 />
                 <span className="text-sm font-semibold text-teal/60">
                   &times; {indicators.multiplier} &rarr;{" "}
@@ -483,7 +499,7 @@ export default function NextBuyActions({
                 type="button"
                 onClick={onExplain}
                 title="What makes the next buy this size"
-                className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg text-sm font-semibold text-teal/60 transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+                className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg py-1 text-sm font-semibold text-teal/60 transition hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal sm:py-0"
               >
                 <ScoreDrops multiplier={indicators.multiplier} size="text-base" />
                 <span>

@@ -137,7 +137,7 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
         {/* The rate, and a year of it */}
         {/* Four across once there is room: on a full-width card a 2x2 block of
             tiles reads as a form rather than as the KPI row it is. */}
-        <div className="grid flex-1 grid-cols-2 gap-2 self-center lg:grid-cols-4">
+        <div className="grid flex-1 grid-cols-1 gap-2 self-center sm:grid-cols-2 lg:grid-cols-4">
           <Stat
             label="Stacking per week"
             hint={

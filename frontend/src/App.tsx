@@ -247,7 +247,7 @@ export default function App() {
         {/* Full-bleed single scroll container (no frame). */}
         <div
           ref={scrollRef}
-          className="relative flex h-full w-full flex-col overflow-y-auto bg-shell"
+          className="relative flex h-full w-full flex-col overflow-y-auto overscroll-contain bg-shell"
         >
           <SiteHeader
             status={status}
@@ -321,7 +321,9 @@ function ErrorToast({
   return (
     <div
       role="status"
-      className="fixed bottom-4 right-4 z-40 flex max-w-md items-start gap-3 rounded-card border-2 border-rose/50 bg-paper px-4 py-3 shadow-puff"
+      /* Above the phone's tab bar rather than under it, and the full width of
+         the glass there — a 24rem toast in a 390px window is a corner. */
+      className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 flex items-start gap-3 rounded-card border-2 border-rose/50 bg-paper px-4 py-3 shadow-puff md:bottom-4 md:left-auto md:max-w-md"
     >
       <WarningIcon className="mt-0.5 shrink-0 text-rose" aria-hidden="true" />
       <div className="min-w-0">

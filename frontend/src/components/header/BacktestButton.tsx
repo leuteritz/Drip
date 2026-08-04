@@ -19,7 +19,7 @@ export default function BacktestButton({ onOpen }: { onOpen: () => void }) {
       aria-label="Backtest the strategy"
       className={TRAY_ITEM}
     >
-      <ChartLineUpIcon className="text-sm" />
+      <ChartLineUpIcon className="text-sm max-sm:text-base" />
     </button>
   );
 }

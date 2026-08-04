@@ -49,13 +49,16 @@ export default function ReportBadge({
       }
       className={`relative overflow-hidden ${digest.enabled ? TRAY_ITEM : TRAY_ITEM_MUTED}`}
     >
-      {/* The week filling up behind the label */}
+      {/* The week filling up behind the label — and, where the label has given
+          way to make room (below `lg`, which is every phone), along the foot of
+          the button instead: a block filling half an icon reads as a rendering
+          fault rather than as a countdown. Same mechanic, same `WEEK_MS`. */}
       <span
         aria-hidden
-        className="absolute inset-y-0 left-0 bg-teal/18 transition-[width] duration-700"
+        className="absolute inset-y-0 left-0 bg-teal/18 transition-[width] duration-700 max-lg:inset-y-auto max-lg:bottom-0.5 max-lg:h-[2px] max-lg:rounded-full"
         style={{ width: `${filled * 100}%` }}
       />
-      <NewspaperIcon className="relative text-sm" />
+      <NewspaperIcon className="relative text-sm max-sm:text-base" />
       <span className="relative max-lg:hidden">{label}</span>
     </button>
   );

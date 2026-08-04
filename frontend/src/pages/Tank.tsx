@@ -17,12 +17,20 @@ import { fmtEur, fmtPct, formatWeekdayTime, WEEKDAYS } from "../lib/format";
 import { leaveTank } from "../lib/route";
 import { useStackAmount } from "../lib/units";
 
-/** Every readout on this screen is sized to be read from across a room, so the
- *  type scales with the viewport rather than sitting at a fixed size. */
-const HEADLINE = "clamp(3.5rem, 11vw, 12rem)";
-const READOUT = "clamp(1.6rem, 3.4vw, 3.4rem)";
+/**
+ * Every readout on this screen is sized to be read from across a room, so the
+ * type scales with the viewport rather than sitting at a fixed size.
+ *
+ * It is measured against the *shorter* edge as well as the wider one. A phone
+ * propped on a desk is the same idea as a monitor on a wall — one screen you
+ * glance at, never scrolled — but it is 390 wide and 844 tall, and type set off
+ * the width alone would run off the bottom of it. `min()` of the two is what
+ * keeps the whole screen on the screen in either orientation.
+ */
+const HEADLINE = "clamp(2.6rem, min(11vw, 9vh), 12rem)";
+const READOUT = "clamp(1.5rem, min(3.4vw, 3.2vh), 3.4rem)";
 const CAPTION =
-  "text-[clamp(0.6rem,1vw,0.95rem)] font-bold uppercase tracking-[0.22em] text-cream/60";
+  "text-[clamp(0.6rem,min(1vw,1.1vh),0.95rem)] font-bold uppercase tracking-[0.22em] text-cream/60";
 
 /**
  * The wall display.
@@ -72,7 +80,7 @@ export default function Tank({
     <div className="tank-water relative h-full w-full overflow-hidden text-cream">
       <TankBackdrop multiplier={indicators?.multiplier} />
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-[4vw] text-center">
+      <div className="pad-safe-x relative z-10 flex h-full flex-col items-center justify-center px-5 py-[3vh] text-center sm:px-[4vw] sm:py-0">
         <div className={CAPTION}>Your reservoir</div>
 
         {performance ? (
@@ -116,8 +124,11 @@ export default function Tank({
           </div>
         )}
 
-        {/* Three things worth glancing at, on the waterline */}
-        <div className="mt-[6vh] flex w-full max-w-[1500px] flex-wrap items-stretch justify-center gap-[2vw]">
+        {/* Three things worth glancing at, on the waterline. Side by side where
+            there is width for them, stacked down the glass where there is not —
+            three 240px panels on a phone would each be a line of its own
+            anyway, and stacked they get the whole width instead of a third. */}
+        <div className="mt-[4vh] flex w-full max-w-[1500px] flex-col items-stretch justify-center gap-[1.5vh] sm:mt-[6vh] sm:flex-row sm:flex-wrap sm:gap-[2vw]">
           <Panel caption="Bitcoin">
             {performance ? fmtEur(performance.current_price, 0) : "—"}
           </Panel>
@@ -157,7 +168,7 @@ export default function Tank({
         type="button"
         onClick={leaveTank}
         title="Back to the dashboard (Esc)"
-        className="absolute bottom-[2.5vh] right-[2.5vw] z-10 flex items-center gap-2 rounded-full bg-cream/12 px-4 py-2 text-[clamp(0.65rem,0.9vw,0.85rem)] font-bold text-cream/70 transition hover:bg-cream/25 hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+        className="absolute bottom-[max(2vh,env(safe-area-inset-bottom))] right-4 z-10 flex items-center gap-2 rounded-full bg-cream/12 px-5 py-3 text-[clamp(0.7rem,0.9vw,0.85rem)] font-bold text-cream/70 transition hover:bg-cream/25 hover:text-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream sm:bottom-[2.5vh] sm:right-[2.5vw] sm:px-4 sm:py-2"
       >
         <ArrowLeftIcon /> Dashboard
       </button>
@@ -174,7 +185,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-[240px] flex-1 flex-col items-center justify-center gap-[1.4vh] rounded-[2vw] border border-cream/35 bg-cream/15 px-[2.5vw] py-[3vh] backdrop-blur-md">
+    <div className="flex flex-1 flex-col items-center justify-center gap-[1vh] rounded-3xl border border-cream/35 bg-cream/15 px-5 py-[2vh] backdrop-blur-md sm:min-w-[240px] sm:gap-[1.4vh] sm:rounded-[2vw] sm:px-[2.5vw] sm:py-[3vh]">
       <div className={CAPTION}>{caption}</div>
       <div
         className="font-display font-semibold leading-none"

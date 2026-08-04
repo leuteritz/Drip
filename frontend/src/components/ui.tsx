@@ -19,7 +19,7 @@ export function Card({
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-card border-2 border-sand bg-paper p-6 shadow-puff md:p-7 ${className}`}
+      className={`relative rounded-card border-2 border-sand bg-paper p-4 shadow-puff sm:p-6 md:p-7 ${className}`}
     >
       {children}
     </div>
@@ -40,14 +40,24 @@ export function SectionHeading({
 }) {
   return (
     <div className="flex flex-wrap items-end gap-x-5 gap-y-2 pb-1">
-      <h2 className="flex items-center gap-3 font-display text-4xl font-bold leading-none text-ink">
-        <span className="text-3xl text-teal">{icon}</span>
+      <h2 className="flex items-center gap-2.5 font-display text-3xl font-bold leading-none text-ink sm:gap-3 sm:text-4xl">
+        <span className="text-2xl text-teal sm:text-3xl">{icon}</span>
         {title}
       </h2>
+      {/* `w-full` on a phone rather than a flex item that sizes to its own
+          content: a subtitle listing three figures has a max-content width
+          wider than the glass, and as its own line it simply wraps. */}
       {subtitle && (
-        <span className="max-w-prose text-base text-ink-soft">{subtitle}</span>
+        <span className="w-full min-w-0 max-w-prose text-sm text-ink-soft sm:w-auto sm:text-base">
+          {subtitle}
+        </span>
       )}
-      {actions && <div className="ml-auto flex flex-wrap gap-2">{actions}</div>}
+      {/* The actions sit at the far end of the heading where there is room for
+          them, and become their own full-width row where there is not — a
+          right-aligned tail of four buttons on a phone is a column of orphans. */}
+      {actions && (
+        <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">{actions}</div>
+      )}
     </div>
   );
 }
@@ -124,7 +134,7 @@ export function InfoButton({
         aria-expanded={open}
         aria-label={label}
         title={label}
-        className={`flex h-9 w-9 items-center justify-center rounded-full text-base transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${
+        className={`flex h-10 w-10 items-center justify-center rounded-full text-base transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal sm:h-9 sm:w-9 ${
           open
             ? "bg-teal-deep text-cream"
             : "bg-sand-soft text-ink-soft hover:bg-water-soft hover:text-teal"
@@ -136,7 +146,7 @@ export function InfoButton({
         <div
           role="dialog"
           aria-label={label}
-          className="absolute right-0 top-[calc(100%+0.6rem)] z-20 w-[34rem] max-w-[min(34rem,80vw)] rounded-card border-2 border-sand bg-paper p-5 text-sm leading-relaxed text-ink-soft shadow-puff"
+          className="absolute right-0 top-[calc(100%+0.6rem)] z-20 max-h-[60vh] w-[34rem] max-w-[min(34rem,88vw)] overflow-y-auto rounded-card border-2 border-sand bg-paper p-4 text-sm leading-relaxed text-ink-soft shadow-puff sm:p-5"
         >
           {children}
         </div>
@@ -161,7 +171,7 @@ export function RangePills<T extends number>({
         <button
           key={option.value}
           onClick={() => onChange(option.value)}
-          className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+          className={`rounded-full px-4 py-2.5 text-xs font-bold transition sm:py-1.5 ${
             value === option.value
               ? "bg-ink-solid text-cream"
               : "bg-sand-soft text-ink-soft hover:text-ink"
@@ -189,7 +199,11 @@ export function Stat({
   children: ReactNode;
 }) {
   return (
-    <dl className="min-w-[11rem] flex-1 rounded-xl bg-sand-soft/60 px-5 py-3.5">
+    /* One tile per row on a phone. Two of these side by side leaves each about
+       eleven characters wide, and the figures they carry — a six-figure euro
+       amount with its percentage beside it — break across three lines to fit.
+       A KPI that has to be reassembled by the reader is not one. */
+    <dl className="min-w-full flex-1 rounded-xl bg-sand-soft/60 px-5 py-3.5 sm:min-w-[11rem]">
       <dt className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-soft">
         {label}
       </dt>
@@ -516,17 +530,38 @@ export function Modal({
   // centred flex child that outgrows its scroll container has its top clipped
   // with no way to scroll back to it, and at this type size the taller dialogs
   // do outgrow a 1080p screen.
+  //
+  // On a phone it is a sheet instead: full width, along the bottom edge, its
+  // lower corners squared off against it. That is where a thumb is, it is the
+  // shape a phone has taught everyone to expect a dialog to have, and it means
+  // the widest thing in every dialog gets the whole glass rather than the
+  // glass minus two gutters. `max-sm:mt-14` keeps the sheet clear of the
+  // sticky bar, so there is always something of the page left behind it.
+  // The palette is the exception to the sheet: it is a search field with a
+  // keyboard about to cover the lower half of the screen, so it stays at the
+  // top on a phone as it does everywhere else.
+  const sheet = align === "center";
+
   return (
     <div
       className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-scrim p-4 ${
-        align === "top" ? "pt-[12vh]" : ""
+        sheet ? "max-sm:items-end max-sm:p-0" : "pt-[12vh] max-sm:px-2 max-sm:pt-4"
       }`}
       onClick={closeOnBackdrop ? onClose : undefined}
     >
       <div
-        className={`flex w-full justify-center ${align === "top" ? "" : "my-auto"}`}
+        className={`flex w-full justify-center ${
+          sheet ? "my-auto max-sm:mb-0 max-sm:mt-14" : ""
+        }`}
       >
-        <Card className={className} onClick={(e) => e.stopPropagation()}>
+        <Card
+          className={`max-sm:!w-full max-sm:!max-w-none ${
+            sheet
+              ? "max-sm:rounded-b-none max-sm:pb-[max(1rem,env(safe-area-inset-bottom))]"
+              : ""
+          } ${className}`}
+          onClick={(e) => e.stopPropagation()}
+        >
           {children}
         </Card>
       </div>

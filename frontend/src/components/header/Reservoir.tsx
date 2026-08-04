@@ -35,17 +35,22 @@ export default function Reservoir({
   const valueCents = dot >= 0 ? value.slice(dot) : "";
 
   return (
-    <div className="mt-10 text-center md:mt-14">
+    <div className="mt-8 text-center sm:mt-10 md:mt-14">
       <div className="text-2xs font-bold uppercase tracking-[0.28em] text-cream/75">
         Your reservoir
       </div>
       {performance ? (
         <>
-          <div className="mt-3 font-display text-6xl font-semibold leading-[0.88] tracking-tight text-cream drop-shadow-[0_2px_18px_rgba(0,0,0,0.28)] sm:text-7xl xl:text-8xl">
+          {/* Six figures of euro have to fit a 390px phone without breaking the
+              line: below the `sm` step the headline is measured in vw rather
+              than in type steps, so it shrinks with the glass instead of
+              wrapping. It reaches the same size the step scale gives it just as
+              the breakpoint takes over, so there is no jump at 640px. */}
+          <div className="mt-3 font-display text-[clamp(2.4rem,11.5vw,4rem)] font-semibold leading-[0.88] tracking-tight text-cream drop-shadow-[0_2px_18px_rgba(0,0,0,0.28)] sm:text-7xl xl:text-8xl">
             {valueMain}
             <span className="text-cream/65">{valueCents}</span>
           </div>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xl font-bold [text-shadow:0_1px_8px_rgba(0,0,0,0.25)] md:text-2xl">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-lg font-bold [text-shadow:0_1px_8px_rgba(0,0,0,0.25)] sm:mt-5 sm:gap-x-6 sm:text-xl md:text-2xl">
             <span
               className={`inline-flex items-center gap-2 ${profitable ? "text-kelp-pale" : "text-rose-pale"}`}
             >
@@ -64,7 +69,9 @@ export default function Reservoir({
                   ? "Showing sats - click to read bitcoin amounts as BTC"
                   : "Showing BTC - click to read bitcoin amounts as sats"
               }
-              className="rounded font-semibold text-cream/70 underline decoration-cream/25 decoration-dotted underline-offset-[6px] transition hover:text-cream hover:decoration-cream/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+              /* The extra height is the tap target: on a phone this line is the
+                 unit switch for the whole page, and a row of text is not one. */
+              className="rounded px-1 py-1.5 font-semibold text-cream/70 underline decoration-cream/25 decoration-dotted underline-offset-[6px] transition hover:text-cream hover:decoration-cream/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream sm:py-0"
             >
               {stackAmount(performance.btc_total)}
             </button>

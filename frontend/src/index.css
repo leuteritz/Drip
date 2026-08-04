@@ -120,6 +120,18 @@ body,
   height: 100%;
 }
 
+/* A phone's viewport is not its window: the browser's own bars grow and shrink
+   as you scroll, and `100%` of that is the *largest* it ever gets, which leaves
+   the bottom of a fixed canvas underneath them. `dvh` is the height there is
+   right now. Left after the `100%` above, so anything without it still works. */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
+}
+
 /**
  * The one knob the whole app is sized by.
  *
@@ -131,9 +143,20 @@ body,
  *
  * Read it as: 13px on a 1280px laptop, ~16.6px on Full HD, 20px at 2560 and
  * wider. Never set a font size in px again; `text-2xs` is the floor.
+ *
+ * A phone is the other end of the same argument and it points the other way.
+ * The desk curve is *density*: a wide window earns bigger type because it can
+ * hold more of it. A 390px window holds one column of anything, and the laptop's
+ * 13px on it is small print held at arm's length — so the second curve below
+ * walks the root *up* as the window narrows, from 13px at ~470px wide to about
+ * 16px on a phone. `max()` of the two is what joins them: below 470px the phone
+ * curve is the larger, above it both sit at the 13px floor until the desk curve
+ * lifts off around 1310px. No breakpoint, and therefore no step to land on.
  */
 html {
-  font-size: clamp(13px, 0.34rem + 0.58vw, 20px);
+  font-size: max(clamp(13px, 0.34rem + 0.58vw, 20px), clamp(13px, 27px - 3vw, 16.5px));
+  /* iOS enlarges type on rotation unless told the page already handles it */
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Lets native controls, scrollbars and form widgets follow the theme */
@@ -151,6 +174,55 @@ body {
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   overflow: hidden; /* fixed-canvas app: the frame owns all height, no page scroll */
+  /* A rubber-band bounce past the end of a fixed canvas reveals the page ground
+     behind it and reads as the app coming loose. */
+  overscroll-behavior: none;
+}
+
+/**
+ * Touch targets, in one place.
+ *
+ * Everything below `(pointer: coarse)` is about a fingertip rather than a
+ * cursor, and both rules here exist because of one: a finger is about 9mm wide
+ * and has no hover.
+ *
+ * The font size is not a style choice — iOS Safari zooms the whole page in when
+ * a field smaller than 16px takes focus, and then leaves you there, scrolled
+ * sideways. `:where()` keeps it at zero specificity so any deliberate size in a
+ * component still wins; the one field that is *meant* to be huge (the base
+ * amount) carries `text-[1em]` to inherit its own heading size.
+ */
+@media (pointer: coarse) {
+  :where(input, select, textarea) {
+    font-size: max(1rem, 16px);
+  }
+}
+
+/**
+ * The safe area, for the two things that touch the edge of the glass: the tab
+ * bar at the foot of a phone and the scroll behind it. `max()` rather than the
+ * inset alone, so a device without a home bar still gets its own padding.
+ */
+.pad-safe-b {
+  padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
+}
+
+.pad-safe-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/**
+ * The room the phone's tab bar takes at the foot of the scroll, so the last
+ * card can be read rather than sitting under it forever. It has to match
+ * `BottomNav`'s own height — and it is empty above the bar's breakpoint (`md`,
+ * where the jump-nav returns to the sticky bar), which is why it is a media
+ * query here rather than a utility somewhere in the markup.
+ */
+@media (width < 48rem) {
+  .pad-tabbar {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* "The Tank" sky: the gradient the aquarium sits under */

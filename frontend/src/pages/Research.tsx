@@ -112,7 +112,7 @@ export default function Research({
     <section
       ref={sectionRef}
       id="research"
-      className="scroll-mt-20 flex flex-col gap-4 px-4 pb-8 pt-5 md:px-6 md:pb-10 md:pt-6"
+      className="pad-safe-x scroll-mt-20 flex flex-col gap-3 px-3 pb-8 pt-5 sm:gap-4 sm:px-4 md:px-6 md:pb-10 md:pt-6"
     >
       <SectionHeading
         icon={<FlaskIcon />}
@@ -122,7 +122,7 @@ export default function Research({
           <a
             href={api.datasetUrl(1095)}
             download
-            className="flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-sand-soft px-4 py-2.5 text-sm font-bold text-teal transition hover:bg-water-soft sm:flex-none sm:justify-start sm:py-2"
           >
             <DownloadSimpleIcon /> Download the data
           </a>

@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.17",
+    date: "2026-08-04",
+    changes: [
+      "Drip now fits a phone: the type is set larger on a small screen, everything you tap is thumb-sized, and the three sections sit in a tab bar along the bottom where your thumb already is",
+      "On a phone the buy history is one card per buy — date, amount, drops and status — instead of a nine-column table you had to drag sideways, and it sorts from a row of chips",
+      "Dialogs rise from the bottom edge as sheets on a phone, and the wall display now works on one held upright",
+    ],
+  },
+  {
     version: "2.16",
     date: "2026-08-04",
     changes: [

@@ -25,6 +25,7 @@ import type { ThemeChoice } from "../lib/theme";
 import { useUnit } from "../lib/units";
 import DigestDialog from "./digest/DigestDialog";
 import BacktestButton from "./header/BacktestButton";
+import BottomNav from "./header/BottomNav";
 import { SEGMENT, SEGMENT_OFF, SEGMENT_ON, TRAY } from "./header/chrome";
 import { NAV, useScrolled, useScrollSpy, type Section } from "./header/hooks";
 import LoadPill from "./header/LoadPill";
@@ -218,15 +219,20 @@ export default function SiteHeader({
           and goes on its own lives here and nothing you might be aiming at
           moves when it does. Right is what you can *do*, in three trays of the
           same shape (see ./header/chrome): the mode switch, the tools, the
-          jump-nav. Transparent over the hero, blurred teal once scrolled. */}
+          jump-nav. Transparent over the hero, blurred teal once scrolled.
+
+          On a phone the third tray leaves it: the jump-nav becomes `BottomNav`
+          at the foot of the screen, where a thumb is. What stays is what has to
+          be seen rather than reached for — the mode you are in, and the way
+          into everything else. */}
       <header
-        className={`sticky top-0 z-30 shrink-0 text-teal transition-colors duration-300 ${
+        className={`pad-safe-x sticky top-0 z-30 shrink-0 text-teal transition-colors duration-300 ${
           scrolled
             ? "border-b border-teal/10 bg-paper/90 shadow-[0_6px_24px_-14px_rgba(60,109,120,.6)] backdrop-blur-md"
             : "border-b border-transparent bg-transparent"
         }`}
       >
-        <div className="mx-auto flex h-16 w-full max-w-shell items-center justify-between px-6 md:px-10">
+        <div className="mx-auto flex h-16 w-full max-w-shell items-center justify-between gap-2 px-4 sm:px-6 md:px-10">
           <div className="flex min-w-0 items-center gap-3">
             {/* On a phone the drop alone is the brand: the word and the build
                 give way before the trays on the right do. */}
@@ -254,14 +260,23 @@ export default function SiteHeader({
 
             {/* The tools tray: everything that only opens something — search,
                 report, backtest, theme, setup. Nothing in here spends money,
-                which is what keeps it one undivided group. */}
+                which is what keeps it one undivided group.
+
+                Two of the five stand down on a phone, where five touch-sized
+                items plus the mode switch is more than a 390px row holds. The
+                backtest and the theme are the two that go, because the search
+                beside them opens both by name — and the report stays, since it
+                is the one thing here that is counting down rather than waiting
+                to be asked. */}
             <div className={TRAY}>
               <PaletteButton onOpen={() => setPaletteOpen(true)} />
               {digest && (
                 <ReportBadge digest={digest} onOpen={() => setDigestOpen(true)} />
               )}
-              <BacktestButton onOpen={onSimulate} />
-              <ThemeToggle choice={themeChoice} onChange={onSetTheme} />
+              <span className="contents max-sm:hidden">
+                <BacktestButton onOpen={onSimulate} />
+                <ThemeToggle choice={themeChoice} onChange={onSetTheme} />
+              </span>
               <SetupButton
                 status={status}
                 onOpen={() => setSetupTab(status?.has_credentials ? "system" : "coinbase")}
@@ -269,8 +284,8 @@ export default function SiteHeader({
             </div>
 
             {/* The jump-nav, segmented like the mode switch: three places, one
-                of them you are in. */}
-            <nav className={TRAY} aria-label="Sections">
+                of them you are in. Below `md` it is `BottomNav` instead. */}
+            <nav className={`${TRAY} max-md:hidden`} aria-label="Sections">
               {NAV.map(({ id, label, Icon }) => {
                 const on = active === id;
                 return (
@@ -292,7 +307,7 @@ export default function SiteHeader({
 
       {/* Hero "tank": the water fills almost the whole hero, its surface waving just
           below the sticky bar; every bit of data lives submerged on the water in cream. */}
-      <section className="hero-gradient relative -mt-16 shrink-0 overflow-hidden px-6 pb-14 pt-16 text-cream md:px-10 md:pb-16">
+      <section className="hero-gradient pad-safe-x relative -mt-16 shrink-0 overflow-hidden px-4 pb-10 pt-16 text-cream sm:px-6 sm:pb-14 md:px-10 md:pb-16">
         <TankBackdrop multiplier={indicators?.multiplier} />
         {splash > 0 && <Splash key={splash} />}
 
@@ -303,7 +318,7 @@ export default function SiteHeader({
           {/* Submerged read-outs: signal · market · bitcoin · well (frosted
               glass). A grid rather than a wrapping row, so the four keep one
               width and one baseline at every size the app is read at. */}
-          <div className="mt-9 grid grid-cols-2 items-stretch gap-4 lg:grid-cols-4">
+          <div className="mt-7 grid grid-cols-2 items-stretch gap-2.5 sm:mt-9 sm:gap-4 lg:grid-cols-4">
             {/* All four are always here, waiting or not: the signal is the
                 slowest call in the app, and a grid that fills in from two
                 chips to four moves everything under it while you read. */}
@@ -385,6 +400,9 @@ export default function SiteHeader({
           onClose={() => setExplainOpen(false)}
         />
       )}
+
+      {/* The phone's own jump-nav, over everything below the dialogs. */}
+      <BottomNav active={active} onJump={jumpTo} />
 
       {buyOpen && settings && status && (
         <ManualBuyDialog

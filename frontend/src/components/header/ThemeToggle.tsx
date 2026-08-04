@@ -53,7 +53,7 @@ export default function ThemeToggle({
       aria-label={label}
       className={TRAY_ITEM}
     >
-      <Icon className="text-sm" />
+      <Icon className="text-sm max-sm:text-base" />
     </button>
   );
 }

@@ -16,6 +16,19 @@ import { Badge, Card, Loading, Modal, SectionHeading } from "../components/ui";
 
 type SortKey = "timestamp" | "price_eur" | "amount_eur" | "score";
 
+/** The heading's own buttons. Full-width-ish on a phone, where four of them
+ *  right-aligned would be a column of orphans. */
+const HEAD_ACTION =
+  "flex min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-2.5 text-sm font-bold transition sm:basis-auto sm:flex-none sm:justify-start sm:px-4 sm:py-2";
+
+/** What a phone sorts by, since there is no column header to click there. */
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: "timestamp", label: "Date" },
+  { key: "amount_eur", label: "Amount" },
+  { key: "price_eur", label: "Price" },
+  { key: "score", label: "Score" },
+];
+
 export default function HistorySection({
   purchases,
   loading,
@@ -109,23 +122,30 @@ export default function HistorySection({
     [purchases],
   );
 
+  /** Same rule as a column header: a new column sorts high-to-low, the one
+   *  already sorted flips. Shared by the table's headers and the phone's chips. */
+  const sortBy = (key: SortKey) => {
+    if (sortKey === key) setSortDesc(!sortDesc);
+    else {
+      setSortKey(key);
+      setSortDesc(true);
+    }
+  };
+
   const header = (label: string, key: SortKey, align = "text-left") => (
     <th
       className={`cursor-pointer select-none px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-ink-soft hover:text-ink ${align}`}
-      onClick={() => {
-        if (sortKey === key) setSortDesc(!sortDesc);
-        else {
-          setSortKey(key);
-          setSortDesc(true);
-        }
-      }}
+      onClick={() => sortBy(key)}
     >
       {label} {sortKey === key ? (sortDesc ? "▾" : "▴") : ""}
     </th>
   );
 
   return (
-    <section id="history" className="scroll-mt-20 flex flex-col gap-4 px-4 pb-8 pt-5 md:px-6 md:pb-10 md:pt-6">
+    <section
+      id="history"
+      className="pad-safe-x pad-tabbar scroll-mt-20 flex flex-col gap-3 px-3 pb-8 pt-5 sm:gap-4 sm:px-4 md:px-6 md:pb-10 md:pt-6"
+    >
       <SectionHeading
         icon={<ListDashesIcon />}
         title="Buy history"
@@ -136,14 +156,14 @@ export default function HistorySection({
           <>
             <button
               onClick={() => setShowImport(true)}
-              className="flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
+              className={`${HEAD_ACTION} bg-sand-soft text-teal hover:bg-water-soft`}
             >
               <UploadSimpleIcon /> Import CSV
             </button>
             <a
               href={api.exportUrl}
               download
-              className={`flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft ${
+              className={`${HEAD_ACTION} bg-sand-soft text-teal hover:bg-water-soft ${
                 purchases.length === 0 ? "pointer-events-none opacity-40" : ""
               }`}
             >
@@ -153,7 +173,7 @@ export default function HistorySection({
               <button
                 onClick={clearTestRuns}
                 disabled={busy}
-                className="flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-rose transition hover:bg-rose-soft disabled:opacity-40"
+                className={`${HEAD_ACTION} bg-sand-soft text-rose hover:bg-rose-soft disabled:opacity-40`}
               >
                 <TrashIcon /> Clear test runs
               </button>
@@ -162,7 +182,7 @@ export default function HistorySection({
               <button
                 onClick={() => setConfirmWipe(true)}
                 disabled={busy}
-                className="flex items-center gap-2 rounded-full bg-rose-soft px-4 py-2 text-sm font-bold text-rose transition hover:bg-rose-deep hover:text-cream disabled:opacity-40"
+                className={`${HEAD_ACTION} bg-rose-soft text-rose hover:bg-rose-deep hover:text-cream disabled:opacity-40`}
               >
                 <TrashIcon /> Delete all
               </button>
@@ -183,7 +203,48 @@ export default function HistorySection({
               matched={filtered.length}
             />
           )}
-          <div className="overflow-x-auto">
+          {/* A phone gets the same buys as cards. Nine columns on a 390px
+              screen is a sideways scroll with the numbers that matter parked
+              off the right-hand edge — and the one control the table carries in
+              its headers, the sort, comes back as the chip row above. */}
+          {sorted.length > 0 && (
+            <>
+              <div className="flex items-center gap-1.5 overflow-x-auto border-b-2 border-sand px-3 py-2.5 sm:hidden">
+                <span className="shrink-0 pl-1 pr-1 text-2xs font-bold uppercase tracking-[0.12em] text-ink-soft">
+                  Sort
+                </span>
+                {SORTS.map(({ key, label }) => {
+                  const on = sortKey === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => sortBy(key)}
+                      className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition ${
+                        on ? "bg-ink-solid text-cream" : "bg-sand-soft text-ink-soft"
+                      }`}
+                    >
+                      {label} {on && (sortDesc ? "▾" : "▴")}
+                    </button>
+                  );
+                })}
+              </div>
+              <ul className="divide-y divide-sand/60 sm:hidden">
+                {sorted.map((p) => (
+                  <BuyCard
+                    key={p.id}
+                    purchase={p}
+                    busy={busy}
+                    amount={stackAmount(p.btc_amount)}
+                    onDelete={() => deleteOne(p)}
+                  />
+                ))}
+              </ul>
+            </>
+          )}
+
+          <div className="overflow-x-auto max-sm:hidden">
             <table className="w-full min-w-[54rem] text-sm">
               <thead className="border-b-2 border-sand bg-sand-soft">
                 <tr>
@@ -253,49 +314,49 @@ export default function HistorySection({
                     </td>
                   </tr>
                 ))}
-                {sorted.length === 0 && (
-                  <tr>
-                    <td colSpan={9} className="px-4 py-12 text-center text-ink-soft">
-                      {loading ? (
-                        <div className="flex justify-center">
-                          <Loading
-                            compact
-                            what="Reading your buys"
-                            why="Every drip the bot has recorded, test runs included."
-                          />
-                        </div>
-                      ) : filtering ? (
-                        <>
-                          <p>
-                            No buy matches <b className="text-ink">{query.trim()}</b>.
-                          </p>
-                          <button
-                            onClick={() => setQuery("")}
-                            className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
-                          >
-                            <XIcon /> Clear the search
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <p>
-                            No buys yet. Run a test buy from the overview, or wait for the
-                            first scheduled run.
-                          </p>
-                          <button
-                            onClick={() => setShowImport(true)}
-                            className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2 text-sm font-bold text-teal transition hover:bg-water-soft"
-                          >
-                            <UploadSimpleIcon /> Import CSV history
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
+
+          {/* One empty state for both shapes, under whichever of them is on */}
+          {sorted.length === 0 && (
+            <div className="px-4 py-12 text-center text-ink-soft">
+              {loading ? (
+                <div className="flex justify-center">
+                  <Loading
+                    compact
+                    what="Reading your buys"
+                    why="Every drip the bot has recorded, test runs included."
+                  />
+                </div>
+              ) : filtering ? (
+                <>
+                  <p>
+                    No buy matches <b className="text-ink">{query.trim()}</b>.
+                  </p>
+                  <button
+                    onClick={() => setQuery("")}
+                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2.5 text-sm font-bold text-teal transition hover:bg-water-soft"
+                  >
+                    <XIcon /> Clear the search
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>
+                    No buys yet. Run a test buy from the overview, or wait for the first
+                    scheduled run.
+                  </p>
+                  <button
+                    onClick={() => setShowImport(true)}
+                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2.5 text-sm font-bold text-teal transition hover:bg-water-soft"
+                  >
+                    <UploadSimpleIcon /> Import CSV history
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </Card>
       )}
 
@@ -310,7 +371,10 @@ export default function HistorySection({
       )}
 
       {confirmWipe && (
-        <Modal onClose={() => setConfirmWipe(false)} className="max-w-md border-rose/60">
+        <Modal
+          onClose={() => setConfirmWipe(false)}
+          className="w-full max-w-md border-rose/60"
+        >
           <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
             <WarningIcon /> Delete the entire history?
           </h3>
@@ -321,13 +385,13 @@ export default function HistorySection({
           <div className="mt-4 flex justify-end gap-2">
             <button
               onClick={() => setConfirmWipe(false)}
-              className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink"
+              className="rounded-full bg-sand-soft px-5 py-3 text-sm font-bold text-ink max-sm:flex-1 sm:py-2.5"
             >
               Cancel
             </button>
             <button
               onClick={deleteAll}
-              className="rounded-full bg-rose-deep px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
+              className="rounded-full bg-rose-deep px-5 py-3 text-sm font-bold text-cream transition hover:opacity-90 max-sm:flex-1 sm:py-2.5"
             >
               Delete everything
             </button>
@@ -335,5 +399,78 @@ export default function HistorySection({
         </Modal>
       )}
     </section>
+  );
+}
+
+/**
+ * One buy, as a card — the phone's row of the same table.
+ *
+ * It carries every column the table does, in the order they are actually read:
+ * when it landed and what it cost you, then how hard the bot bought and whether
+ * the order went through, then the price it paid and the bitcoin it got, and
+ * last the two readings behind the score. The bitcoin amount follows the unit
+ * switch, like every other quantity on the page.
+ */
+function BuyCard({
+  purchase,
+  amount,
+  busy,
+  onDelete,
+}: {
+  purchase: Purchase;
+  /** Already formatted in the reader's unit — the row never picks one itself. */
+  amount: string;
+  busy: boolean;
+  onDelete: () => void;
+}) {
+  const failed = purchase.order_id === ORDER_ID_ERROR;
+
+  return (
+    <li className="flex flex-col gap-2.5 px-4 py-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-bold text-ink">
+          {formatTimestamp(purchase.timestamp)}
+        </span>
+        <span className="font-display text-2xl font-semibold leading-none text-ink">
+          {fmtEur(purchase.amount_eur)}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <ScoreDrops multiplier={purchase.multiplier} size="text-base" />
+          <span className="text-xs font-semibold text-ink-soft">
+            &times;{purchase.multiplier}
+          </span>
+        </div>
+        {failed ? (
+          <Badge tone="rose">Error</Badge>
+        ) : purchase.dry_run ? (
+          <Badge tone="neutral">Dry run</Badge>
+        ) : (
+          <Badge tone="teal">Bought</Badge>
+        )}
+      </div>
+
+      <div className="flex items-end justify-between gap-3 text-xs text-ink-soft">
+        <div className="min-w-0 space-y-1">
+          <div className="truncate">
+            {fmtEur(purchase.price_eur, 0)} &middot;{" "}
+            <span className="text-ink">{amount}</span>
+          </div>
+          <div>
+            F&amp;G {purchase.fear_greed} &middot; RSI {purchase.rsi.toFixed(1)}
+          </div>
+        </div>
+        <button
+          onClick={onDelete}
+          disabled={busy}
+          aria-label="Delete entry"
+          className="-mb-1 -mr-1 flex h-11 w-11 flex-none items-center justify-center rounded-full text-ink-soft transition hover:bg-rose-soft hover:text-rose disabled:opacity-40"
+        >
+          <TrashIcon className="text-base" />
+        </button>
+      </div>
+    </li>
   );
 }

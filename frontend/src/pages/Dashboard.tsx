@@ -112,7 +112,7 @@ export default function Overview({
 
   return (
     <section id="overview" className="scroll-mt-20">
-      <div className="flex flex-col gap-4 px-4 py-5 md:px-6 md:py-6">
+      <div className="pad-safe-x flex flex-col gap-3 px-3 py-5 sm:gap-4 sm:px-4 md:px-6 md:py-6">
         {error && (
           <Card className="border-rose/50">
             <div className="font-bold text-rose">{error}</div>
@@ -155,7 +155,7 @@ export default function Overview({
             <RangePills options={RANGES} value={rangeDays} onChange={setRangeDays} />
           </CardHeader>
           {hasStrategy && latest && <StrategyKpis latest={latest} />}
-          <div className="h-[26rem] md:h-[32rem]">
+          <div className="h-[22rem] sm:h-[26rem] md:h-[32rem]">
             {!compLoaded || (!hasStrategy && !candlesLoaded) ? (
               <Loading
                 what="Charting your strategy against plain DCA"
@@ -189,7 +189,7 @@ export default function Overview({
         </Card>
 
         {/* The stack itself, rather than the strategy behind it. */}
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 xl:grid-cols-2">
           <CostBasisCard
             holdings={holdings}
             purchases={purchases}

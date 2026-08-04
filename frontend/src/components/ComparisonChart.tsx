@@ -133,7 +133,7 @@ export default function ComparisonChart({
       </div>
 
       <StripCaption />
-      <div className="h-[6.5rem] shrink-0 md:h-[7.5rem]">
+      <div className="h-[5.5rem] shrink-0 sm:h-[6.5rem] md:h-[7.5rem]">
         <PriceStrip data={enriched} />
       </div>
     </div>
@@ -161,7 +161,7 @@ const lineProps = (s: Series) => ({
  */
 function ChartLegend() {
   return (
-    <ul className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-medium text-ink">
+    <ul className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs font-medium text-ink sm:gap-x-4 sm:gap-y-1.5 sm:text-xs">
       {[SERIES.drip, SERIES.dca, BREAK_EVEN].map((s) => (
         <li key={s.label} className="flex items-center gap-1.5">
           <svg width="22" height="10" aria-hidden="true" className="shrink-0">

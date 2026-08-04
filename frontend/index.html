@@ -2,9 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- `viewport-fit=cover` lets the tank run under a phone's rounded corners
+         and its home bar; everything that must stay clear of them pads itself
+         with `env(safe-area-inset-*)` (see index.css). No `maximum-scale`: a
+         page nobody can pinch-zoom is a page somebody cannot read. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Drip</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Added to a phone's home screen, Drip opens without browser chrome and
+         the status bar takes the tank's own colour. Both values are the page
+         ground `--color-shell` resolves to, day and night. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Drip" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f1fffa" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c171a" />
     <!-- Stamps the theme before first paint, so a slow Pi never flashes cream
          on its way into the night theme. Mirrors lib/theme.ts - keep in step. -->
     <script>

@@ -17,10 +17,21 @@ Underneath, the dashboard researches its own strategy, reports what you paid aga
 the market, and carries the rate you stack at forward to the next round number of sats.
 Green in the plus, rose in the minus - every figure that can go either way says which.
 The drip is set on the next-buy card: click the amount, or the chip with the day and
-time. Test and Buy share one tray at its right, hollow drop on Test, which spends
-nothing. Everything else lives in three groups in the bar at the top - mode, tools, sections -
-and `Ctrl+K` reaches all of it, keys included, so the Pi needs no shell after the first
-install. Once a week the whole thing arrives on Discord.
+time. Everything else lives in three groups in the bar at the top - mode, tools,
+sections - and `Ctrl+K` reaches all of it, keys included, so the Pi needs no shell
+after the first install. Once a week the whole thing arrives on Discord.
+
+## On a phone
+
+<img src="docs/screenshot-phone.png" alt="Drip on a phone" width="290" align="right">
+
+The same dashboard, sized for a thumb. The sections move to a tab bar along the bottom,
+every figure is set larger rather than smaller, dialogs rise from the bottom edge as
+sheets, and the buy history becomes one card per buy instead of a table to drag
+sideways. Nothing is left out and nothing is a second app: it is one build, and the
+layout follows the glass it lands on.
+
+<br clear="right">
 
 ## Install
 

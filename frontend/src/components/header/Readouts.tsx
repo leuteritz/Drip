@@ -24,11 +24,20 @@ import { Loading, Spinner } from "../ui";
  * `SignalBreakdown`.
  */
 const FROST_CARD =
-  "flex h-full flex-col items-center justify-center gap-2 text-center rounded-[1.75rem] border border-cream/45 bg-cream/25 px-5 py-6 text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-md";
+  "flex h-full flex-col items-center justify-center gap-2 text-center rounded-[1.5rem] border border-cream/45 bg-cream/25 px-3 py-5 text-cream shadow-[0_16px_34px_-18px_rgba(0,0,0,.5)] backdrop-blur-md sm:rounded-[1.75rem] sm:px-5 sm:py-6";
 
 const CAPTION = "text-2xs font-bold uppercase tracking-[0.16em] text-cream/72";
-const BIG_NUMBER = "font-display text-4xl font-semibold leading-none";
-const SUB = "text-sm font-semibold text-cream/80";
+/**
+ * The figure each chip is about.
+ *
+ * Two of these are euro amounts that can reach five figures, and on a phone the
+ * chip they sit in is half the width of the glass — so below ~550px the size is
+ * measured in vw and shrinks with it. Above that it is capped at the 2.25rem it
+ * has always been, so nothing on a desk moved.
+ */
+const BIG_NUMBER =
+  "font-display text-[clamp(1.45rem,6.4vw,2.25rem)] font-semibold leading-none";
+const SUB = "text-xs font-semibold text-cream/80 sm:text-sm";
 
 function FrostCard({ children }: { children: ReactNode }) {
   return <div className={FROST_CARD}>{children}</div>;
@@ -241,7 +250,7 @@ export function WellReadout({
             />
           </div>
           <div
-            className={`text-sm font-semibold ${runningDry ? "text-rose-pale" : "text-cream/70"}`}
+            className={`text-xs font-semibold sm:text-sm ${runningDry ? "text-rose-pale" : "text-cream/70"}`}
           >
             {buysLeft == null
               ? `${stackAmount(balance.btc_available ?? 0)} on Coinbase`
@@ -253,7 +262,7 @@ export function WellReadout({
       ) : (
         <>
           <div className={`${BIG_NUMBER} text-cream/60`}>—</div>
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-cream/70">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-cream/70 sm:text-sm">
             <KeyIcon className="text-sm" />
             {balance.configured ? "Balance unavailable" : "No API keys yet"}
           </div>

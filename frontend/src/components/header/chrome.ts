@@ -14,15 +14,24 @@
  * Everything in the bar is `text-xs`: one size, so the three trays share a
  * baseline and a height whatever they carry. Keep new bar pieces on these
  * constants rather than inventing a ninth pill.
+ *
+ * On a phone every item grows to a 2.75rem square (`TOUCH`). A cursor lands on
+ * a 27px pill; a fingertip is nine millimetres across and lands near it, so the
+ * bar keeps its shapes and only changes the size of the thing you aim at. The
+ * icons inside step up with it — see the `text-sm max-sm:text-base` each of
+ * them carries.
  */
 
 /** The capsule. Put items straight inside it — it brings its own padding. */
 export const TRAY = "flex shrink-0 items-center gap-0.5 rounded-full bg-teal/10 p-1";
 
+/** What a fingertip needs, and only where there is one. */
+const TOUCH = "max-sm:h-11 max-sm:min-w-11 max-sm:justify-center max-sm:text-sm";
+
 /** Shared by every item in a tray; the variants below add the padding and the
  *  colour, never twice, so no two conflicting utilities meet in one string. */
 const ITEM =
-  "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+  `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal ${TOUCH}`;
 
 /** A button in a tray — a way in, not a state. */
 export const TRAY_ITEM = `${ITEM} px-2.5 py-1.5 text-xs text-teal hover:bg-teal/15`;

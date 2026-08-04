@@ -5,7 +5,7 @@ import type { Purchase } from "../../api/client";
 import { buildFilter, hasToken, QUERY_CHIPS, toggleToken } from "../../lib/query";
 
 const CHIP =
-  "rounded-full px-3 py-1.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+  "shrink-0 rounded-full px-3.5 py-2.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal sm:px-3 sm:py-1.5";
 
 /**
  * The history's search bar: one field that speaks the little query language in
@@ -107,7 +107,9 @@ export default function PurchaseSearch({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
+      {/* One line that scrolls on a phone rather than four wrapping rows: the
+          chips are canned filters, and a row of them reads as a row. */}
+      <div className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
         {QUERY_CHIPS.map((chip, i) => {
           const on = hasToken(query, chip.token);
           const count = counts[i];

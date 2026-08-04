@@ -18,7 +18,7 @@ export default function LiveModeDialog({
   onConfirm: () => void;
 }) {
   return (
-    <Modal onClose={onCancel} className="max-w-md border-rose/60">
+    <Modal onClose={onCancel} className="w-full max-w-md border-rose/60">
       <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
         <WarningIcon /> Turn on live trading?
       </h3>
@@ -30,13 +30,13 @@ export default function LiveModeDialog({
       <div className="mt-4 flex justify-end gap-2">
         <button
           onClick={onCancel}
-          className="rounded-full bg-sand-soft px-5 py-2.5 text-sm font-bold text-ink"
+          className="rounded-full bg-sand-soft px-5 py-3 text-sm font-bold text-ink max-sm:flex-1 sm:py-2.5"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="rounded-full bg-rose-deep px-5 py-2.5 text-sm font-bold text-cream transition hover:opacity-90"
+          className="rounded-full bg-rose-deep px-5 py-3 text-sm font-bold text-cream transition hover:opacity-90 max-sm:flex-1 sm:py-2.5"
         >
           Trade live
         </button>
