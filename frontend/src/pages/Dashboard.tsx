@@ -7,6 +7,7 @@ import {
   type ComparisonPoint,
   type Holdings,
   type Outlook,
+  type Pulse,
   type Purchase,
 } from "../api/client";
 import { fmtEur, fmtPct } from "../lib/format";
@@ -15,6 +16,7 @@ import PriceChart from "../components/PriceChart";
 import CostBasisCard from "../components/stack/CostBasisCard";
 import HoldingPeriods from "../components/stack/HoldingPeriods";
 import OutlookCard from "../components/stack/Outlook";
+import PulseCard from "../components/stack/Pulse";
 import {
   Card,
   CardHeader,
@@ -35,10 +37,13 @@ const RANGES = [
  * The Overview body: what you have.
  *
  * One combined chart — the strategy comparison with the BTC price as a backdrop
- * and buys pinned onto the price line — then the two cards that describe the
- * stack itself rather than the strategy behind it: how well it was bought
- * (`CostBasisCard`) and how old it is (`HoldingPeriods`). Whether the strategy
- * is any good is a different question, and lives in the Research section.
+ * and buys pinned onto the price line — then `PulseCard`, which is about the
+ * bot rather than the money: every figure above it is an average of the buys
+ * that landed, and it is the only thing on the page that can tell you a week
+ * never did. Then the two cards that describe the stack itself rather than the
+ * strategy behind it: how well it was bought (`CostBasisCard`) and how old it
+ * is (`HoldingPeriods`). Whether the strategy is any good is a different
+ * question, and lives in the Research section.
  *
  * `OutlookCard` closes the section because it is the only part that faces
  * forwards: the page reads what happened, then what you hold, then where it is
@@ -65,6 +70,7 @@ export default function Overview({
   const [compLoaded, setCompLoaded] = useState(false);
   const [holdings, setHoldings] = useState<Holdings | null>(null);
   const [outlook, setOutlook] = useState<Outlook | null>(null);
+  const [pulse, setPulse] = useState<Pulse | null>(null);
   const [rangeDays, setRangeDays] = useState(90);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,6 +103,12 @@ export default function Overview({
     api.getHoldings(includeDryRun).then(setHoldings).catch((e) => setError(String(e)));
     api.getOutlook(includeDryRun).then(setOutlook).catch((e) => setError(String(e)));
   }, [includeDryRun, purchases, loadComparison]);
+
+  // The record of which weeks got a buy takes no dry-run filter — it counts
+  // every run the bot made — so it refreshes on the history alone.
+  useEffect(() => {
+    api.getPulse().then(setPulse).catch((e) => setError(String(e)));
+  }, [purchases]);
 
   const strategySeries = comparison.slice(-rangeDays);
   const latest = strategySeries.length
@@ -187,6 +199,10 @@ export default function Overview({
             )
           )}
         </Card>
+
+        {/* Whether the bot showed up at all — the one card about the machine
+            rather than about the money, and the reason it sits this high. */}
+        <PulseCard data={pulse} />
 
         {/* The stack itself, rather than the strategy behind it. */}
         <div className="grid gap-3 sm:gap-4 xl:grid-cols-2">

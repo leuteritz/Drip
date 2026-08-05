@@ -132,6 +132,51 @@ export interface Outlook {
   streak: { weeks: number; total_weeks: number };
 }
 
+/** One calendar week of the bot's own record. */
+export interface PulseWeek {
+  /** The Monday of that week. */
+  start: string;
+  /** The day the schedule would have bought on — only read for a missed week. */
+  expected: string;
+  /** `landed` — a buy went through · `failed` — it tried and the order errored ·
+   *  `missed` — nothing happened at all. */
+  state: "landed" | "failed" | "missed";
+  buys: number;
+  eur: number;
+  sats: number;
+}
+
+/** A week nothing was bought, priced at one base-amount buy on its own day.
+ *  `price_eur` is 0 when no close was cached near enough to price it. */
+export interface PulseGap {
+  week_start: string;
+  expected: string;
+  price_eur: number;
+  eur: number;
+  sats: number;
+}
+
+/** Did the drip actually drip. Counts every run, test or live — the question is
+ *  whether the bot woke up, not whether it spent money, so no dry-run filter. */
+export interface Pulse {
+  as_of: string;
+  window_weeks: number;
+  weeks_checked: number;
+  landed: number;
+  failed: number;
+  missed: number;
+  coverage_pct: number;
+  base_amount_eur: number;
+  first_buy: string | null;
+  weeks: PulseWeek[];
+  /** Most recent first. */
+  gaps: PulseGap[];
+  gap_cost: { eur: number; sats: number };
+  /** The last scheduled buy never arrived. A paused bot is never overdue, and
+   *  an install with no history has no slot to be late for (`since` is null). */
+  overdue: { since: string | null; days: number; paused: boolean; overdue: boolean };
+}
+
 export interface Candle {
   date: string;
   open: number;

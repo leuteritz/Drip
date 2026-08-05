@@ -21,7 +21,7 @@ from datetime import date, datetime, timedelta
 
 from sqlmodel import Session
 
-from . import analytics, holdings, outlook, scheduler, strategy
+from . import analytics, holdings, outlook, pulse, scheduler, strategy
 from .database import load_digest_settings, load_settings
 from .market_data import ensure_candles
 from .models import DigestSettings, Purchase
@@ -63,6 +63,7 @@ BLOCKS: list[Block] = [
     Block("next", "Next buy", "When the next drip lands and roughly how big it is"),
     Block("milestone", "Next milestone", "The next round number of sats, and how far off it is"),
     Block("streak", "Streak", "Weeks in a row with at least one buy"),
+    Block("pulse", "Weeks kept", "Whether a buy landed in each of the recent weeks"),
     Block("tax", "One-year rule", "Which buys are past the German holding period (§23 EStG)"),
     Block("failed", "Failed buys", "Buys recorded as errors, which every other figure leaves out"),
 ]
@@ -199,6 +200,10 @@ def build(session: Session) -> dict:
             total_sats, outlook.rate_per_week(purchases)["sats"]
         ),
         "streak": outlook.streak(purchases),
+        # The one block that reports what did *not* happen. A short window on
+        # purpose: the report answers "did the last few months hold up", while
+        # the dashboard's card plots the whole year.
+        "pulse": pulse.summary(session, weeks=pulse.DIGEST_WEEKS),
         "holdings": {
             "free_sats": stack["free"]["btc"] * SATS_PER_BTC,
             "locked_sats": stack["locked"]["btc"] * SATS_PER_BTC,

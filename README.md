@@ -4,32 +4,32 @@ Stack sats on a slow drip. A self-hosted bitcoin savings bot with a web dashboar
 built to run on a Raspberry Pi.
 
 It buys BTC-EUR every week through the Coinbase Advanced Trade API and sizes each buy
-to the market: fear and oversold conditions buy more, greed buys less. It **always
-buys** - the score only sets the amount. Dry run is the default; live trading is a
-confirmed opt-in.
+to the market. It **always buys** - the score only sets the amount. Dry run is the
+default; live trading is a confirmed opt-in.
 
 ![Drip dashboard](docs/screenshot-dashboard.png)
 
-*Example history, not a real account. Shown in the night theme; there is a day one too.*
+*Example history, not a real account. Night theme; there is a day one too.*
 
 Your stack is a tank of water, and it fizzes at the strength of the week's signal. Four
 instruments float on it - the signal, the market's mood, the price and your Coinbase
 well - each with its own scale along the foot, so one glance reads all four. Underneath,
 the dashboard researches its own strategy, reports what you paid against the market, and
-carries the rate you stack at forward to the next round number of sats. Green in the
-plus, rose in the minus. The drip is set on the next-buy card: click the amount, or the
-chip with the day and time. Everything else lives in the bar at the top, and `Ctrl+K`
-reaches all of it, keys included, so the Pi needs no shell after the first install. Once
-a week the whole thing arrives on Discord.
+carries the rate you stack at forward to the next round number of sats. It also keeps
+its own attendance record, so a week it never bought in - the Pi off, the network down -
+is visible instead of leaving no trace. Green in the plus, rose in the minus. The drip
+is set on the next-buy card: click the amount, or the chip with the day and time.
+Everything else lives in the bar at the top, and `Ctrl+K` reaches all of it, keys
+included, so the Pi needs no shell after the first install. Once a week the whole thing
+arrives on Discord.
 
 ## On a phone
 
 <img src="docs/screenshot-phone.png" alt="Drip on a phone" width="290" align="right">
 
-The same dashboard, sized for a thumb. The sections move to a tab bar along the bottom,
+The same dashboard, sized for a thumb: the sections move to a tab bar along the bottom,
 every figure is set larger rather than smaller, dialogs rise as sheets, and the buy
-history becomes one card per buy. Nothing is left out and nothing is a second app: one
-build, and the layout follows the glass it lands on.
+history becomes one card per buy. One build, and the layout follows the glass.
 
 <br clear="right">
 
@@ -44,15 +44,15 @@ cp backend/.env.example backend/.env   # can stay empty for dry-run mode
 docker compose up -d --build
 ```
 
-The dashboard is then at `http://<pi-address>:8080`. Paste your Coinbase key and
-Discord webhook into **Setup** there. To update: `git pull && docker compose up -d
---build`; SQLite lives in the `drip-data` volume and survives it.
+The dashboard is then at `http://<pi-address>:8080`; paste your keys into **Setup**
+there. To update: `git pull && docker compose up -d --build` - SQLite lives in the
+`drip-data` volume and survives it.
 
 ## On a wall
 
 `http://<pi-address>:8080/#tank` is the whole thing on one screen, sized to read from
 across the room. Point a spare monitor at it and leave it - it refreshes itself and
-cannot spend money. `Ctrl+K` gets there, Esc comes back.
+cannot spend money. `Ctrl+K` gets there.
 
 The API has **no authentication** - keep it inside your home network and do not
 forward the port to the internet.
@@ -75,12 +75,12 @@ The dashboard shows this sum for the next buy: tap the drops under the amount.
 ## Weekly report
 
 A single buy says nothing about whether the saving is going anywhere, so once a week
-Drip reports itself to Discord: what you stacked, what the price did, how your stack
-stands against plain DCA and against the market's own average, and what the signal
-says now.
+Drip reports itself to Discord: what you stacked, what the price did, how you stand
+against plain DCA and against the market's own average, which weeks it bought in, and
+what the signal says now. A run that falls over says so at the time.
 
-Twelve sections, each switchable. The preview is built by the code that builds the real
-message, so it is exactly what arrives.
+Thirteen sections, each switchable. The preview is built by the code that builds the
+real message, so it is exactly what arrives.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)
 
@@ -89,8 +89,8 @@ Needs a Discord webhook. Everything else works without one.
 ## Environment
 
 Secrets go in under **Setup** in the dashboard, which stores them in Drip's own
-database, or in `backend/.env`. A value set in the dashboard wins. Without Coinbase
-keys everything still works in dry-run mode - market data comes from public endpoints.
+database, or in `backend/.env`; the dashboard wins. Without Coinbase keys everything
+still works in dry-run mode.
 
 | Variable | Required | Description |
 |---|---|---|

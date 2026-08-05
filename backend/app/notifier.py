@@ -90,6 +90,34 @@ def _day_month(iso: str) -> str:
     return f"{day.day} {day:%b}"
 
 
+def _pulse_line(beat: dict) -> str:
+    """The rhythm block: how many of the recent weeks a buy actually landed in.
+
+    Two lines at most, and the second one only exists when something is wrong —
+    an overdue buy is the one thing in this whole report worth reading first,
+    and it is the reason the block is in the message rather than only on a
+    dashboard nobody is standing in front of.
+    """
+    checked = beat["weeks_checked"]
+    if beat["missed"] or beat["failed"]:
+        line = f"**{beat['landed']} of the last {checked} weeks** bought"
+        if beat["missed"]:
+            line += f" · {beat['missed']} missed"
+            if beat["gap_cost"]["sats"]:
+                line += f" (about {beat['gap_cost']['sats']:,.0f} sats)"
+        if beat["failed"]:
+            weeks = "week" if beat["failed"] == 1 else "weeks"
+            line += f" · {beat['failed']} {weeks} the order failed"
+    else:
+        line = f"**Every one of the last {checked} weeks** bought"
+
+    if beat["overdue"]["overdue"]:
+        days = beat["overdue"]["days"]
+        when = "today" if days < 1 else f"{days} {'day' if days == 1 else 'days'} ago"
+        line += f"\n⚠ The buy due {when} has not landed - the bot may not be running."
+    return line
+
+
 def _digest_fields(digest: dict) -> list[dict]:
     """Every field the report can carry, in reading order, each tagged with the
     block it belongs to. Blocks with nothing to say leave their field out."""
@@ -188,6 +216,15 @@ def _digest_fields(digest: dict) -> list[dict]:
             "inline": True,
         })
 
+    beat = digest["pulse"]
+    if beat["weeks_checked"]:
+        fields.append({
+            "key": "pulse",
+            "name": "Weeks kept",
+            "value": _pulse_line(beat),
+            "inline": False,
+        })
+
     if stack["free_sats"] or stack["locked_sats"]:
         held = stack["free_sats"] + stack["locked_sats"]
         ripe = (f"{stack['free_sats']:,.0f} of {held:,.0f} sats"
@@ -250,6 +287,23 @@ def send_digest_notification(digest: dict, keys: set[str], enabled: bool) -> boo
         color=embed["color"],
         # The block key is ours, not Discord's.
         fields=[{k: v for k, v in field.items() if k != "key"} for field in embed["fields"]],
+        enabled=enabled,
+    )
+
+
+def send_run_failure_notification(error: str, enabled: bool) -> bool:
+    """Sent when the scheduled run fell over before an order was ever attempted.
+
+    Deliberately says that nothing was bought: the failed-order embed above
+    reports a buy that was tried, and the two must not be mistaken for each
+    other by someone reading their phone at nine on a Monday.
+    """
+    return send_notification(
+        title="Drip - the weekly run failed",
+        description=(f"**{datetime.now():%Y-%m-%d %H:%M}**\n"
+                     "Nothing was bought and no order was placed. The next drip is "
+                     f"still scheduled.\n```{error[:400]}```"),
+        color=COLOR_ERROR,
         enabled=enabled,
     )
 

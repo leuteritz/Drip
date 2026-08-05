@@ -378,6 +378,72 @@ class OutlookResponse(BaseModel):
     streak: StreakOutlook
 
 
+class PulseWeek(BaseModel):
+    """One calendar week of the record. `state` is one of landed / failed /
+    missed — a failed order still means the machine woke up, which is why it is
+    not the same as silence."""
+
+    start: str
+    expected: str
+    state: str
+    buys: int
+    eur: float
+    sats: float
+
+
+class PulseGap(BaseModel):
+    """A week nothing was bought, priced at one base-amount buy on the day the
+    schedule would have bought. `price_eur` is 0 when no close was cached near
+    enough to that day to price it honestly."""
+
+    week_start: str
+    expected: str
+    price_eur: float
+    eur: float
+    sats: float
+
+
+class PulseCost(BaseModel):
+    """What the gaps add up to, in both units the app speaks."""
+
+    eur: float
+    sats: float
+
+
+class PulseOverdue(BaseModel):
+    """`since` is the last moment the schedule said to buy — null on an install
+    with no history at all, which is the one case where there is no slot worth
+    naming and nothing can be overdue."""
+
+    since: Optional[str]
+    days: int
+    paused: bool
+    overdue: bool
+
+
+class PulseResponse(BaseModel):
+    """Did the drip actually drip, week by week.
+
+    Counts every run, test or live: the question is whether the bot woke up,
+    not whether it spent money. `weeks_checked` starts at the first buy — Drip
+    cannot have missed a week it did not exist for.
+    """
+
+    as_of: str
+    window_weeks: int
+    weeks_checked: int
+    landed: int
+    failed: int
+    missed: int
+    coverage_pct: float
+    base_amount_eur: float
+    first_buy: Optional[str]
+    weeks: list[PulseWeek]
+    gaps: list[PulseGap]
+    gap_cost: PulseCost
+    overdue: PulseOverdue
+
+
 class PurchaseResponse(BaseModel):
     id: int
     timestamp: datetime

@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.19",
+    date: "2026-08-05",
+    changes: [
+      "Drip now keeps its own attendance record: one mark per week since your first buy, so a week it never bought in — the Pi off, the container stopped, the network down on the morning of the drip — is finally visible, instead of leaving no trace at all",
+      "Each missed week is priced at what it would have bought that day, and if the buy that was due has not landed the card says so at the top",
+      "The weekly report carries the same line, and a run that falls over before it can buy now says so on Discord rather than only in a log file on the Pi",
+    ],
+  },
+  {
     version: "2.18",
     date: "2026-08-04",
     changes: [

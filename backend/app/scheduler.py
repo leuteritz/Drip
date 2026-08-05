@@ -24,8 +24,35 @@ def _run_scheduled() -> None:
     try:
         result = bot.run_purchase(triggered_by="schedule")
         logger.info("Bot run finished: %s", result.get("reason", "OK"))
-    except Exception:
+    except Exception as exc:
         logger.exception("Scheduled bot run failed")
+        _report_failure(exc)
+
+
+def _report_failure(exc: Exception) -> None:
+    """Say on Discord that the week's run fell over before it could buy.
+
+    A failed *order* already reports itself: `bot.run_purchase` catches it,
+    writes an error row and notifies. Everything that goes wrong earlier — no
+    network, the public price endpoints down, a broken candle fetch — used to
+    end here in a log file on a Pi nobody reads the logs of, and the only trace
+    was a week that quietly never happened. `pulse.py` finds those afterwards;
+    this is the same news at the time it is still worth acting on.
+
+    Never raises: a webhook that cannot be reached must not bury the original
+    exception the caller has already logged.
+    """
+    from sqlmodel import Session
+
+    from . import notifier
+    from .database import engine, load_settings
+
+    try:
+        with Session(engine) as session:
+            enabled = load_settings(session).discord_enabled
+        notifier.send_run_failure_notification(str(exc), enabled)
+    except Exception:
+        logger.exception("Could not report the failed run to Discord")
 
 
 def _run_digest() -> None:

@@ -22,6 +22,7 @@ import type {
   Maintenance,
   Outlook,
   Performance,
+  Pulse,
   Purchase,
   RollingWindows,
   RunResult,
@@ -131,6 +132,8 @@ export const api = {
     request<Holdings>(`/api/stats/holdings?include_dry_run=${includeDryRun}`),
   getOutlook: (includeDryRun: boolean) =>
     request<Outlook>(`/api/stats/outlook?include_dry_run=${includeDryRun}`),
+  // No dry-run flag on purpose: the pulse counts every run the bot made.
+  getPulse: () => request<Pulse>("/api/stats/pulse"),
   deletePurchase: (id: number) =>
     request<{ deleted: number }>(`/api/purchases/${id}`, { method: "DELETE" }),
   clearTestRuns: () =>
