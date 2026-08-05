@@ -289,8 +289,10 @@ export default function App() {
           <main className="flex flex-col">
             <Overview
               purchases={purchases}
+              settings={settings}
               includeDryRun={includeDryRun}
               onToggleDryRun={onToggleDryRun}
+              onSaveSettings={saveSettings}
             />
             <Research scrollRef={scrollRef} />
             <HistorySection

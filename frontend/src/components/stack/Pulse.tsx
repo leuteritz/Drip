@@ -1,8 +1,8 @@
 import WarningIcon from "~icons/ph/warning";
-import type { Pulse, PulseWeek } from "../../api/client";
+import type { BotSettings, Pulse, PulseWeek } from "../../api/client";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, Toggle } from "../ui";
 
 /** How many gaps are named in words before the rest are counted in one line. */
 const GAPS_LISTED = 5;
@@ -31,8 +31,21 @@ const MARK: Record<PulseWeek["state"], string> = {
  * day's closing price. The multiplier that week is not knowable without
  * re-scoring the day, and a reconstructed 1.25x would be a made-up number in a
  * card whose whole point is that it does not paper over anything.
+ *
+ * It carries the one switch that can do something about all this, because this
+ * is where the problem is read — the same rule the spout follows, where the
+ * drip is set on the figure that states it. Off by default: it is the only
+ * thing in Drip that can spend money at a moment nobody picked.
  */
-export default function PulseCard({ data }: { data: Pulse | null }) {
+export default function PulseCard({
+  data,
+  settings,
+  onSaveSettings,
+}: {
+  data: Pulse | null;
+  settings: BotSettings | null;
+  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+}) {
   const stackAmount = useStackAmount();
 
   if (!data) {
@@ -83,6 +96,17 @@ export default function PulseCard({ data }: { data: Pulse | null }) {
               Drip stores when the pause ends and no record of past ones, so it
               cannot tell the two apart afterwards. Weeks before your first buy are
               never counted.
+            </p>
+            <p className="mt-2">
+              Switch <strong className="font-semibold text-ink">catching up</strong> on
+              and Drip looks for a missed slot when it starts and once a day after
+              that, and buys it &mdash; at that moment&apos;s price and that
+              moment&apos;s score, since a Monday that was missed cannot be bought at
+              Monday&apos;s price. Only ever the most recent slot, so a Pi that was off
+              for two months comes back to one buy and not to eight. Never while
+              paused, never before your first buy, and never when the bot did run and
+              the order was refused &mdash; that is the exchange&apos;s answer, not a
+              gap.
             </p>
           </>
         }
@@ -184,6 +208,21 @@ export default function PulseCard({ data }: { data: Pulse | null }) {
           </Note>
         </>
       )}
+
+      {/* The one thing that can act on any of the above, so it lives under it
+          rather than in a settings dialog three clicks away. */}
+      <div className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-xl bg-water-soft/50 px-3.5 py-3">
+        <Toggle
+          checked={settings?.catch_up ?? false}
+          disabled={!settings}
+          onChange={(v) => void onSaveSettings({ catch_up: v })}
+        />
+        <span className="text-sm font-bold text-ink">Catch a missed buy up</span>
+        <span className="min-w-0 flex-1 text-xs text-ink-soft">
+          If a buy was due while Drip was off, buy it when Drip is back &mdash; once,
+          at that moment&apos;s price.
+        </span>
+      </div>
     </Card>
   );
 }

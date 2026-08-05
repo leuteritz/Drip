@@ -19,6 +19,7 @@ class SettingsUpdate(BaseModel):
     dry_run: Optional[bool] = None
     paused_until: Optional[date] = None
     discord_enabled: Optional[bool] = None
+    catch_up: Optional[bool] = None
 
 
 class DigestUpdate(BaseModel):

@@ -1,9 +1,13 @@
-"""APScheduler: runs the buy at the configured weekday + time, and the weekly
-digest at its own. Both are rescheduled whenever their settings change."""
+"""APScheduler: runs the buy at the configured weekday + time, the weekly digest
+at its own, and — when it is switched on — a daily check for a slot that went by
+while nothing was running. All three are rescheduled whenever their settings
+change."""
 import logging
+from datetime import datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 from . import bot
 from .models import BotSettings, DigestSettings
@@ -12,6 +16,16 @@ logger = logging.getLogger(__name__)
 
 JOB_ID = "weekly_purchase"
 DIGEST_JOB_ID = "weekly_digest"
+CATCH_UP_JOB_ID = "catch_up"
+
+# The first missed-buy check runs a moment after start-up, because a Pi coming
+# back on is the case it exists for; a short delay keeps it off the critical
+# path while the app finishes coming up and the first candles are fetched.
+CATCH_UP_DELAY_SECONDS = 45
+# ...and then daily, so a week lost to something other than a reboot is still
+# found while it can still be bought. Anything finer would just re-ask a
+# question whose answer only changes once a week.
+CATCH_UP_HOURS = 24
 
 scheduler = BackgroundScheduler()
 
@@ -71,6 +85,38 @@ def _run_digest() -> None:
         logger.exception("Weekly digest failed")
 
 
+def _run_catch_up() -> None:
+    """Buy the slot that went by while Drip was not running.
+
+    APScheduler's misfire grace is an hour; past that the week is simply gone,
+    which is the silence `pulse` was written to make visible. This is the other
+    half of it: the week that can still be bought gets bought, once, at today's
+    price and today's score — a missed Monday cannot be bought at Monday's
+    price, and pretending otherwise would put a made-up figure in the history.
+
+    `pulse` decides whether there is anything to catch up at all; everything
+    that could spend money twice is settled there. Imported lazily for the same
+    reason `digest` is: it pulls in the market data and the models, and this
+    module is imported during start-up before all of that exists.
+    """
+    from sqlmodel import Session
+
+    from . import pulse
+    from .database import engine
+
+    try:
+        with Session(engine) as session:
+            slot = pulse.missed_slot(session)
+        if slot is None:
+            return
+        logger.info("Catch-up: the buy due %s never landed - running it now", slot)
+        result = bot.run_purchase(triggered_by="catchup", late_slot=slot)
+        logger.info("Catch-up finished: %s", result.get("reason", "OK"))
+    except Exception as exc:
+        logger.exception("Catch-up run failed")
+        _report_failure(exc)
+
+
 def reschedule(settings: BotSettings) -> None:
     hour, minute = (int(x) for x in settings.schedule_time.split(":"))
     trigger = CronTrigger(
@@ -114,9 +160,40 @@ def reschedule_digest(digest: DigestSettings) -> None:
     logger.info("Digest job scheduled: %s %s", _WEEKDAYS[digest.weekday], digest.send_time)
 
 
+def reschedule_catch_up(settings: BotSettings) -> None:
+    """Adds or removes the missed-buy check.
+
+    Switched off the job is *removed* rather than left in place returning early,
+    the same rule the digest follows: the setup dialog lists the jobs the
+    scheduler is actually holding, and a bot that will never catch anything up
+    must not be advertising a check for it.
+
+    Its first run is a moment after start-up, which is the case it exists for —
+    a Pi that was off through Monday morning and came back on Tuesday.
+    """
+    if not settings.catch_up:
+        if scheduler.get_job(CATCH_UP_JOB_ID):
+            scheduler.remove_job(CATCH_UP_JOB_ID)
+        logger.info("Catch-up job switched off")
+        return
+
+    scheduler.add_job(
+        _run_catch_up,
+        trigger=IntervalTrigger(
+            hours=CATCH_UP_HOURS,
+            start_date=datetime.now() + timedelta(seconds=CATCH_UP_DELAY_SECONDS),
+        ),
+        id=CATCH_UP_JOB_ID,
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+    logger.info("Catch-up job scheduled: first run in %ss", CATCH_UP_DELAY_SECONDS)
+
+
 def start(settings: BotSettings, digest: DigestSettings) -> None:
     reschedule(settings)
     reschedule_digest(digest)
+    reschedule_catch_up(settings)
     if not scheduler.running:
         scheduler.start()
 
@@ -133,7 +210,11 @@ def _next_run(job_id: str) -> str | None:
     return None
 
 
-JOB_LABELS = {JOB_ID: "Weekly buy", DIGEST_JOB_ID: "Weekly report"}
+JOB_LABELS = {
+    JOB_ID: "Weekly buy",
+    DIGEST_JOB_ID: "Weekly report",
+    CATCH_UP_JOB_ID: "Missed-buy check",
+}
 
 
 def job_overview() -> list[dict]:

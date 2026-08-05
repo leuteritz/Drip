@@ -53,10 +53,27 @@ def send_notification(title: str, description: str, color: int = 0x93B7BE,
     return False
 
 
+def _late_by(slot: datetime, landed: datetime) -> str:
+    """'6 hours late' / '3 days late' — how far past its slot a buy arrived."""
+    hours = max((landed - slot).total_seconds() / 3600, 0)
+    if hours < 48:
+        rounded = max(round(hours), 1)
+        return f"{rounded} {'hour' if rounded == 1 else 'hours'} late"
+    days = round(hours / 24)
+    return f"{days} {'day' if days == 1 else 'days'} late"
+
+
 def send_purchase_notification(analysis: "Analysis", purchase: Purchase,
                                enabled: bool, error: str | None,
-                               manual: bool = False) -> bool:
-    """The post-buy embed: what was bought and which indicators drove it."""
+                               manual: bool = False,
+                               late_slot: datetime | None = None) -> bool:
+    """The post-buy embed: what was bought and which indicators drove it.
+
+    `late_slot` is set only by the catch-up job, and it is the reason the buy is
+    worth explaining at all: a purchase appearing on a Wednesday when the drip
+    is set to Monday looks like a bug unless the message says which slot it is
+    answering, and how late the answer is.
+    """
     from .strategy import SCORE_MAX
 
     fields = [
@@ -70,6 +87,11 @@ def send_purchase_notification(analysis: "Analysis", purchase: Purchase,
     ]
 
     when = f"**{purchase.timestamp:%Y-%m-%d %H:%M}**"
+    if late_slot is not None:
+        when += (
+            f"\n⏳ Catching up the buy due {late_slot:%a %d %b, %H:%M}"
+            f" — {_late_by(late_slot, purchase.timestamp)}"
+        )
     if error:
         title, description, color = "Drip - buy FAILED", f"{when}\n{error}", COLOR_ERROR
     elif purchase.dry_run:

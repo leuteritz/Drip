@@ -16,7 +16,8 @@ default; live trading is a confirmed opt-in.
   Coinbase well - each with its own scale, so one glance reads all four.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
   the rate you stack at carried to the next round number of sats, and a record of the
-  weeks the drip actually landed in. Green in the plus, rose in the minus.
+  weeks the drip actually landed in - a week the Pi slept through can be bought when it
+  wakes. Green in the plus, rose in the minus.
 - **The drip is set where it is read** - click the amount, or the chip with the day and
   time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves:
@@ -52,9 +53,9 @@ there. To update: `git pull && docker compose up -d --build` - SQLite lives in t
 
 ## On a wall
 
-`http://<pi-address>:8080/#tank` is the whole thing on one screen, sized to read from
-across the room. Point a spare monitor at it and leave it - it refreshes itself and
-cannot spend money. `Ctrl+K` gets there.
+`http://<pi-address>:8080/#tank` is the whole thing on one screen, sized to read across
+the room. Point a spare monitor at it and leave it - it refreshes itself and cannot
+spend money.
 
 The API has **no authentication** - keep it inside your home network and do not
 forward the port to the internet.
@@ -76,9 +77,10 @@ Tap the drops under the next buy to see the sum.
 
 ## Weekly report
 
-Once a week Drip reports itself to Discord: what you stacked, what the price did, how
-you stand against plain DCA and against the market's own average, which weeks it bought
-in, and what the signal says now. A run that falls over says so at the time.
+Once a week Drip reports itself to Discord: what you stacked, how you stand against
+plain DCA and against the market's own average, which weeks it bought in, and what the
+signal says now. A run that falls over says so at the time; a late one says which week
+it is answering.
 
 Thirteen sections, each switchable; the preview is built by the code that builds the
 real message.

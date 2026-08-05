@@ -27,7 +27,9 @@ today's base amount and that day's close, read out of the candle cache — no ne
 API and no new failure mode — and the candles are only touched when there is a
 gap to price at all.
 
-Read-only, like `holdings`, `outlook` and `research`. Nothing here writes.
+Read-only, like `holdings`, `outlook` and `research`. Nothing here writes — the
+one thing that acts on any of it is `scheduler`, which asks `missed_slot` once a
+day whether the last slot went by unanswered and hands the buy to `bot`.
 """
 from datetime import date, datetime, time, timedelta
 
@@ -105,6 +107,41 @@ def _empty(weeks: int, as_of: date, base_amount: float) -> dict:
         "gap_cost": {"eur": 0.0, "sats": 0.0},
         "overdue": {"overdue": False, "since": None, "days": 0, "paused": False},
     }
+
+
+def missed_slot(session: Session) -> datetime | None:
+    """The last scheduled moment that came and went without the bot waking up.
+
+    `_overdue` asks this so the card can say it; this answers it for the
+    scheduler, which is the only thing that can still do something about it. It
+    returns the slot itself rather than a flag, so the buy it triggers can say
+    how late it is instead of pretending to be this week's.
+
+    Three ways there is nothing to catch up, and each is a way of not buying at
+    a moment nobody chose:
+
+    * **Paused.** A bot told to skip the week has not missed it.
+    * **No history at all.** Drip cannot have missed a week it did not exist
+      for — the same rule the window uses — and a fresh install must never spend
+      money on its first boot.
+    * **Something already ran at or after the slot.** A landed buy, a dry run
+      and a failed order all count: the machine woke up. A refused order is the
+      exchange's answer and not a gap, and asking it again tomorrow would be a
+      bot arguing with a decision it has already been given.
+
+    Only ever the *last* slot, which is at most a week old. A Pi that was off
+    for two months comes back to one buy, not to eight at once.
+    """
+    settings = load_settings(session)
+    if is_paused(settings.paused_until):
+        return None
+
+    if session.exec(select(Purchase).limit(1)).first() is None:
+        return None
+
+    slot = _last_slot(settings.schedule_weekday, settings.schedule_time, datetime.now())
+    ran = session.exec(select(Purchase).where(Purchase.timestamp >= slot).limit(1))
+    return None if ran.first() else slot
 
 
 def summary(session: Session, weeks: int = WEEKS) -> dict:

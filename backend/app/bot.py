@@ -19,7 +19,8 @@ def is_paused(paused_until: date | None) -> bool:
 
 def run_purchase(dry_run_override: bool | None = None,
                  triggered_by: str = "manual",
-                 amount_eur_override: float | None = None) -> dict:
+                 amount_eur_override: float | None = None,
+                 late_slot: datetime | None = None) -> dict:
     """Runs one full bot cycle.
 
     dry_run_override: None = use the stored setting,
@@ -28,11 +29,19 @@ def run_purchase(dry_run_override: bool | None = None,
     base_amount * multiplier; recorded with multiplier=1.0 so manual buys
     stay neutral in the bot-vs-DCA comparison (analytics derives the DCA
     baseline as amount_eur / multiplier).
+    late_slot: the scheduled moment this run is making up for, set only by the
+    catch-up job. It changes nothing about the buy — the same score, the same
+    multiplier, today's price, because a week that was missed cannot be bought
+    at last Monday's price — and is carried purely so the Discord message can
+    say the buy is late rather than quietly appearing days off schedule.
     """
     with Session(engine) as session:
         settings = load_settings(session)
 
-        if triggered_by == "schedule" and is_paused(settings.paused_until):
+        # A catch-up is a scheduled buy that arrived late, so it obeys the same
+        # pause: `missed_slot` already refuses a paused bot, and this is the
+        # second lock on the one path that can spend money unattended.
+        if triggered_by in ("schedule", "catchup") and is_paused(settings.paused_until):
             logger.info("Bot paused until %s - skipping scheduled buy", settings.paused_until)
             notifier.send_paused_notification(
                 settings.paused_until, settings.discord_enabled
@@ -79,7 +88,8 @@ def run_purchase(dry_run_override: bool | None = None,
         session.refresh(purchase)
 
         notifier.send_purchase_notification(
-            analysis, purchase, settings.discord_enabled, error, manual_amount
+            analysis, purchase, settings.discord_enabled, error, manual_amount,
+            late_slot,
         )
 
         return {

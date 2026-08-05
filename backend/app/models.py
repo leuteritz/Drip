@@ -30,15 +30,22 @@ class BotSettings(SQLModel, table=True):
     dry_run: bool = True
     paused_until: Optional[date] = None
     discord_enabled: bool = True
+    # Buy a slot that came and went while Drip was not running. Off by default:
+    # it is the one thing here that can spend money at a moment nobody chose,
+    # so it is asked for rather than assumed. See `pulse.missed_slot`.
+    catch_up: bool = False
 
 
 class DigestSettings(SQLModel, table=True):
     """When the weekly report goes out, and what it carries.
 
-    Its own table rather than more columns on BotSettings, because there are no
-    migrations: `create_all` will not add a column to an existing table, but it
-    does create a whole new one. That is the only reason this is configurable at
-    all — see CLAUDE.md.
+    Its own table rather than more columns on BotSettings, and it stayed one:
+    it was written when `create_all` was the whole of the schema handling, and a
+    new table was the only shape a new setting could arrive in. `database.
+    _migrate_columns` has since made a column possible, but moving these would
+    be a rewrite of a table holding somebody's schedule to buy nothing at all —
+    so this is where the report's settings live, and a *report* setting belongs
+    here rather than on the bot's own row anyway.
 
     `blocks` is a JSON object of {block key: bool}. A key that is missing falls
     back to the block's own default in `digest.BLOCKS`, so a block added in a
@@ -55,9 +62,9 @@ class DigestSettings(SQLModel, table=True):
 class Credentials(SQLModel, table=True):
     """The secrets the dashboard is allowed to set.
 
-    Its own table for the same reason `DigestSettings` is: there are no
-    migrations, and `create_all` will not add a column to an existing table but
-    does create a whole new one.
+    Its own table for the same reason `DigestSettings` is one, and it earns it
+    twice over now: secrets have no business sitting beside a schedule, and
+    nothing that reads the bot's settings should be carrying them around.
 
     An empty string means "not set here" rather than "empty", so the value falls
     back to whatever `backend/.env` provided. `credentials.py` owns that

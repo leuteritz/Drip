@@ -34,6 +34,11 @@ def update_settings(update: SettingsUpdate, session: Session = Depends(get_sessi
     # Schedule changes only take effect once the cron job is rebuilt
     if "schedule_weekday" in data or "schedule_time" in data:
         scheduler.reschedule(settings)
+    # The missed-buy check is a job that exists or does not, so switching it on
+    # has to create it — and switching it on is also when it should look, which
+    # is what the job's own start-up delay gives for free.
+    if "catch_up" in data:
+        scheduler.reschedule_catch_up(settings)
     return settings
 
 

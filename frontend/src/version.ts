@@ -17,6 +17,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.22",
+    date: "2026-08-05",
+    changes: [
+      "A week the Pi slept through can now be bought after the fact: switch \"catch a missed buy up\" on under the attendance card, and when Drip comes back it buys the slot it was off for — once, at that moment's price and that moment's score, never while paused and never more than the most recent one, so a machine that was off for two months comes back to one buy and not to eight",
+      "Drip also looks once a day, so a week lost to something other than a reboot is still found while there is time to buy it",
+      "The Discord message for a late buy says which slot it is answering and how late it is, instead of a purchase quietly turning up on the wrong day",
+      "A new setting now reaches an install that has been running for months, rather than only ever new ones — which is why the switch above is simply there after this update",
+    ],
+  },
+  {
     version: "2.21",
     date: "2026-08-05",
     changes: [

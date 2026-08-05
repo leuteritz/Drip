@@ -3,6 +3,7 @@ import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
 import {
   api,
+  type BotSettings,
   type Candle,
   type ComparisonPoint,
   type Holdings,
@@ -57,12 +58,16 @@ const RANGES = [
  */
 export default function Overview({
   purchases,
+  settings,
   includeDryRun,
   onToggleDryRun,
+  onSaveSettings,
 }: {
   purchases: Purchase[];
+  settings: BotSettings | null;
   includeDryRun: boolean;
   onToggleDryRun: (v: boolean) => void;
+  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
 }) {
   const [candles, setCandles] = useState<Candle[]>([]);
   const [candlesLoaded, setCandlesLoaded] = useState(false);
@@ -202,7 +207,11 @@ export default function Overview({
 
         {/* Whether the bot showed up at all — the one card about the machine
             rather than about the money, and the reason it sits this high. */}
-        <PulseCard data={pulse} />
+        <PulseCard
+          data={pulse}
+          settings={settings}
+          onSaveSettings={onSaveSettings}
+        />
 
         {/* The stack itself, rather than the strategy behind it. */}
         <div className="grid gap-3 sm:gap-4 xl:grid-cols-2">

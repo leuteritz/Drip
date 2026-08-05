@@ -12,6 +12,8 @@ export interface BotSettings {
   dry_run: boolean;
   paused_until: string | null;
   discord_enabled: boolean;
+  /** Buy a slot that went by while Drip was not running. Off unless asked for. */
+  catch_up: boolean;
 }
 
 export interface BotStatus {
