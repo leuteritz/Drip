@@ -16,6 +16,7 @@ import type {
   DigestUpdate,
   Indicators,
   Performance,
+  Purchase,
   RunResult,
 } from "../api/client";
 import { isPaletteShortcut } from "../lib/commands";
@@ -67,10 +68,12 @@ export default function SiteHeader({
   indicators,
   performance,
   balance,
+  purchases,
   loading,
   themeChoice,
   includeDryRun,
   scrollRef,
+  onSearchHistory,
   onSetTheme,
   onToggleUnit,
   onToggleDryRun,
@@ -96,11 +99,15 @@ export default function SiteHeader({
   indicators: Indicators | null;
   performance: Performance | null;
   balance: AccountBalance | null;
+  /** The buy history, so the palette can answer questions about it. */
+  purchases: Purchase[];
   /** What the page is still fetching — named in the bar by `LoadPill`. */
   loading: LoadKey[];
   themeChoice: ThemeChoice;
   includeDryRun: boolean;
   scrollRef: RefObject<HTMLDivElement | null>;
+  /** Puts a query into the history's own search bar. */
+  onSearchHistory: (query: string) => void;
   onSetTheme: (choice: ThemeChoice) => void;
   onToggleUnit: () => void;
   onToggleDryRun: (v: boolean) => void;
@@ -153,6 +160,17 @@ export default function SiteHeader({
       setEditing(target);
     },
     [scrollRef],
+  );
+
+  // A question asked in the palette is answered in full by the history: the
+  // query goes into its own search bar and the page scrolls to the table it
+  // narrows, so the palette never has to grow a second buy list of its own.
+  const searchHistory = useCallback(
+    (query: string) => {
+      onSearchHistory(query);
+      jumpTo("history");
+    },
+    [jumpTo, onSearchHistory],
   );
 
   // Ctrl/Cmd-K from anywhere in the scroll. Registered here rather than in the
@@ -391,7 +409,12 @@ export default function SiteHeader({
       )}
 
       {paletteOpen && (
-        <CommandPalette commands={commands} onClose={() => setPaletteOpen(false)} />
+        <CommandPalette
+          commands={commands}
+          purchases={purchases}
+          onSearchHistory={searchHistory}
+          onClose={() => setPaletteOpen(false)}
+        />
       )}
 
       {explainOpen && indicators && (

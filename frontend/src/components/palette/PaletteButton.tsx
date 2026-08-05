@@ -11,14 +11,17 @@ export const PALETTE_SHORTCUT = MAC ? "⌘K" : "Ctrl K";
  * The way into the command palette for anyone who does not already know the
  * shortcut — and the only place the shortcut is written down. It opens the
  * sticky bar's tools tray, since it is the way into everything else in it.
+ *
+ * It says "buys" first because that is the half people arrive looking for: the
+ * commands are found by anyone who opens it, a date typed into it is not.
  */
 export default function PaletteButton({ onOpen }: { onOpen: () => void }) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      title={`Search commands (${PALETTE_SHORTCUT})`}
-      aria-label="Search commands"
+      title={`Search your buys, or jump to anything (${PALETTE_SHORTCUT})`}
+      aria-label="Search buys and commands"
       aria-keyshortcuts="Meta+K Control+K"
       className={TRAY_ITEM}
     >

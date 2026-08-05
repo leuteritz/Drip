@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.20",
+    date: "2026-08-05",
+    changes: [
+      "Ctrl-K now searches your buys, not just Drip's own switches: type a date, a price or a signal and the buys that match come back with the answer above them — how many, how much you put in, how much bitcoin it bought and the average price you paid for it",
+      "It understands the way you would say it — \"august\", \"2026-03\", \"30d\" for the last thirty days, \"since:2026-01\", \"price>60000\", \"fg<30\" — and words can be combined, so \"july dry\" is every test run made in a July",
+      "The same words work in the history's own search bar, and picking a result down there carries your question with it",
+    ],
+  },
+  {
     version: "2.19",
     date: "2026-08-05",
     changes: [

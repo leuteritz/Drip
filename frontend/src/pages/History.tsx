@@ -31,10 +31,15 @@ const SORTS: { key: SortKey; label: string }[] = [
 
 export default function HistorySection({
   purchases,
+  query,
+  onQuery,
   loading,
   onChanged,
 }: {
   purchases: Purchase[];
+  /** Owned by App, because the command palette can also set it. */
+  query: string;
+  onQuery: (query: string) => void;
   /** The first fetch is still out — an empty table is not yet "no buys". */
   loading: boolean;
   onChanged: () => void;
@@ -42,7 +47,6 @@ export default function HistorySection({
   const stackAmount = useStackAmount();
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDesc, setSortDesc] = useState(true);
-  const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
@@ -199,7 +203,7 @@ export default function HistorySection({
             <PurchaseSearch
               purchases={purchases}
               query={query}
-              onQuery={setQuery}
+              onQuery={onQuery}
               matched={filtered.length}
             />
           )}
@@ -335,7 +339,7 @@ export default function HistorySection({
                     No buy matches <b className="text-ink">{query.trim()}</b>.
                   </p>
                   <button
-                    onClick={() => setQuery("")}
+                    onClick={() => onQuery("")}
                     className="mt-4 inline-flex items-center gap-2 rounded-full bg-sand-soft px-4 py-2.5 text-sm font-bold text-teal transition hover:bg-water-soft"
                   >
                     <XIcon /> Clear the search

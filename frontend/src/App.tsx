@@ -38,6 +38,10 @@ export default function App() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [performance, setPerformance] = useState<Performance | null>(null);
   const [includeDryRun, setIncludeDryRun] = useState(true);
+  // The history's search, owned here because the command palette can set it:
+  // a question asked at the top of the page is answered by the table at the
+  // bottom of it, and both speak the one query language in lib/query.ts.
+  const [historyQuery, setHistoryQuery] = useState("");
   const [balance, setBalance] = useState<AccountBalance | null>(null);
   const [running, setRunning] = useState(false);
   const [buying, setBuying] = useState(false);
@@ -256,10 +260,12 @@ export default function App() {
             indicators={indicators}
             performance={performance}
             balance={balance}
+            purchases={purchases}
             loading={inFlight}
             themeChoice={themeChoice}
             includeDryRun={includeDryRun}
             scrollRef={scrollRef}
+            onSearchHistory={setHistoryQuery}
             onSetTheme={setThemeChoice}
             onToggleUnit={toggleUnit}
             onToggleDryRun={onToggleDryRun}
@@ -289,6 +295,8 @@ export default function App() {
             <Research scrollRef={scrollRef} />
             <HistorySection
               purchases={purchases}
+              query={historyQuery}
+              onQuery={setHistoryQuery}
               loading={inFlight.includes("purchases")}
               onChanged={reloadPurchases}
             />

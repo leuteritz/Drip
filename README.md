@@ -13,15 +13,15 @@ default; live trading is a confirmed opt-in.
 
 Your stack is a tank of water, and it fizzes at the strength of the week's signal. Four
 instruments float on it - the signal, the market's mood, the price and your Coinbase
-well - each with its own scale along the foot, so one glance reads all four. Underneath,
-the dashboard researches its own strategy, reports what you paid against the market, and
-carries the rate you stack at forward to the next round number of sats. It also keeps
-its own attendance record, so a week it never bought in - the Pi off, the network down -
-is visible instead of leaving no trace. Green in the plus, rose in the minus. The drip
-is set on the next-buy card: click the amount, or the chip with the day and time.
-Everything else lives in the bar at the top, and `Ctrl+K` reaches all of it, keys
-included, so the Pi needs no shell after the first install. Once a week the whole thing
-arrives on Discord.
+well - each with its own scale, so one glance reads all four. Underneath,
+the dashboard researches its own strategy, reports what you paid against the market,
+carries the rate you stack at forward to the next round number of sats, and keeps its
+own attendance record, so a week it never bought in is visible instead of leaving no
+trace. Green in the plus, rose in the minus. The drip is set on the next-buy card: click
+the amount, or the chip with the day and time. Everything else is in the top bar, and
+`Ctrl+K` reaches all of it - keys included - as well as searching the buys
+themselves: `august`, `2026-03`, `30d`, `price>60000`, answered with how much you put in
+and what it bought. Once a week the whole thing arrives on Discord.
 
 ## On a phone
 
