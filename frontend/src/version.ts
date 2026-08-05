@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.21",
+    date: "2026-08-05",
+    changes: [
+      "The README shows Drip on a phone as three screens side by side — the dashboard, the buy history and the wall display — instead of one shot with an empty column beside it",
+      "The tour above them is a list of what you get rather than a paragraph to read",
+    ],
+  },
+  {
     version: "2.20",
     date: "2026-08-05",
     changes: [

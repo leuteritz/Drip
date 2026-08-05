@@ -11,27 +11,29 @@ default; live trading is a confirmed opt-in.
 
 *Example history, not a real account. Night theme; there is a day one too.*
 
-Your stack is a tank of water, and it fizzes at the strength of the week's signal. Four
-instruments float on it - the signal, the market's mood, the price and your Coinbase
-well - each with its own scale, so one glance reads all four. Underneath,
-the dashboard researches its own strategy, reports what you paid against the market,
-carries the rate you stack at forward to the next round number of sats, and keeps its
-own attendance record, so a week it never bought in is visible instead of leaving no
-trace. Green in the plus, rose in the minus. The drip is set on the next-buy card: click
-the amount, or the chip with the day and time. Everything else is in the top bar, and
-`Ctrl+K` reaches all of it - keys included - as well as searching the buys
-themselves: `august`, `2026-03`, `30d`, `price>60000`, answered with how much you put in
-and what it bought. Once a week the whole thing arrives on Discord.
+- **Your stack is a tank of water**, and it fizzes at the strength of the week's signal.
+- **Four instruments float on it** - the signal, the market's mood, the price and your
+  Coinbase well - each with its own scale, so one glance reads all four.
+- **Underneath**: the strategy audited against itself, what you paid against the market,
+  the rate you stack at carried to the next round number of sats, and a record of the
+  weeks the drip actually landed in. Green in the plus, rose in the minus.
+- **The drip is set where it is read** - click the amount, or the chip with the day and
+  time. Everything else is in the top bar.
+- **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves:
+  `august`, `2026-03`, `30d`, `price>60000`, answered with how much you put in and what
+  it bought.
 
 ## On a phone
 
-<img src="docs/screenshot-phone.png" alt="Drip on a phone" width="290" align="right">
+<p align="center">
+  <img src="docs/screenshot-phone.png" alt="The dashboard on a phone" width="31%">
+  <img src="docs/screenshot-phone-history.png" alt="The buy history on a phone" width="31%">
+  <img src="docs/screenshot-phone-search.png" alt="Searching the buys on a phone" width="31%">
+</p>
 
-The same dashboard, sized for a thumb: the sections move to a tab bar along the bottom,
-every figure is set larger rather than smaller, dialogs rise as sheets, and the buy
-history becomes one card per buy. One build, and the layout follows the glass.
-
-<br clear="right">
+*One build, both hands: the sections move to a tab bar along the bottom, figures are set
+larger rather than smaller, the buy history becomes one card per buy, and dialogs rise
+as sheets.*
 
 ## Install
 
@@ -70,17 +72,16 @@ your base amount.
 |---|---|---|---|---|---|
 | **Buy** | 1.5x | 1.25x | 1.0x | 0.75x | 0.5x |
 
-The dashboard shows this sum for the next buy: tap the drops under the amount.
+Tap the drops under the next buy to see the sum.
 
 ## Weekly report
 
-A single buy says nothing about whether the saving is going anywhere, so once a week
-Drip reports itself to Discord: what you stacked, what the price did, how you stand
-against plain DCA and against the market's own average, which weeks it bought in, and
-what the signal says now. A run that falls over says so at the time.
+Once a week Drip reports itself to Discord: what you stacked, what the price did, how
+you stand against plain DCA and against the market's own average, which weeks it bought
+in, and what the signal says now. A run that falls over says so at the time.
 
-Thirteen sections, each switchable. The preview is built by the code that builds the
-real message, so it is exactly what arrives.
+Thirteen sections, each switchable; the preview is built by the code that builds the
+real message.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)
 
@@ -88,9 +89,8 @@ Needs a Discord webhook. Everything else works without one.
 
 ## Environment
 
-Secrets go in under **Setup** in the dashboard, which stores them in Drip's own
-database, or in `backend/.env`; the dashboard wins. Without Coinbase keys everything
-still works in dry-run mode.
+Secrets go in under **Setup** in the dashboard, or in `backend/.env`; the dashboard
+wins. Without Coinbase keys everything still works in dry-run mode.
 
 | Variable | Required | Description |
 |---|---|---|
