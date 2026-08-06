@@ -1,6 +1,7 @@
 import CalendarIcon from "~icons/ph/calendar-blank";
 import ChartLineUpIcon from "~icons/ph/chart-line-up";
 import CircleHalfTiltIcon from "~icons/ph/circle-half-tilt";
+import CoinsIcon from "~icons/ph/coins";
 import CurrencyBtcIcon from "~icons/ph/currency-btc";
 import DropFillIcon from "~icons/ph/drop-fill";
 import EyeIcon from "~icons/ph/eye";
@@ -15,6 +16,7 @@ import QuestionIcon from "~icons/ph/question";
 import SlidersIcon from "~icons/ph/sliders-horizontal";
 import SunIcon from "~icons/ph/sun";
 import type { BotStatus, Indicators } from "../../api/client";
+import { openCoinbaseDeposit } from "../../lib/coinbase";
 import type { Command } from "../../lib/commands";
 import { enterTank } from "../../lib/route";
 import type { ThemeChoice } from "../../lib/theme";
@@ -102,6 +104,16 @@ export function buildCommands(ctx: CommandContext): Command[] {
       group: "Open",
       Icon: DropFillIcon,
       run: ctx.openBuy,
+    },
+    // Listed even though it leaves the app: it opens a page, it does not move
+    // money — the deposit itself is made at Coinbase, under Coinbase's login.
+    {
+      id: "open-topup",
+      label: "Top up on Coinbase",
+      hint: "Opens Coinbase's deposit page in a new tab — Drip spends what lands there",
+      group: "Open",
+      Icon: CoinsIcon,
+      run: openCoinbaseDeposit,
     },
     {
       id: "open-sim",

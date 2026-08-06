@@ -13,7 +13,7 @@ default; live trading is a confirmed opt-in.
 
 - **Your stack is a tank of water**, and it fizzes at the strength of the week's signal.
 - **Four instruments float on it** - the signal, the market's mood, the price and your
-  Coinbase well - each with its own scale, so one glance reads all four.
+  Coinbase well, which links straight to Coinbase when the well runs low.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
   the rate you stack at carried to the next round number of sats, and a record of the
   weeks the drip actually landed in - a week the Pi slept through can be bought when it

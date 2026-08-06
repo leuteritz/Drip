@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.23",
+    date: "2026-08-06",
+    changes: [
+      "There is now a way to fill the well: a top-up button on the Coinbase balance, a row in the setup dialog and a \"Top up on Coinbase\" entry in the palette — all three open Coinbase's own deposit page in a new tab",
+      "Drip never handles the transfer itself, so the button is only a way there; the money you put in is what the next drips spend",
+      "It is offered before any key is stored too, so an account can be funded while Drip is still being set up",
+    ],
+  },
+  {
     version: "2.22",
     date: "2026-08-05",
     changes: [

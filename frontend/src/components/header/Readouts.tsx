@@ -3,6 +3,7 @@ import CoinsIcon from "~icons/ph/coins";
 import CurrencyBtcIcon from "~icons/ph/currency-btc";
 import DropIcon from "~icons/ph/drop";
 import KeyIcon from "~icons/ph/key";
+import PlusIcon from "~icons/ph/plus";
 import PulseIcon from "~icons/ph/pulse";
 import type {
   AccountBalance,
@@ -11,6 +12,7 @@ import type {
   Performance,
 } from "../../api/client";
 import { potencyFromMultiplier } from "../drops";
+import { COINBASE_DEPOSIT_URL } from "../../lib/coinbase";
 import { fmtEur, fmtPct } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { Loading, Spinner } from "../ui";
@@ -86,6 +88,26 @@ const FIGURE =
  */
 const SUB =
   "mt-1.5 text-xs font-semibold text-cream/75 max-sm:min-h-[2.7em] sm:text-sm";
+
+/**
+ * The way out of Drip, and the only one: Coinbase's own deposit page.
+ *
+ * It rides on the **figure's** line rather than in the eyebrow, because the
+ * eyebrow is already the full width of the chip on a phone and a button beside
+ * it would push the instrument's name onto a second line. Aligned to the bottom
+ * of that line, so the four figures keep the single baseline the set is built
+ * on however tall this is.
+ *
+ * A round mark and no word, at every width: four chips share the glass, so on a
+ * 1600px desk one of them is still only ~240px wide, and "Top up" spelled out
+ * there cost the balance its last three characters. The word is said in the two
+ * places that have room for it — the setup dialog and the palette — and the
+ * title attribute says it here. A fingertip gets the full 2.75rem below `sm`.
+ */
+const TOP_UP =
+  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cream/35 " +
+  "bg-cream/12 text-cream transition hover:bg-cream/25 focus-visible:outline-2 " +
+  "focus-visible:outline-offset-2 focus-visible:outline-cream max-sm:h-11 max-sm:w-11";
 
 /** The shared track every rail is drawn on. */
 const TRACK = "relative mt-4 h-1.5 w-full rounded-full bg-cream/20";
@@ -306,12 +328,29 @@ const WELL_FULL_AT_BUYS = 10;
 /** At or below this many remaining buys the well reads as running dry. */
 const WELL_LOW_BUYS = 2;
 
+/** Fills the well: Coinbase's deposit page, in a tab of its own. */
+function TopUp() {
+  return (
+    <a
+      href={COINBASE_DEPOSIT_URL}
+      target="_blank"
+      rel="noreferrer"
+      title="Add money to your Coinbase account"
+      aria-label="Add money to your Coinbase account"
+      className={TOP_UP}
+    >
+      <PlusIcon className="shrink-0 text-base" aria-hidden="true" />
+    </a>
+  );
+}
+
 /**
  * The Coinbase "well" — the source that feeds the reservoir. Shows the EUR
  * balance available for buying and a runway rail: one tick per scheduled drip
  * the well still covers at today's potency, so the number of buys left can be
  * counted off it rather than estimated from a bar. Buying lives in the Next-buy
- * card.
+ * card; filling the well is the one thing Drip cannot do itself, so it hands
+ * that over to Coinbase from here — where the running-dry line is read.
  */
 export function WellReadout({
   balance,
@@ -345,7 +384,13 @@ export function WellReadout({
     <Gauge label="Coinbase well" icon={CoinsIcon}>
       {balance.configured && eur != null ? (
         <>
-          <div className={FIGURE}>{fmtEur(eur)}</div>
+          <div className={`${FIGURE} flex items-end justify-between gap-2`}>
+            {/* Whole euros, like the price beside it: the cents of a balance
+                are not a fact this instrument is for, and they were what the
+                top-up mark had to take its width from. */}
+            <span className="min-w-0 truncate">{fmtEur(eur, 0)}</span>
+            <TopUp />
+          </div>
           <div className={`${SUB} ${runningDry ? "text-rose-pale" : ""}`}>
             {buysLeft == null
               ? `${stackAmount(balance.btc_available ?? 0)} on Coinbase`
@@ -361,7 +406,12 @@ export function WellReadout({
         </>
       ) : (
         <>
-          <div className={`${FIGURE} text-cream/55`}>&mdash;</div>
+          {/* No key is no reason not to fund the account — the money can be in
+              place before Coinbase has been asked for a key at all. */}
+          <div className={`${FIGURE} flex items-end justify-between gap-2`}>
+            <span className="text-cream/55">&mdash;</span>
+            <TopUp />
+          </div>
           <div className={`${SUB} inline-flex items-center gap-1.5`}>
             <KeyIcon className="shrink-0 text-sm" />
             {balance.configured ? "Balance unavailable" : "No API keys yet"}

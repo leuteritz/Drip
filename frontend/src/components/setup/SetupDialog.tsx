@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ArrowSquareOutIcon from "~icons/ph/arrow-square-out";
 import CaretRightIcon from "~icons/ph/caret-right";
 import CheckCircleIcon from "~icons/ph/check-circle";
+import CoinsIcon from "~icons/ph/coins";
 import DiscordIcon from "~icons/ph/discord-logo";
 import GearIcon from "~icons/ph/gear-six";
 import NewspaperIcon from "~icons/ph/newspaper";
@@ -16,6 +18,7 @@ import {
   type CredentialsUpdate,
   type SetupInfo,
 } from "../../api/client";
+import { COINBASE_DEPOSIT_URL } from "../../lib/coinbase";
 import { fmtEur } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { Loading, Modal, Note, Toggle } from "../ui";
@@ -268,6 +271,26 @@ function CoinbaseTab({
       {rows.map((field) => (
         <CredentialRow key={field.key} field={field} onSave={onSave} />
       ))}
+
+      {/* The one link out of Drip. A key lets it spend the account; only
+          Coinbase's own login can put money into one, so that step is handed
+          over rather than half-explained here. */}
+      <a
+        href={COINBASE_DEPOSIT_URL}
+        target="_blank"
+        rel="noreferrer"
+        className="flex w-full items-start gap-2 rounded-xl bg-sand-soft/60 px-3.5 py-3 text-left text-xs font-bold text-ink transition hover:opacity-80"
+      >
+        <CoinsIcon className="mt-0.5 shrink-0 text-base text-teal" />
+        <span>
+          Add money to Coinbase
+          <span className="block text-xs font-normal text-ink-soft">
+            Drip only spends what is already in the account — topping it up
+            happens at Coinbase, in a new tab.
+          </span>
+        </span>
+        <ArrowSquareOutIcon className="mt-0.5 ml-auto shrink-0 text-ink-soft" />
+      </a>
 
       <Note>
         Keys are stored in Drip's own database on the Pi and never sent back to
