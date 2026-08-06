@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ArrowRightIcon from "~icons/ph/arrow-right";
+import ArrowSquareOutIcon from "~icons/ph/arrow-square-out";
 import CheckIcon from "~icons/ph/check";
 import DropFillIcon from "~icons/ph/drop-fill";
 import MagnifyingGlassIcon from "~icons/ph/magnifying-glass";
@@ -284,6 +285,20 @@ function CommandBody({ command, on }: { command: Command; on: boolean }) {
           <span className="block truncate text-xs text-ink-soft">{command.hint}</span>
         )}
       </span>
+      {/* A row that leaves says so before it is run, and names where it goes —
+          the same mark `OutLink` puts on every anchor that does the same. */}
+      {command.away && (
+        <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-sand-soft px-2 py-1 font-mono text-2xs text-ink-soft max-sm:hidden">
+          {command.away}
+          <ArrowSquareOutIcon className="shrink-0 text-2xs" aria-hidden="true" />
+        </span>
+      )}
+      {command.away && (
+        <ArrowSquareOutIcon
+          className="shrink-0 text-sm text-ink-soft sm:hidden"
+          aria-hidden="true"
+        />
+      )}
       {command.active && (
         <CheckIcon className="shrink-0 text-sm text-teal" aria-hidden="true" />
       )}

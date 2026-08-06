@@ -12,10 +12,10 @@ import type {
   Performance,
 } from "../../api/client";
 import { potencyFromMultiplier } from "../drops";
-import { COINBASE_DEPOSIT_URL } from "../../lib/coinbase";
+import { COINBASE_DEPOSIT_URL, HOST } from "../../lib/coinbase";
 import { fmtEur, fmtPct } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Loading, Spinner } from "../ui";
+import { Loading, OutLink, Spinner } from "../ui";
 
 /**
  * The four read-outs floating on the waterline — instruments on the tank wall.
@@ -98,16 +98,36 @@ const SUB =
  * of that line, so the four figures keep the single baseline the set is built
  * on however tall this is.
  *
- * A round mark and no word, at every width: four chips share the glass, so on a
- * 1600px desk one of them is still only ~240px wide, and "Top up" spelled out
- * there cost the balance its last three characters. The word is said in the two
- * places that have room for it — the setup dialog and the palette — and the
- * title attribute says it here. A fingertip gets the full 2.75rem below `sm`.
+ * **Two marks, never one.** The `+` says what it does to the well; the
+ * out-mark `OutLink` adds says it happens somewhere else. A bare `+` on a chip
+ * headed "Coinbase well" reads as a button that tops the well up from here —
+ * which is the one thing Drip cannot do. Together they say "add money, over
+ * there", which is exactly what the link is.
+ *
+ * The **word** is not on a breakpoint, and that was measured rather than
+ * guessed. The hero is a fixed number of rem wide and the root size grows with
+ * the window, so a chip is ~210px of ~13px type at 1280 and ~240px of ~15px
+ * type at 1600 — the ratio never changes, and "Top up" spelled out leaves the
+ * balance 7px of clearance at *every* width. Five figures fit; six would be
+ * truncated, and the balance is the one thing on this chip that may never be.
+ *
+ * So the word appears on the **state that needs it** instead: a well running
+ * dry, or one with no key yet. Both have a short figure beside them (a small
+ * balance, or an em dash), both are the moment somebody has to act, and the
+ * dry one wears `rose-pale` — the same colour the line under it turns, since a
+ * figure on the water can never use the `-soft` tints. Full otherwise, it is
+ * two marks and no word, which is all a healthy well needs.
  */
 const TOP_UP =
-  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cream/35 " +
-  "bg-cream/12 text-cream transition hover:bg-cream/25 focus-visible:outline-2 " +
-  "focus-visible:outline-offset-2 focus-visible:outline-cream max-sm:h-11 max-sm:w-11";
+  "flex h-9 shrink-0 items-center gap-1 rounded-full border transition " +
+  "px-2 text-2xs font-bold uppercase tracking-[0.1em] " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream " +
+  "max-sm:h-11 max-sm:px-3";
+/** Quiet: the well is fine and this is only the way to keep it that way. */
+const TOP_UP_CALM = "border-cream/35 bg-cream/12 text-cream hover:bg-cream/25";
+/** Loud: the well is nearly empty, or was never filled. */
+const TOP_UP_LOW =
+  "border-rose-pale/50 bg-rose-pale/15 text-rose-pale hover:bg-rose-pale/25";
 
 /** The shared track every rail is drawn on. */
 const TRACK = "relative mt-4 h-1.5 w-full rounded-full bg-cream/20";
@@ -329,18 +349,17 @@ const WELL_FULL_AT_BUYS = 10;
 const WELL_LOW_BUYS = 2;
 
 /** Fills the well: Coinbase's deposit page, in a tab of its own. */
-function TopUp() {
+function TopUp({ low = false }: { low?: boolean }) {
   return (
-    <a
+    <OutLink
       href={COINBASE_DEPOSIT_URL}
-      target="_blank"
-      rel="noreferrer"
-      title="Add money to your Coinbase account"
-      aria-label="Add money to your Coinbase account"
-      className={TOP_UP}
+      host={HOST[COINBASE_DEPOSIT_URL]}
+      className={`${TOP_UP} ${low ? TOP_UP_LOW : TOP_UP_CALM}`}
+      markClassName={`text-2xs ${low ? "opacity-80" : "text-cream/70"}`}
     >
-      <PlusIcon className="shrink-0 text-base" aria-hidden="true" />
-    </a>
+      <PlusIcon className="shrink-0 text-sm" aria-hidden="true" />
+      {low && <span>Top up</span>}
+    </OutLink>
   );
 }
 
@@ -389,7 +408,7 @@ export function WellReadout({
                 are not a fact this instrument is for, and they were what the
                 top-up mark had to take its width from. */}
             <span className="min-w-0 truncate">{fmtEur(eur, 0)}</span>
-            <TopUp />
+            <TopUp low={runningDry} />
           </div>
           <div className={`${SUB} ${runningDry ? "text-rose-pale" : ""}`}>
             {buysLeft == null
@@ -410,7 +429,7 @@ export function WellReadout({
               place before Coinbase has been asked for a key at all. */}
           <div className={`${FIGURE} flex items-end justify-between gap-2`}>
             <span className="text-cream/55">&mdash;</span>
-            <TopUp />
+            <TopUp low />
           </div>
           <div className={`${SUB} inline-flex items-center gap-1.5`}>
             <KeyIcon className="shrink-0 text-sm" />

@@ -5,6 +5,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
+import ArrowSquareOutIcon from "~icons/ph/arrow-square-out";
 import InfoIcon from "~icons/ph/info";
 
 export function Card({
@@ -224,6 +225,52 @@ export function Stat({
  */
 export function Note({ children }: { children: ReactNode }) {
   return <p className="mt-4 text-sm leading-relaxed text-ink-soft">{children}</p>;
+}
+
+/**
+ * The one way Drip says "this leaves the page".
+ *
+ * Three things say it, and they say it the same way everywhere: the mark
+ * (`arrow-square-out`, the web's own sign for it), the **host named out loud**
+ * in the tooltip and to a screen reader, and a new tab — the dashboard may be
+ * mid-buy, and a link that only shows you something elsewhere may never
+ * navigate this page away.
+ *
+ * It carries no look of its own: an out-link is a plain row in a dialog, a
+ * pill on the water, a line in a list, and each is styled where it lives. What
+ * cannot be restyled is the promise — so it is this component that makes it,
+ * and a raw `<a target="_blank">` anywhere else is a link that forgot to say
+ * where it goes.
+ */
+export function OutLink({
+  href,
+  host,
+  children,
+  className = "",
+  markClassName = "text-sm",
+}: {
+  href: string;
+  /** The bare hostname, read out loud. `lib/coinbase.ts`'s `HOST` holds ours. */
+  host: string;
+  children: ReactNode;
+  className?: string;
+  /** The mark is sized by whatever it rides in, so its classes come from there. */
+  markClassName?: string;
+}) {
+  const says = `Opens ${host} in a new tab`;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      title={says}
+      className={className}
+    >
+      {children}
+      <ArrowSquareOutIcon className={`shrink-0 ${markClassName}`} aria-hidden="true" />
+      <span className="sr-only">{says}</span>
+    </a>
+  );
 }
 
 export function Badge({

@@ -23,6 +23,16 @@ export interface Command {
   run: () => void;
   /** True for a setting that is already on, so the palette can tick it. */
   active?: boolean;
+  /**
+   * The host this one hands you to, for the few that leave Drip entirely.
+   *
+   * Set it and the palette marks the row the way every other out-link in the
+   * app is marked — a list where "Buy now" and "open a website" look identical
+   * is a list you have to have used before to trust. The value is shown, not
+   * just announced: what a link does is half the question, where it goes is the
+   * other half.
+   */
+  away?: string;
 }
 
 /**

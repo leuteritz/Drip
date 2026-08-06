@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import ArrowSquareOutIcon from "~icons/ph/arrow-square-out";
 import CaretRightIcon from "~icons/ph/caret-right";
 import CheckCircleIcon from "~icons/ph/check-circle";
 import CoinsIcon from "~icons/ph/coins";
 import DiscordIcon from "~icons/ph/discord-logo";
 import GearIcon from "~icons/ph/gear-six";
+import KeyIcon from "~icons/ph/key";
 import NewspaperIcon from "~icons/ph/newspaper";
 import PaperPlaneIcon from "~icons/ph/paper-plane-tilt";
 import PlugsIcon from "~icons/ph/plugs-connected";
@@ -18,10 +18,11 @@ import {
   type CredentialsUpdate,
   type SetupInfo,
 } from "../../api/client";
-import { COINBASE_DEPOSIT_URL } from "../../lib/coinbase";
+import { COINBASE_DEPOSIT_URL, COINBASE_KEYS_URL, HOST } from "../../lib/coinbase";
+import type { IconComponent } from "../../lib/commands";
 import { fmtEur } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Loading, Modal, Note, Toggle } from "../ui";
+import { Loading, Modal, Note, OutLink, Toggle } from "../ui";
 import CredentialRow from "./CredentialRow";
 import Maintenance from "./Maintenance";
 import SystemPanel from "./SystemPanel";
@@ -272,25 +273,28 @@ function CoinbaseTab({
         <CredentialRow key={field.key} field={field} onSave={onSave} />
       ))}
 
-      {/* The one link out of Drip. A key lets it spend the account; only
-          Coinbase's own login can put money into one, so that step is handed
-          over rather than half-explained here. */}
-      <a
-        href={COINBASE_DEPOSIT_URL}
-        target="_blank"
-        rel="noreferrer"
-        className="flex w-full items-start gap-2 rounded-xl bg-sand-soft/60 px-3.5 py-3 text-left text-xs font-bold text-ink transition hover:opacity-80"
-      >
-        <CoinsIcon className="mt-0.5 shrink-0 text-base text-teal" />
-        <span>
-          Add money to Coinbase
-          <span className="block text-xs font-normal text-ink-soft">
-            Drip only spends what is already in the account — topping it up
-            happens at Coinbase, in a new tab.
-          </span>
-        </span>
-        <ArrowSquareOutIcon className="mt-0.5 ml-auto shrink-0 text-ink-soft" />
-      </a>
+      {/* The two things Drip cannot do for you, gathered under one heading that
+          says where they happen. Making a key and funding the account are both
+          behind Coinbase's own login, so they are handed over rather than
+          half-explained here — and grouping them is what stops either reading
+          as a button that acts on this page. */}
+      <div className="rounded-xl border border-sand bg-sand-soft/40 p-1.5">
+        <p className="px-2 pb-1 pt-1.5 text-2xs font-bold uppercase tracking-[0.14em] text-ink-soft">
+          At Coinbase · opens in a new tab
+        </p>
+        <AwayRow
+          href={COINBASE_KEYS_URL}
+          icon={KeyIcon}
+          label="Create an API key"
+          says="The key pair Drip trades with. Paste both halves into the fields above."
+        />
+        <AwayRow
+          href={COINBASE_DEPOSIT_URL}
+          icon={CoinsIcon}
+          label="Add money to your account"
+          says="Drip only ever spends what is already there — it cannot move money in."
+        />
+      </div>
 
       <Note>
         Keys are stored in Drip's own database on the Pi and never sent back to
@@ -299,6 +303,44 @@ function CoinbaseTab({
         takes over again. Live buying still needs the mode switch in the top bar.
       </Note>
     </div>
+  );
+}
+
+/**
+ * One line that leaves Drip. Both take the same shape, so the pair reads as a
+ * pair — and each **shows its host** rather than only carrying it in a tooltip:
+ * a phone has no hover, and "where does this take me" is a fair question to ask
+ * before tapping a link on the page that holds your keys.
+ */
+function AwayRow({
+  href,
+  icon: Icon,
+  label,
+  says,
+}: {
+  href: string;
+  icon: IconComponent;
+  label: string;
+  says: string;
+}) {
+  return (
+    <OutLink
+      href={href}
+      host={HOST[href]}
+      className="flex w-full items-start gap-2.5 rounded-lg px-2 py-2.5 text-left transition hover:bg-paper"
+      markClassName="ml-auto mt-0.5 text-sm text-ink-soft"
+    >
+      <Icon className="mt-0.5 shrink-0 text-base text-teal" aria-hidden="true" />
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold text-ink">{label}</span>
+          <span className="rounded-full bg-paper px-2 py-0.5 font-mono text-2xs text-ink-soft">
+            {HOST[href]}
+          </span>
+        </span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-ink-soft">{says}</span>
+      </span>
+    </OutLink>
   );
 }
 

@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.24",
+    date: "2026-08-06",
+    changes: [
+      "Every link that hands you over to Coinbase now says so before you follow it: one shared mark, the site's name written out, and a new tab so the dashboard is never navigated away mid-buy",
+      "The setup dialog gathers both of them under one heading — the page where an API key is made, and the page where money goes in",
+      "The well's top-up button is quiet while the well is full, and spells itself out in rose once it runs dry or has never been filled",
+    ],
+  },
+  {
     version: "2.23",
     date: "2026-08-06",
     changes: [

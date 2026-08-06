@@ -16,7 +16,11 @@ import QuestionIcon from "~icons/ph/question";
 import SlidersIcon from "~icons/ph/sliders-horizontal";
 import SunIcon from "~icons/ph/sun";
 import type { BotStatus, Indicators } from "../../api/client";
-import { openCoinbaseDeposit } from "../../lib/coinbase";
+import {
+  COINBASE_DEPOSIT_URL,
+  HOST,
+  openCoinbaseDeposit,
+} from "../../lib/coinbase";
 import type { Command } from "../../lib/commands";
 import { enterTank } from "../../lib/route";
 import type { ThemeChoice } from "../../lib/theme";
@@ -107,12 +111,14 @@ export function buildCommands(ctx: CommandContext): Command[] {
     },
     // Listed even though it leaves the app: it opens a page, it does not move
     // money — the deposit itself is made at Coinbase, under Coinbase's login.
+    // `away` is what makes the row say that before Enter does it.
     {
       id: "open-topup",
       label: "Top up on Coinbase",
-      hint: "Opens Coinbase's deposit page in a new tab — Drip spends what lands there",
+      hint: "Add money to the account Drip buys from",
       group: "Open",
       Icon: CoinsIcon,
+      away: HOST[COINBASE_DEPOSIT_URL],
       run: openCoinbaseDeposit,
     },
     {
