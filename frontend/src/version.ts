@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.25",
+    date: "2026-08-06",
+    changes: [
+      "The well's button is called Deposit now — Coinbase's own word for the page it opens",
+      "It answers the pointer: the pill rises, its arrow lifts away in the direction it points, and a tap presses it back in",
+    ],
+  },
+  {
     version: "2.24",
     date: "2026-08-06",
     changes: [

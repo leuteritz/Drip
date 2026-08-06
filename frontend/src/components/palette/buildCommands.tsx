@@ -114,7 +114,7 @@ export function buildCommands(ctx: CommandContext): Command[] {
     // `away` is what makes the row say that before Enter does it.
     {
       id: "open-topup",
-      label: "Top up on Coinbase",
+      label: "Deposit at Coinbase",
       hint: "Add money to the account Drip buys from",
       group: "Open",
       Icon: CoinsIcon,

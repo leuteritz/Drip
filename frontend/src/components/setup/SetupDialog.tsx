@@ -291,7 +291,7 @@ function CoinbaseTab({
         <AwayRow
           href={COINBASE_DEPOSIT_URL}
           icon={CoinsIcon}
-          label="Add money to your account"
+          label="Deposit into your account"
           says="Drip only ever spends what is already there — it cannot move money in."
         />
       </div>

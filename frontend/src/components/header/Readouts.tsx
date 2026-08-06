@@ -107,7 +107,7 @@ const SUB =
  * The **word** is not on a breakpoint, and that was measured rather than
  * guessed. The hero is a fixed number of rem wide and the root size grows with
  * the window, so a chip is ~210px of ~13px type at 1280 and ~240px of ~15px
- * type at 1600 — the ratio never changes, and "Top up" spelled out leaves the
+ * type at 1600 — the ratio never changes, and "Deposit" spelled out leaves the
  * balance 7px of clearance at *every* width. Five figures fit; six would be
  * truncated, and the balance is the one thing on this chip that may never be.
  *
@@ -119,15 +119,28 @@ const SUB =
  * two marks and no word, which is all a healthy well needs.
  */
 const TOP_UP =
-  "flex h-9 shrink-0 items-center gap-1 rounded-full border transition " +
-  "px-2 text-2xs font-bold uppercase tracking-[0.1em] " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream " +
-  "max-sm:h-11 max-sm:px-3";
+  "group flex h-9 shrink-0 items-center gap-1 rounded-full border px-2 " +
+  "text-2xs font-bold uppercase tracking-[0.1em] " +
+  "transition duration-200 ease-out hover:-translate-y-1 active:translate-y-0 " +
+  "active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 " +
+  "focus-visible:outline-cream max-sm:h-11 max-sm:px-3";
 /** Quiet: the well is fine and this is only the way to keep it that way. */
-const TOP_UP_CALM = "border-cream/35 bg-cream/12 text-cream hover:bg-cream/25";
+const TOP_UP_CALM =
+  "border-cream/35 bg-cream/12 text-cream hover:border-cream/60 hover:bg-cream/25 " +
+  "hover:shadow-[0_10px_20px_-10px_rgba(0,0,0,.8)]";
 /** Loud: the well is nearly empty, or was never filled. */
 const TOP_UP_LOW =
-  "border-rose-pale/50 bg-rose-pale/15 text-rose-pale hover:bg-rose-pale/25";
+  "border-rose-pale/50 bg-rose-pale/15 text-rose-pale hover:border-rose-pale/80 " +
+  "hover:bg-rose-pale/30 hover:shadow-[0_10px_20px_-10px_rgba(0,0,0,.8)]";
+/**
+ * The out-mark leaves before you do: on hover it lifts out of the pill in the
+ * direction it points, which is the whole gesture said in two pixels. The pill
+ * rises to meet the pointer and presses back in on the tap, so a touch screen —
+ * which has no hover at all — still gets an answer to having been touched.
+ */
+const MARK_MOVE =
+  "text-2xs transition-transform duration-200 ease-out " +
+  "group-hover:-translate-y-px group-hover:translate-x-px";
 
 /** The shared track every rail is drawn on. */
 const TRACK = "relative mt-4 h-1.5 w-full rounded-full bg-cream/20";
@@ -355,10 +368,13 @@ function TopUp({ low = false }: { low?: boolean }) {
       href={COINBASE_DEPOSIT_URL}
       host={HOST[COINBASE_DEPOSIT_URL]}
       className={`${TOP_UP} ${low ? TOP_UP_LOW : TOP_UP_CALM}`}
-      markClassName={`text-2xs ${low ? "opacity-80" : "text-cream/70"}`}
+      markClassName={`${MARK_MOVE} ${low ? "opacity-80" : "text-cream/70"}`}
     >
-      <PlusIcon className="shrink-0 text-sm" aria-hidden="true" />
-      {low && <span>Top up</span>}
+      <PlusIcon
+        className="shrink-0 text-sm transition-transform duration-200 ease-out group-hover:scale-125"
+        aria-hidden="true"
+      />
+      {low && <span>Deposit</span>}
     </OutLink>
   );
 }
