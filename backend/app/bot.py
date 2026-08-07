@@ -1,4 +1,13 @@
-"""Purchase execution: analysis -> amount -> order (or dry run) -> DB + Discord."""
+"""Purchase execution: analysis -> amount -> order (or dry run) -> DB + Discord.
+
+The one thing worth knowing here is where a row's bitcoin comes from. A buy is
+*ordered* in euros and *filled* in bitcoin, and only the exchange knows how much
+of the amount became coins and how much became its fee — so a real buy is read
+back off the filled order rather than divided out by the market price. The
+division is still here, as the estimate a dry run gets and the fallback a real
+buy falls to when its fill cannot be read in time; `Purchase.filled` is which of
+the two happened.
+"""
 import logging
 from datetime import date, datetime
 
@@ -60,9 +69,27 @@ def run_purchase(dry_run_override: bool | None = None,
         status = STATUS_TEST
         error: str | None = None
 
+        # What the buy is worth before the exchange has said otherwise: the
+        # amount at the market price, no fee. That is an estimate, and it is
+        # the only answer available for a dry run, for a failed order, and for
+        # a real one whose fill could not be read.
+        price_eur = analysis.current_price
+        btc_amount = amount_eur / analysis.current_price
+        fee_eur = 0.0
+        filled = False
+
         if not dry_run:
             try:
-                order_id, status = place_market_buy(amount_eur)
+                fill = place_market_buy(amount_eur)
+                order_id, status = fill.order_id, fill.status
+                if fill.read:
+                    # The exchange's own numbers replace the estimate wholesale.
+                    # `amount_eur` is untouched on purpose: it is what the buy
+                    # was ordered for, and the DCA baseline is derived from it.
+                    price_eur = fill.price_eur
+                    btc_amount = fill.btc
+                    fee_eur = fill.fee_eur
+                    filled = True
             except CoinbaseError as exc:
                 order_id = ORDER_ID_ERROR
                 status = f"Error: {exc}"
@@ -71,9 +98,9 @@ def run_purchase(dry_run_override: bool | None = None,
 
         purchase = Purchase(
             timestamp=datetime.now(),
-            price_eur=analysis.current_price,
+            price_eur=price_eur,
             amount_eur=amount_eur,
-            btc_amount=amount_eur / analysis.current_price,
+            btc_amount=btc_amount,
             fear_greed=analysis.fear_greed,
             rsi=analysis.rsi,
             ma_350=analysis.ma_350,
@@ -82,6 +109,8 @@ def run_purchase(dry_run_override: bool | None = None,
             order_id=order_id,
             status=status,
             dry_run=dry_run,
+            fee_eur=fee_eur,
+            filled=filled,
         )
         session.add(purchase)
         session.commit()

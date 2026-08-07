@@ -76,9 +76,18 @@ def send_purchase_notification(analysis: "Analysis", purchase: Purchase,
     """
     from .strategy import SCORE_MAX
 
+    # The price and the amount are read off the row rather than off the
+    # analysis: a real buy carries the price it was actually filled at and the
+    # fee that came out of the amount, and the message that reports a purchase
+    # should say what the purchase was, not what the market looked like when it
+    # was decided. On a dry run the two are the same number anyway.
+    amount = f"€{purchase.amount_eur:.2f}"
+    if purchase.filled and purchase.fee_eur > 0:
+        amount += f"\n€{purchase.fee_eur:.2f} fee"
+
     fields = [
-        {"name": "BTC price", "value": f"€{analysis.current_price:,.2f}", "inline": True},
-        {"name": "Amount", "value": f"€{purchase.amount_eur:.2f}", "inline": True},
+        {"name": "BTC price", "value": f"€{purchase.price_eur:,.2f}", "inline": True},
+        {"name": "Amount", "value": amount, "inline": True},
         {"name": "Bitcoin", "value": f"{purchase.btc_amount:.8f} BTC", "inline": True},
         {"name": "Score", "value": f"{analysis.score}/{SCORE_MAX} - {analysis.signal}", "inline": False},
         {"name": "Fear & Greed", "value": f"{analysis.fear_greed} ({analysis.fng_classification})", "inline": True},

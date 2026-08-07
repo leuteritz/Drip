@@ -26,6 +26,7 @@ const NUMERIC: Record<string, (p: Purchase) => number> = {
   amount: (p) => p.amount_eur,
   eur: (p) => p.amount_eur,
   price: (p) => p.price_eur,
+  fee: (p) => p.fee_eur,
   btc: (p) => p.btc_amount,
   sats: (p) => Math.round(p.btc_amount * 100_000_000),
 };

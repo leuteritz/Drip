@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.28",
+    date: "2026-08-08",
+    changes: [
+      "A real buy is read back from Coinbase instead of being worked out here — the bitcoin in your history is now the bitcoin that actually arrived, at the price it was actually filled at",
+      "The fee is recorded with it: what you paid on average always had Coinbase's cut inside it and never said so, and the cost basis card now names the amount",
+      "Every buy carries its fee into the table, the CSV export and the search, and the Discord message says it too",
+    ],
+  },
+  {
     version: "2.27",
     date: "2026-08-07",
     changes: [

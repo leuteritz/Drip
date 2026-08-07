@@ -85,6 +85,15 @@ export interface Purchase {
   order_id: string;
   status: string;
   dry_run: boolean;
+  /** What the exchange charged out of `amount_eur`. Zero unless `filled`. */
+  fee_eur: number;
+  /**
+   * Whether the bitcoin and the price were read off the filled order rather
+   * than worked out from the amount. False for every dry run, every imported
+   * row, and a real buy whose fill could not be read — where a fee of zero
+   * means "not known", not "nothing was charged".
+   */
+  filled: boolean;
 }
 
 /** Purchase.order_id sentinel for a buy that failed (see backend/app/constants.py). */
@@ -419,6 +428,11 @@ export interface CostBasis {
   worst_price_eur: number;
   first_buy: string | null;
   days: number;
+  /** Coinbase's share of the same euros, over the buys that reported a fill. */
+  fees_eur: number;
+  fees_pct: number;
+  /** How many of the counted buys knew what they were charged. */
+  fees_from: number;
 }
 
 export interface HoldingBucket {

@@ -25,9 +25,13 @@ def export_purchases(session: Session = Depends(get_session)):
     rows = session.exec(select(Purchase).order_by(Purchase.timestamp)).all()
     buffer = io.StringIO()
     writer = csv.writer(buffer)
+    # The first ten columns are the legacy format and stay in that order, so a
+    # file from here still reads anywhere the old one did. Fee and Filled are
+    # appended rather than slotted in for the same reason — an older reader
+    # ignores them, and Drip's own importer picks them up when they are there.
     writer.writerow(
         ["Timestamp", "Price", "Amount", "BTC", "FearGreed", "RSI", "MA350",
-         "Score", "OrderID", "Status"]
+         "Score", "OrderID", "Status", "Fee", "Filled"]
     )
     for p in rows:
         writer.writerow([
@@ -41,6 +45,8 @@ def export_purchases(session: Session = Depends(get_session)):
             p.score,
             p.order_id,
             p.status,
+            p.fee_eur,
+            int(p.filled),
         ])
     return Response(
         content=buffer.getvalue(),

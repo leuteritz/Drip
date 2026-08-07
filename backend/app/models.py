@@ -7,6 +7,22 @@ from sqlmodel import Field, SQLModel
 
 
 class Purchase(SQLModel, table=True):
+    """One run of the bot: what it decided, and what that actually bought.
+
+    `amount_eur` is the amount the buy was *ordered* for and stays that way —
+    it is the base amount times the multiplier, and `analytics` divides it back
+    out to get the plain-DCA baseline, so it may never drift towards whatever
+    the exchange charged. Everything about what arrived is the other three
+    columns: `btc_amount` and `price_eur` are read back off the filled order
+    where the exchange said, and `fee_eur` is the slice of the amount that
+    became Coinbase's rather than bitcoin.
+
+    `filled` says which of those two worlds a row is from. False means the
+    numbers were worked out here — every dry run, every imported legacy row, and
+    a real buy whose fill could not be read in time — and a fee of 0 on such a
+    row means "not known", never "none was charged".
+    """
+
     id: Optional[int] = Field(default=None, primary_key=True)
     timestamp: datetime = Field(index=True)
     price_eur: float
@@ -20,6 +36,8 @@ class Purchase(SQLModel, table=True):
     order_id: str = ""
     status: str = ""
     dry_run: bool = True
+    fee_eur: float = 0.0
+    filled: bool = False
 
 
 class BotSettings(SQLModel, table=True):

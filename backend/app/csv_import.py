@@ -49,6 +49,10 @@ def import_purchases_csv(session: Session, text: str, include_errors: bool) -> d
             row = row[:8] + ["", row[8]]
 
         (ts, price, amount, btc, fng, rsi, ma, score, order_id, status) = row[:10]
+        # Drip's own export carries two more: what the exchange charged and
+        # whether the row's bitcoin was read off a real fill. A legacy file has
+        # neither, and a row without them is exactly what `filled=False` means.
+        fee, filled = (row + ["", ""])[10:12]
 
         if order_id == ORDER_ID_ERROR and not include_errors:
             skipped += 1
@@ -84,6 +88,8 @@ def import_purchases_csv(session: Session, text: str, include_errors: bool) -> d
                 status=STATUS_MAP.get(status.strip(), status.strip()),
                 dry_run=(status.strip().lower() == STATUS_TEST.lower()
                          or order_id == ORDER_ID_DRY_RUN),
+                fee_eur=float(fee) if fee.strip() else 0.0,
+                filled=filled.strip() in {"1", "True", "true"},
             )
         except ValueError as exc:
             errors.append({"line": line_no, "message": f"Could not parse numbers: {exc}"})

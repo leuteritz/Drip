@@ -283,8 +283,17 @@ export default function HistorySection({
                       {formatTimestamp(p.timestamp)}
                     </td>
                     <td className="px-4 py-3 text-right">{fmtEur(p.price_eur, 0)}</td>
-                    <td className="px-4 py-3 text-right font-bold">
-                      {fmtEur(p.amount_eur)}
+                    {/* The amount is what the buy was ordered for; the fee is
+                        the slice of it that never became bitcoin, so it belongs
+                        under the number it came out of rather than in a column
+                        of its own. Absent on every buy that has none. */}
+                    <td className="px-4 py-3 text-right leading-tight">
+                      <div className="font-bold">{fmtEur(p.amount_eur)}</div>
+                      {p.fee_eur > 0 && (
+                        <div className="text-2xs text-ink-soft">
+                          {fmtEur(p.fee_eur)} fee
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right text-ink-soft">
                       {p.btc_amount.toFixed(8)}
@@ -410,10 +419,11 @@ export default function HistorySection({
  * One buy, as a card — the phone's row of the same table.
  *
  * It carries every column the table does, in the order they are actually read:
- * when it landed and what it cost you, then how hard the bot bought and whether
- * the order went through, then the price it paid and the bitcoin it got, and
- * last the two readings behind the score. The bitcoin amount follows the unit
- * switch, like every other quantity on the page.
+ * when it landed and what it cost you — the exchange's fee under the amount it
+ * came out of — then how hard the bot bought and whether the order went
+ * through, then the price it paid and the bitcoin it got, and last the two
+ * readings behind the score. The bitcoin amount follows the unit switch, like
+ * every other quantity on the page.
  */
 function BuyCard({
   purchase,
@@ -435,8 +445,15 @@ function BuyCard({
         <span className="text-sm font-bold text-ink">
           {formatTimestamp(purchase.timestamp)}
         </span>
-        <span className="font-display text-2xl font-semibold leading-none text-ink">
-          {fmtEur(purchase.amount_eur)}
+        <span className="text-right">
+          <span className="block font-display text-2xl font-semibold leading-none text-ink">
+            {fmtEur(purchase.amount_eur)}
+          </span>
+          {purchase.fee_eur > 0 && (
+            <span className="mt-1 block text-2xs text-ink-soft">
+              {fmtEur(purchase.fee_eur)} fee
+            </span>
+          )}
         </span>
       </div>
 

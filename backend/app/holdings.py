@@ -8,6 +8,13 @@ average price over the same stretch: a buyer who simply spread the same money
 evenly across every day would have paid that, so beating it is the actual
 measure of a well-timed drip, and it stays meaningful in a market that fell.
 
+That average is euros over bitcoin, so it is what a coin cost *after* the
+exchange took its cut — the fee never became bitcoin, and it therefore sits in
+the gap between this average and the market's own. Right, but invisible, so the
+fee is reported beside it rather than left as an unexplained shortfall. Only
+buys that reported a fill know what they were charged, which is what
+`fees_from` counts.
+
 *Holding ages* is the German one-year rule (§23 EStG): bitcoin held longer than
 a year leaves the private-sale window. Drip only ever buys, so there is nothing
 to match sells against and every purchase is simply its own lot — FIFO and any
@@ -60,6 +67,14 @@ def _cost_basis(session: Session, purchases: list[Purchase], price: float) -> di
     prices = [p.price_eur for p in purchases if p.price_eur > 0]
     avg_price = invested / btc if btc else 0.0
 
+    # Only a buy that reported its fill knows what it was charged, so the sum
+    # is over those alone and the count says how many that was. A history from
+    # before Drip read fills back has none, and reporting 0 as a total there
+    # would be an invented number rather than a missing one.
+    charged = [p for p in purchases if p.filled]
+    fees = sum(p.fee_eur for p in charged)
+    charged_eur = sum(p.amount_eur for p in charged)
+
     twap = 0.0
     first_day = purchases[0].timestamp.date() if purchases else None
     if first_day:
@@ -80,6 +95,9 @@ def _cost_basis(session: Session, purchases: list[Purchase], price: float) -> di
         # Positive means the average euro went in below the market's average -
         # the only sense in which a drip can be said to have bought well.
         "advantage_pct": ((twap - avg_price) / twap * 100) if twap and avg_price else 0.0,
+        "fees_eur": fees,
+        "fees_pct": (fees / charged_eur * 100) if charged_eur else 0.0,
+        "fees_from": len(charged),
         "best_price_eur": min(prices) if prices else 0.0,
         "worst_price_eur": max(prices) if prices else 0.0,
         "first_buy": first_day.isoformat() if first_day else None,

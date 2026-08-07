@@ -308,6 +308,13 @@ class CostBasis(BaseModel):
     worst_price_eur: float
     first_buy: Optional[str]
     days: int
+    # Coinbase's share of the same euros. Only the buys that reported a fill
+    # can be summed, so `fees_from` says how many of the counted buys that was
+    # — an install whose history predates the fill being read has 0 of them,
+    # which is not the same as having paid nothing.
+    fees_eur: float = 0.0
+    fees_pct: float = 0.0
+    fees_from: int = 0
 
 
 class HoldingBucket(BaseModel):
@@ -467,6 +474,12 @@ class PurchaseResponse(BaseModel):
     order_id: str
     status: str
     dry_run: bool
+    # What the exchange charged, and whether it said so at all. `filled` false
+    # means the row's bitcoin was worked out from the amount and the price
+    # rather than read off the order — every dry run and every imported row —
+    # and a fee of 0 there means unknown, not free.
+    fee_eur: float = 0.0
+    filled: bool = False
 
 
 class RunResultResponse(BaseModel):

@@ -69,6 +69,15 @@ export default function CostBasisCard({
               real answer even in a year when the price fell.
             </p>
             <p className="mt-2">
+              Your average is what you actually got for your money, so the exchange
+              fee is already inside it &mdash; the part of each buy that became
+              Coinbase&apos;s rather than bitcoin pushes the price per coin up.
+              That is why it is worth seeing next to the average rather than
+              buried in the gap below the market. Only buys Drip could read back
+              off the order know what they were charged, so an older history has
+              nothing to add up here.
+            </p>
+            <p className="mt-2">
               The chart says the same thing per buy, in sats per euro: how much
               bitcoin each euro bought that day. It is simply the price upside down,
               so the tallest bars are the cheapest buys.
@@ -99,7 +108,11 @@ export default function CostBasisCard({
         </p>
       ) : (
         <>
-          <div className="mb-3 flex flex-wrap gap-2">
+          {/* A grid rather than a wrapping row: the fifth tile arrived and a
+              flex row stretched it across the whole card, which made the fee
+              the loudest figure on a card about what a coin cost. Equal
+              columns keep the five the same size, whichever of them wrap. */}
+          <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <Stat
               label="You paid on average"
               hint={`${basis.purchase_count} buys over ${basis.days} days`}
@@ -126,6 +139,19 @@ export default function CostBasisCard({
             >
               {fmtSats(sats.averageSatsPerEur)}
             </Stat>
+            {/* Only the buys that reported a fill know what they cost in fees,
+                so this stays away entirely until one of them has — a zero here
+                would read as "nothing was charged" rather than "not recorded". */}
+            {basis.fees_from > 0 && (
+              <Stat
+                label="Coinbase took"
+                hint={`${basis.fees_pct.toFixed(2)}% of ${basis.fees_from} ${
+                  basis.fees_from === 1 ? "buy" : "buys"
+                }`}
+              >
+                {fmtEur(basis.fees_eur)}
+              </Stat>
+            )}
           </div>
 
           <div className="h-56">
