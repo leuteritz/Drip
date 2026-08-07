@@ -1,5 +1,5 @@
-"""SQLModel tables: purchases, bot settings, digest settings, credentials,
-candle cache."""
+"""SQLModel tables: purchases, bot settings, pause windows, digest settings,
+credentials, candle cache."""
 from datetime import date, datetime
 from typing import Optional
 
@@ -34,6 +34,34 @@ class BotSettings(SQLModel, table=True):
     # it is the one thing here that can spend money at a moment nobody chose,
     # so it is asked for rather than assumed. See `pulse.missed_slot`.
     catch_up: bool = False
+
+
+class PauseWindow(SQLModel, table=True):
+    """A stretch the bot was deliberately told to stand still for.
+
+    `BotSettings.paused_until` says whether Drip is paused *now* and nothing
+    about last winter, which left the one hole in `pulse`: a fortnight somebody
+    chose to skip looked exactly like a fortnight the Pi spent switched off at
+    the wall, and both were reported as weeks the drip failed to land in. A row
+    here is that missing fact — written when a pause is asked for, closed when
+    it is lifted — so a skipped week can be told from a lost one.
+
+    Deliberately a record and not a control: nothing schedules from these rows.
+    `paused_until` still decides what happens next; this only remembers what was
+    already decided, which is why it can be written after the fact without
+    changing a single buy.
+
+    `until` is the last day covered, inclusive — the same reading `is_paused`
+    gives that column. `ended_at` is set only when a pause is lifted before it
+    would have run out, and it is what makes the window shorter than `until`
+    promised. An open window is one with no `ended_at` whose `until` has not
+    passed.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    started_at: datetime = Field(index=True)
+    until: date
+    ended_at: Optional[datetime] = None
 
 
 class DigestSettings(SQLModel, table=True):

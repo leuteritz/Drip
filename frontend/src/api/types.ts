@@ -141,8 +141,8 @@ export interface PulseWeek {
   /** The day the schedule would have bought on — only read for a missed week. */
   expected: string;
   /** `landed` — a buy went through · `failed` — it tried and the order errored ·
-   *  `missed` — nothing happened at all. */
-  state: "landed" | "failed" | "missed";
+   *  `missed` — nothing happened at all · `paused` — nothing was meant to. */
+  state: "landed" | "failed" | "missed" | "paused";
   buys: number;
   eur: number;
   sats: number;
@@ -164,9 +164,14 @@ export interface Pulse {
   as_of: string;
   window_weeks: number;
   weeks_checked: number;
+  /** `weeks_checked` minus the paused ones — what `coverage_pct` is a share of.
+   *  A week nobody wanted is not a week the bot got wrong. */
+  weeks_judged: number;
   landed: number;
   failed: number;
   missed: number;
+  /** Weeks whose slot fell inside a pause you asked for. */
+  paused: number;
   coverage_pct: number;
   base_amount_eur: number;
   first_buy: string | null;

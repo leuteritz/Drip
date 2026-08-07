@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.27",
+    date: "2026-08-07",
+    changes: [
+      "Drip remembers the weeks you paused it: they stand in sand on the weeks card, count neither for you nor against you, and stop dragging the percentage down",
+      "A paused week is never bought late either — catching up used to buy the very week it had just been told to skip, as soon as the pause ran out",
+    ],
+  },
+  {
     version: "2.26",
     date: "2026-08-07",
     changes: [

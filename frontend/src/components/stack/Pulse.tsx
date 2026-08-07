@@ -7,10 +7,25 @@ import { Card, CardHeader, Loading, Note, Stat, Toggle } from "../ui";
 /** How many gaps are named in words before the rest are counted in one line. */
 const GAPS_LISTED = 5;
 
+/**
+ * A week is one of four things, and only two of them are faults.
+ *
+ * `paused` is a muted `ink` rather than a colour of its own: a week you asked
+ * for nothing in is not a result, and the palette has no hue that means "not a
+ * question" — rose is for the weeks Drip meant to buy and did not. Grey is the
+ * one reading left, and it works in both themes because `ink` flips with them,
+ * dark type on a light card and light type on a dark one, so the mark stays a
+ * quiet notch against the strip either way.
+ *
+ * Not `sand`: the strip's own bed is `sand-soft`, so a sand mark came out
+ * darker than the tray it sat in and read as a hole punched through the record
+ * — which is precisely the thing this state exists to stop it saying.
+ */
 const MARK: Record<PulseWeek["state"], string> = {
   landed: "bg-water",
   failed: "bg-rose",
   missed: "bg-rose/45",
+  paused: "bg-ink/30",
 };
 
 /**
@@ -91,11 +106,14 @@ export default function PulseCard({
             </p>
             <p className="mt-2">
               <strong className="font-semibold text-ink">
-                A week you paused looks exactly like a week the Pi was off.
+                A week you paused is not a week that went wrong.
               </strong>{" "}
-              Drip stores when the pause ends and no record of past ones, so it
-              cannot tell the two apart afterwards. Weeks before your first buy are
-              never counted.
+              Drip writes down every pause you ask for, so those weeks are marked in
+              grey and left out of the count entirely &mdash; a fortnight off does not
+              dent the percentage, and Drip will not buy that week later either.
+              Pauses from before this was recorded cannot be recovered, so weeks older
+              than your first paused one still read as gaps. Weeks before your first
+              buy are never counted.
             </p>
             <p className="mt-2">
               Switch <strong className="font-semibold text-ink">catching up</strong> on
@@ -135,9 +153,13 @@ export default function PulseCard({
       ) : (
         <>
           <div className="mb-4 flex flex-wrap gap-2">
+            {/* Of the weeks that were *asked* for: a fortnight you paused is
+                out of the denominator, not counted against you. */}
             <Stat
               label="Weeks bought"
-              hint={`of the last ${data.weeks_checked} · ${data.coverage_pct.toFixed(0)}%`}
+              hint={`of the last ${data.weeks_judged} · ${data.coverage_pct.toFixed(0)}%${
+                data.paused ? ` · ${data.paused} paused` : ""
+              }`}
             >
               {data.landed}
             </Stat>
@@ -203,8 +225,12 @@ export default function PulseCard({
 
           <Note>
             {clean
-              ? `Every one of the last ${data.weeks_checked} weeks got its buy.`
+              ? `Every one of the last ${data.weeks_judged} weeks got its buy.`
               : "One mark per week — the rose ones are the weeks a buy never landed."}
+            {data.paused > 0 &&
+              (data.paused === 1
+                ? " The grey mark is a week you paused, which counts neither way."
+                : ` The ${data.paused} grey marks are weeks you paused, which count neither way.`)}
           </Note>
         </>
       )}
@@ -247,6 +273,7 @@ function WeekStrip({
     const when = `Week of ${formatDayMonthYear(week.start)}`;
     if (week.state === "missed") return `${when} — nothing bought`;
     if (week.state === "failed") return `${when} — the order failed`;
+    if (week.state === "paused") return `${when} — paused, no buy was due`;
     return `${when} — ${week.buys} ${week.buys === 1 ? "buy" : "buys"}, ${fmtEur(
       week.eur,
     )}, ${stackAmount(week.sats / SATS_PER_BTC)}`;
@@ -256,7 +283,9 @@ function WeekStrip({
     <>
       <div
         role="img"
-        aria-label={`${data.landed} of the last ${data.weeks_checked} weeks got a buy`}
+        aria-label={`${data.landed} of the last ${data.weeks_judged} weeks got a buy${
+          data.paused ? `, ${data.paused} more paused` : ""
+        }`}
         className="grid grid-flow-col auto-cols-fr gap-px overflow-hidden rounded-lg bg-sand-soft/60 p-1 sm:gap-0.5"
       >
         {data.weeks.map((week) => (
@@ -273,6 +302,9 @@ function WeekStrip({
           <Key className="bg-water">bought</Key>
           <Key className="bg-rose/45">nothing</Key>
           <Key className="bg-rose">failed</Key>
+          {/* Only once there is one to explain: four keys is a wrapped line on
+              a phone, and a state nobody has is not worth the room. */}
+          {data.paused > 0 && <Key className="bg-ink/30">paused</Key>}
         </div>
         <span>this week</span>
       </div>

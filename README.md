@@ -15,9 +15,8 @@ default; live trading is a confirmed opt-in.
 - **Four instruments float on it** - the signal, the market's mood, the price and your
   Coinbase well, whose button turns into Coinbase when you point at it.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
-  the rate you stack at carried to the next round number of sats, and a record of the
-  weeks the drip actually landed in - a week the Pi slept through can be bought when it
-  wakes. Green in the plus, rose in the minus.
+  the rate you stack at, and a record of the weeks the drip actually landed in - one the
+  Pi slept through can be bought when it wakes, and one you paused is told apart from it.
 - **The drip is set where it is read** - click the amount, or the chip with the day and
   time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves:

@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
-from .. import scheduler
+from .. import pauses, scheduler
 from ..database import get_session, load_settings
 from ..models import BotSettings
 from ..schemas import PauseRequest, SettingsUpdate
@@ -29,6 +29,11 @@ def update_settings(update: SettingsUpdate, session: Session = Depends(get_sessi
     data = update.model_dump(exclude_unset=True)
     for key, value in data.items():
         setattr(settings, key, value)
+    # Pausing is pausing however it was asked for: the dashboard uses the two
+    # endpoints below, but this one can set the same column and the record may
+    # not depend on which door somebody came through.
+    if "paused_until" in data:
+        pauses.record(session, settings.paused_until)
     settings = _persist(session, settings)
 
     # Schedule changes only take effect once the cron job is rebuilt
@@ -46,6 +51,10 @@ def update_settings(update: SettingsUpdate, session: Session = Depends(get_sessi
 def pause(request: PauseRequest, session: Session = Depends(get_session)):
     settings = load_settings(session)
     settings.paused_until = date.today() + timedelta(days=request.days)
+    # The instruction is `paused_until`; the row beside it is the memory of it,
+    # and it is what stops these weeks being reported as failures once the date
+    # has passed. See `pauses`.
+    pauses.record(session, settings.paused_until)
     return _persist(session, settings)
 
 
@@ -53,4 +62,5 @@ def pause(request: PauseRequest, session: Session = Depends(get_session)):
 def resume(session: Session = Depends(get_session)):
     settings = load_settings(session)
     settings.paused_until = None
+    pauses.record(session, None)
     return _persist(session, settings)

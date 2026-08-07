@@ -381,8 +381,9 @@ class OutlookResponse(BaseModel):
 
 class PulseWeek(BaseModel):
     """One calendar week of the record. `state` is one of landed / failed /
-    missed — a failed order still means the machine woke up, which is why it is
-    not the same as silence."""
+    missed / paused — a failed order still means the machine woke up, which is
+    why it is not the same as silence, and a paused week means the silence was
+    asked for."""
 
     start: str
     expected: str
@@ -428,14 +429,21 @@ class PulseResponse(BaseModel):
     Counts every run, test or live: the question is whether the bot woke up,
     not whether it spent money. `weeks_checked` starts at the first buy — Drip
     cannot have missed a week it did not exist for.
+
+    `weeks_judged` is `weeks_checked` minus the weeks that were deliberately
+    paused, and it is what `coverage_pct` is a share of: a week nobody wanted is
+    not a week the bot got wrong, so it leaves the figure alone instead of
+    dragging it down.
     """
 
     as_of: str
     window_weeks: int
     weeks_checked: int
+    weeks_judged: int
     landed: int
     failed: int
     missed: int
+    paused: int
     coverage_pct: float
     base_amount_eur: float
     first_buy: Optional[str]

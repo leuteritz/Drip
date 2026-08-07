@@ -119,10 +119,19 @@ def _pulse_line(beat: dict) -> str:
     an overdue buy is the one thing in this whole report worth reading first,
     and it is the reason the block is in the message rather than only on a
     dashboard nobody is standing in front of.
+
+    The count is of the weeks that were *asked* for: a paused week is named at
+    the end rather than counted at the front, so a fortnight off never reads as
+    a fortnight the bot slept through.
     """
-    checked = beat["weeks_checked"]
+    judged = beat["weeks_judged"]
+    paused = beat["paused"]
+    if not judged:
+        weeks = "week" if paused == 1 else "weeks"
+        return f"**Paused** - none of the last {paused} {weeks} was due"
+
     if beat["missed"] or beat["failed"]:
-        line = f"**{beat['landed']} of the last {checked} weeks** bought"
+        line = f"**{beat['landed']} of the last {judged} weeks** bought"
         if beat["missed"]:
             line += f" · {beat['missed']} missed"
             if beat["gap_cost"]["sats"]:
@@ -131,7 +140,10 @@ def _pulse_line(beat: dict) -> str:
             weeks = "week" if beat["failed"] == 1 else "weeks"
             line += f" · {beat['failed']} {weeks} the order failed"
     else:
-        line = f"**Every one of the last {checked} weeks** bought"
+        line = f"**Every one of the last {judged} weeks** bought"
+
+    if paused:
+        line += f" · {paused} paused on purpose"
 
     if beat["overdue"]["overdue"]:
         days = beat["overdue"]["days"]

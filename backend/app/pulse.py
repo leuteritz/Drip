@@ -15,12 +15,17 @@ not whether it spent money — so unlike the rest of the dashboard this ignores
 the dry-run filter entirely, and a week whose only row is a failed order gets a
 third state of its own rather than being counted as silence.
 
-*A pause is not a gap, and cannot always be told apart from one.* Drip stores
-`paused_until` and no history of it, so a fortnight paused last winter looks
-exactly like a fortnight switched off at the wall. The card says so rather than
-pretending otherwise. The one pause that *is* knowable — the current one —
-suppresses the overdue warning, because a bot deliberately paused has not
-failed.
+*A pause is not a gap.* A week nobody wanted is not a week that went wrong, so
+it gets a state of its own and leaves the coverage figure alone entirely —
+counted neither as kept nor as lost, because a holiday is not a score. What
+makes that possible is `pauses`, which records the stretches Drip was told to
+stand still for; `paused_until` on its own is an instruction about today and
+remembers nothing. The current pause also suppresses the overdue warning, for
+the same reason it always did.
+
+The record only reaches back to the first pause that was written down. Weeks
+before that stay silent rather than being guessed at — this module never infers
+a pause from a gap, which is exactly the lie it exists to avoid.
 
 *What a gap cost is priced, not guessed.* A missed week is worth one buy at
 today's base amount and that day's close, read out of the candle cache — no new
@@ -35,6 +40,7 @@ from datetime import date, datetime, time, timedelta
 
 from sqlmodel import Session, select
 
+from . import pauses
 from .bot import is_paused
 from .constants import ORDER_ID_ERROR
 from .database import load_settings
@@ -57,6 +63,9 @@ PRICE_SEARCH_DAYS = 4
 LANDED = "landed"
 FAILED = "failed"
 MISSED = "missed"
+# A week whose slot fell inside a recorded pause. Never a fault, never priced,
+# and never in the coverage figure's denominator — see `_state`.
+PAUSED = "paused"
 
 
 def _week_start(day: date) -> date:
@@ -75,6 +84,33 @@ def _last_slot(weekday: int, schedule_time: str, now: datetime) -> datetime:
     days_back = (now.weekday() - weekday) % 7
     slot = datetime.combine(now.date() - timedelta(days=days_back), time(hour, minute))
     return slot - timedelta(days=7) if slot > now else slot
+
+
+def _slot_on(day: date, schedule_time: str) -> datetime:
+    """The exact moment that day's buy was due.
+
+    A pause is compared against the moment, not the date: one asked for on
+    Monday afternoon cannot excuse a buy that was due on Monday morning.
+    """
+    hour, minute = (int(x) for x in schedule_time.split(":"))
+    return datetime.combine(day, time(hour, minute))
+
+
+def _state(found: list[Purchase], real: list[Purchase], slot: datetime,
+           recorded: list) -> str:
+    """What to call a week.
+
+    A run of any kind outranks the pause record, because this card is about
+    whether the machine woke up: a dry run inside a paused fortnight is still
+    the Pi saying hello, and a failed order is still the exchange answering.
+    Only a silent week is read against the record — and a silent week that was
+    asked for is not a gap at all.
+    """
+    if real:
+        return LANDED
+    if found:
+        return FAILED
+    return PAUSED if pauses.covers(recorded, slot) else MISSED
 
 
 def _close_near(prices: dict[date, float], day: date) -> float:
@@ -99,6 +135,8 @@ def _empty(weeks: int, as_of: date, base_amount: float) -> dict:
         "landed": 0,
         "failed": 0,
         "missed": 0,
+        "paused": 0,
+        "weeks_judged": 0,
         "coverage_pct": 0.0,
         "base_amount_eur": base_amount,
         "first_buy": None,
@@ -117,10 +155,16 @@ def missed_slot(session: Session) -> datetime | None:
     returns the slot itself rather than a flag, so the buy it triggers can say
     how late it is instead of pretending to be this week's.
 
-    Three ways there is nothing to catch up, and each is a way of not buying at
+    Four ways there is nothing to catch up, and each is a way of not buying at
     a moment nobody chose:
 
     * **Paused.** A bot told to skip the week has not missed it.
+    * **Paused *then*.** A pause that has since run out still covers the slot it
+      ran over: a fortnight off used to end with Drip buying the week it had
+      just been told to skip, because by the time it looked, `paused_until` said
+      nothing had ever been asked for. The record in `pauses` is what closes
+      that — the one place here where remembering a pause stops money moving
+      rather than only relabelling a square on a card.
     * **No history at all.** Drip cannot have missed a week it did not exist
       for — the same rule the window uses — and a fresh install must never spend
       money on its first boot.
@@ -140,6 +184,9 @@ def missed_slot(session: Session) -> datetime | None:
         return None
 
     slot = _last_slot(settings.schedule_weekday, settings.schedule_time, datetime.now())
+    if pauses.covers(pauses.windows(session, since=slot.date()), slot):
+        return None
+
     ran = session.exec(select(Purchase).where(Purchase.timestamp >= slot).limit(1))
     return None if ran.first() else slot
 
@@ -172,17 +219,23 @@ def summary(session: Session, weeks: int = WEEKS) -> dict:
     for row in rows:
         by_week.setdefault(_week_start(row.timestamp.date()), []).append(row)
 
+    # Only pauses that can still reach into the plotted span — one lifted before
+    # the window opens has nothing here to explain.
+    recorded = pauses.windows(session, since=start)
+
     window: list[dict] = []
     for index in range(span):
         week_start = start + timedelta(days=7 * index)
+        # The day the schedule would have bought on. Read for a missed week, to
+        # price it, and for a silent one, to ask whether it was asked for.
+        expected = week_start + timedelta(days=settings.schedule_weekday)
         found = by_week.get(week_start, [])
         real = [p for p in found if p.order_id != ORDER_ID_ERROR]
         window.append({
             "start": week_start.isoformat(),
-            # The day the schedule would have bought on. Only ever read for a
-            # missed week: what a week that landed is worth is on its own rows.
-            "expected": (week_start + timedelta(days=settings.schedule_weekday)).isoformat(),
-            "state": LANDED if real else FAILED if found else MISSED,
+            "expected": expected.isoformat(),
+            "state": _state(found, real,
+                            _slot_on(expected, settings.schedule_time), recorded),
             "buys": len(real),
             "eur": sum(p.amount_eur for p in real),
             "sats": sum(p.btc_amount for p in real) * SATS_PER_BTC,
@@ -191,6 +244,11 @@ def summary(session: Session, weeks: int = WEEKS) -> dict:
     gaps = _price_gaps(session, window, settings.base_amount_eur, today)
     landed = sum(1 for w in window if w["state"] == LANDED)
     failed = sum(1 for w in window if w["state"] == FAILED)
+    paused = sum(1 for w in window if w["state"] == PAUSED)
+    # Weeks nobody wanted are out of the denominator, not counted against it: a
+    # fortnight off is not 96% of a year, it is a fortnight that was never a
+    # question. Judging what is left is what keeps the figure worth reading.
+    judged = len(window) - paused
 
     return {
         "as_of": today.isoformat(),
@@ -199,7 +257,9 @@ def summary(session: Session, weeks: int = WEEKS) -> dict:
         "landed": landed,
         "failed": failed,
         "missed": len(gaps),
-        "coverage_pct": landed / len(window) * 100 if window else 0.0,
+        "paused": paused,
+        "weeks_judged": judged,
+        "coverage_pct": landed / judged * 100 if judged else 0.0,
         "base_amount_eur": settings.base_amount_eur,
         "first_buy": rows[0].timestamp.date().isoformat(),
         "weeks": window,
