@@ -104,42 +104,53 @@ const SUB =
  * which is the one thing Drip cannot do. Together they say "add money, over
  * there", which is exactly what the link is.
  *
- * The **word** is not on a breakpoint, and that was measured rather than
- * guessed. The hero is a fixed number of rem wide and the root size grows with
- * the window, so a chip is ~210px of ~13px type at 1280 and ~240px of ~15px
- * type at 1600 — the ratio never changes, and "Deposit" spelled out leaves the
- * balance 7px of clearance at *every* width. Five figures fit; six would be
- * truncated, and the balance is the one thing on this chip that may never be.
+ * **No word at rest, in any state**, and that was measured rather than guessed.
+ * The hero is a fixed number of rem and the root size grows with the window, so
+ * the chip-to-type ratio never changes: a spelled-out pill leaves the balance
+ * ~7px of clearance at 1280 *and* at 1920, and a permanent one starved the
+ * figure outright once the pill also had to hold "Coinbase". The balance is the
+ * one thing on this chip that may never be shortened, so the word is something
+ * the pointer asks for — see `TopUp`.
  *
- * So the word appears on the **state that needs it** instead: a well running
- * dry, or one with no key yet. Both have a short figure beside them (a small
- * balance, or an em dash), both are the moment somebody has to act, and the
- * dry one wears `rose-pale` — the same colour the line under it turns, since a
- * figure on the water can never use the `-soft` tints. Full otherwise, it is
- * two marks and no word, which is all a healthy well needs.
+ * What the **state** changes is the colour, which costs no width at all: a well
+ * running dry, or one with no key yet, wears `rose-pale` — the same colour the
+ * line under it turns, since a figure on the water can never use the `-soft`
+ * tints. The hover colour beats both, because it belongs to neither.
  */
 const TOP_UP =
-  "group flex h-9 shrink-0 items-center gap-1 rounded-full border px-2 " +
-  "text-2xs font-bold uppercase tracking-[0.1em] " +
-  "transition duration-200 ease-out hover:-translate-y-1 active:translate-y-0 " +
-  "active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 " +
-  "focus-visible:outline-cream max-sm:h-11 max-sm:px-3";
+  "group absolute bottom-0 right-0 flex h-9 items-center gap-1 overflow-hidden " +
+  "rounded-full border px-2 text-2xs font-bold uppercase tracking-[0.1em] " +
+  "backdrop-blur-md transition-all duration-300 ease-out " +
+  "hover:border-coinbase hover:bg-coinbase hover:text-cream " +
+  "focus-visible:border-coinbase focus-visible:bg-coinbase focus-visible:text-cream " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream " +
+  "max-sm:h-11 max-sm:px-3";
 /** Quiet: the well is fine and this is only the way to keep it that way. */
-const TOP_UP_CALM =
-  "border-cream/35 bg-cream/12 text-cream hover:border-cream/60 hover:bg-cream/25 " +
-  "hover:shadow-[0_10px_20px_-10px_rgba(0,0,0,.8)]";
+const TOP_UP_CALM = "border-cream/35 bg-cream/12 text-cream";
 /** Loud: the well is nearly empty, or was never filled. */
-const TOP_UP_LOW =
-  "border-rose-pale/50 bg-rose-pale/15 text-rose-pale hover:border-rose-pale/80 " +
-  "hover:bg-rose-pale/30 hover:shadow-[0_10px_20px_-10px_rgba(0,0,0,.8)]";
+const TOP_UP_LOW = "border-rose-pale/50 bg-rose-pale/15 text-rose-pale";
 /**
- * The out-mark leaves before you do: on hover it lifts out of the pill in the
- * direction it points, which is the whole gesture said in two pixels. The pill
- * rises to meet the pointer and presses back in on the tap, so a touch screen —
- * which has no hover at all — still gets an answer to having been touched.
+ * The room the pill needs while nobody is pointing at it. It floats **over**
+ * the figure's line rather than in it, so growing on hover cannot push the
+ * balance around or shorten it; this is the space the balance keeps clear so
+ * the two never sit on top of each other at rest. Two values because the loud
+ * state is already carrying a word.
  */
+const FIGURE_CLEAR = "pr-16";
+/**
+ * The balance steps back while the pill is taking over.
+ *
+ * The pill grows across it on hover, and a figure half-covered by a button
+ * reads as a bug; faded, the same overlap reads as the chip changing what it is
+ * about for as long as you are pointing at it. `group-has-[a:hover]` rather
+ * than a plain group hover, so passing over the *number* leaves it alone — it
+ * is only the link taking the chip over that dims it.
+ */
+const FIGURE_STEPS_BACK =
+  "transition-opacity duration-300 ease-out group-has-[a:hover]/well:opacity-25";
+/** The out-mark leaves before you do — a nudge in the direction it points. */
 const MARK_MOVE =
-  "text-2xs transition-transform duration-200 ease-out " +
+  "text-2xs transition-all duration-300 ease-out group-hover:text-cream " +
   "group-hover:-translate-y-px group-hover:translate-x-px";
 
 /** The shared track every rail is drawn on. */
@@ -361,7 +372,19 @@ const WELL_FULL_AT_BUYS = 10;
 /** At or below this many remaining buys the well reads as running dry. */
 const WELL_LOW_BUYS = 2;
 
-/** Fills the well: Coinbase's deposit page, in a tab of its own. */
+/**
+ * Fills the well: Coinbase's deposit page, in a tab of its own.
+ *
+ * **It becomes its destination while you point at it.** Drip's own glass turns
+ * Coinbase blue and the word turns into "Coinbase" — the button's whole job is
+ * to hand you to another company, so the moment it takes over it stops looking
+ * like this app and starts looking like where it is about to send you. That
+ * says it better than any wording, and it is why `--color-coinbase` exists.
+ *
+ * It floats over the figure's line rather than sitting in it, so growing to fit
+ * the longer word cannot push the balance around or clip it — `FIGURE_CLEAR` is
+ * the space the balance keeps free for it at rest.
+ */
 function TopUp({ low = false }: { low?: boolean }) {
   return (
     <OutLink
@@ -370,11 +393,15 @@ function TopUp({ low = false }: { low?: boolean }) {
       className={`${TOP_UP} ${low ? TOP_UP_LOW : TOP_UP_CALM}`}
       markClassName={`${MARK_MOVE} ${low ? "opacity-80" : "text-cream/70"}`}
     >
-      <PlusIcon
-        className="shrink-0 text-sm transition-transform duration-200 ease-out group-hover:scale-125"
-        aria-hidden="true"
-      />
-      {low && <span>Deposit</span>}
+      <PlusIcon className="shrink-0 text-sm" aria-hidden="true" />
+      {/* The name unrolls out of the mark on hover and rolls back in when the
+          pointer leaves. It is never here at rest, in either state: the pill
+          shares the chip with a five-figure balance, and a word standing there
+          permanently is a word taking the figure's room. What the loud state
+          changes is the colour, which costs nothing. */}
+      <span className="max-w-0 overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:max-w-28 group-hover:opacity-100">
+        <span className="block whitespace-nowrap">Coinbase</span>
+      </span>
     </OutLink>
   );
 }
@@ -419,11 +446,15 @@ export function WellReadout({
     <Gauge label="Coinbase well" icon={CoinsIcon}>
       {balance.configured && eur != null ? (
         <>
-          <div className={`${FIGURE} flex items-end justify-between gap-2`}>
+          <div className={`${FIGURE} group/well relative flex items-end`}>
             {/* Whole euros, like the price beside it: the cents of a balance
                 are not a fact this instrument is for, and they were what the
-                top-up mark had to take its width from. */}
-            <span className="min-w-0 truncate">{fmtEur(eur, 0)}</span>
+                deposit pill had to take its width from. */}
+            <span
+              className={`min-w-0 truncate ${FIGURE_STEPS_BACK} ${FIGURE_CLEAR}`}
+            >
+              {fmtEur(eur, 0)}
+            </span>
             <TopUp low={runningDry} />
           </div>
           <div className={`${SUB} ${runningDry ? "text-rose-pale" : ""}`}>
@@ -443,8 +474,10 @@ export function WellReadout({
         <>
           {/* No key is no reason not to fund the account — the money can be in
               place before Coinbase has been asked for a key at all. */}
-          <div className={`${FIGURE} flex items-end justify-between gap-2`}>
-            <span className="text-cream/55">&mdash;</span>
+          <div className={`${FIGURE} group/well relative flex items-end`}>
+            <span className={`text-cream/55 ${FIGURE_STEPS_BACK} ${FIGURE_CLEAR}`}>
+              &mdash;
+            </span>
             <TopUp low />
           </div>
           <div className={`${SUB} inline-flex items-center gap-1.5`}>

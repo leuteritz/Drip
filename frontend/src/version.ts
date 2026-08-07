@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.26",
+    date: "2026-08-07",
+    changes: [
+      "The well's deposit button turns into Coinbase when you point at it — the glass takes on Coinbase's own blue and the word unrolls beside the plus, so where it sends you is said before you click rather than after",
+      "It floats over the balance instead of beside it, so the longer word can never shorten the figure",
+    ],
+  },
+  {
     version: "2.25",
     date: "2026-08-06",
     changes: [

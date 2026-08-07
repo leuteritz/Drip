@@ -28,6 +28,16 @@
      as a sibling and still separates from it at a glance. */
   --color-kelp: #2e7a58; /* profit - the counterpart to rose */
 
+  /* The second hue from outside the five, and the only one that is not Drip's.
+     It is Coinbase's own blue, and it appears in exactly one place: the deposit
+     pill on the well, while a pointer is on it. The button's whole job is to
+     hand you to another company, so the moment it takes over it stops looking
+     like Drip and starts looking like where it is about to send you — that is
+     the hover, and it says more than any wording could. It never colours a
+     figure, a chart or a state, so it cannot be mistaken for one of ours; the
+     day it appears anywhere else it has stopped meaning "this is not Drip". */
+  --color-coinbase: #0052ff; /* Coinbase blue - the destination, never a datum */
+
   /* Roles that have to survive the day/night flip on their own.
      `cream` and `ink` each carry two jobs in the light theme that pull apart at
      night — page ground vs. type on the water, body type vs. a solid button —
