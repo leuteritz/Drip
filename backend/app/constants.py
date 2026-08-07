@@ -16,3 +16,17 @@ ORDER_ID_ERROR = "ERROR"
 # Purchase.status values
 STATUS_TEST = "Test"
 STATUS_SUCCESS = "Success"
+
+# Purchase.origin — what asked for the buy. Kept because the row cannot be read
+# backwards for it: a buy somebody clicked is stored with multiplier 1.0 and is
+# otherwise identical to a scheduled week that happened to score 1.0x, and a
+# catch-up is a drip that simply appears on the wrong day. On-disk format for
+# the same reason the sentinels above are.
+ORIGIN_SCHEDULE = "schedule"
+ORIGIN_MANUAL = "manual"
+ORIGIN_CATCHUP = "catchup"
+# The empty column: a row written before Drip recorded this, or one imported
+# from a file that never carried it. Unknown — never "scheduled" by default,
+# because guessing is the one thing this column exists to stop.
+ORIGIN_UNKNOWN = ""
+ORIGINS = (ORIGIN_SCHEDULE, ORIGIN_MANUAL, ORIGIN_CATCHUP)

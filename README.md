@@ -18,7 +18,8 @@ default; live trading is a confirmed opt-in.
   the rate you stack at, and the weeks the drip landed in - one the Pi slept through can
   be bought when it wakes, one you paused is told apart from it.
 - **A buy is read back from Coinbase**, never worked out here: your history holds the
-  bitcoin that actually arrived, and the fee that came out of the amount.
+  bitcoin that actually arrived, the fee that came out of the amount, and whether the
+  weekly drip, your own hand or a catch-up asked for it.
 - **The drip is set where it is read** - click the amount, or the chip with the day and
   time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -
@@ -32,9 +33,8 @@ default; live trading is a confirmed opt-in.
   <img src="docs/screenshot-phone-search.png" alt="Searching the buys on a phone" width="31%">
 </p>
 
-*One build, both hands: the sections move to a tab bar along the bottom, figures are set
-larger rather than smaller, the buy history becomes one card per buy, and dialogs rise
-as sheets.*
+*One build, both hands: the sections move to a tab bar, figures are set larger rather
+than smaller, the history becomes one card per buy, and dialogs rise as sheets.*
 
 ## Install
 

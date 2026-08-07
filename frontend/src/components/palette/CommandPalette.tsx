@@ -12,6 +12,7 @@ import {
   type Command,
 } from "../../lib/commands";
 import { fmtEur, formatTimestamp } from "../../lib/format";
+import { originNote } from "../../lib/origin";
 import { hasDataToken, QUERY_EXAMPLES } from "../../lib/query";
 import { RESULT_LIMIT, searchPurchases, type MatchSummary } from "../../lib/search";
 import { useStackAmount } from "../../lib/units";
@@ -353,6 +354,9 @@ function BuyBody({
 }) {
   const failed = purchase.order_id === ORDER_ID_ERROR;
   const status = failed ? "Error" : purchase.dry_run ? "Dry run" : "Bought";
+  // A search for `manual` or `catchup` has to show what it matched on, or the
+  // rows it returns are indistinguishable from any other buy.
+  const origin = originNote(purchase.origin);
 
   return (
     <>
@@ -374,6 +378,7 @@ function BuyBody({
         <span className="flex items-baseline justify-between gap-3 text-xs text-ink-soft">
           <span className="truncate">
             {fmtEur(purchase.price_eur, 0)} · {amount(purchase.btc_amount)} · {status}
+            {origin && ` · ${origin}`}
           </span>
           <span className="shrink-0">&times;{purchase.multiplier}</span>
         </span>

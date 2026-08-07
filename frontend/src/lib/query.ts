@@ -1,7 +1,8 @@
 // A pocket-sized query language for the buy history.
 //
 // Everything the table shows can be asked for in one line: bare words match the
-// date and the status ("august", "monday", "error"), date specs pick out a year,
+// date, the status and where the buy came from ("august", "monday", "error",
+// "manual", "catchup"), date specs pick out a year,
 // a month or a day ("2026", "2026-08", "since:2026-01", "30d"), and `field op
 // value` tokens filter the numbers ("fg<30", "price>60000", "x1.5"). Tokens are
 // ANDed, so "dry fg<30" reads as "dry runs made in fear" and "july price>60000"
@@ -13,6 +14,7 @@
 // it — a second grammar in the palette would be a second thing to learn.
 import { ORDER_ID_ERROR, type Purchase } from "../api/client";
 import { formatTimestamp, WEEKDAYS } from "./format";
+import { ORIGIN_CATCHUP, ORIGIN_MANUAL, ORIGIN_SCHEDULE } from "./origin";
 
 type Predicate = (p: Purchase) => boolean;
 
@@ -35,7 +37,16 @@ const isReal = (p: Purchase) => !p.dry_run && p.order_id !== ORDER_ID_ERROR;
 const isDry = (p: Purchase) => p.dry_run && p.order_id !== ORDER_ID_ERROR;
 const isError = (p: Purchase) => p.order_id === ORDER_ID_ERROR;
 
-/** Words that stand for a whole status on their own. */
+/**
+ * Words that stand for a whole state on their own — how a buy went, and who
+ * asked for it.
+ *
+ * The origin half is here rather than in a category of its own because it reads
+ * the same way: one bare word naming a set of rows, ANDed with everything else,
+ * so `manual 2026` is "the ones I made myself this year". `unknown` is the pair
+ * to `scheduled` and the only way to see the rows that never recorded an
+ * origin — the table stays quiet about them on purpose (see `lib/origin.ts`).
+ */
 const STATUS: Record<string, Predicate> = {
   bought: isReal,
   real: isReal,
@@ -44,6 +55,13 @@ const STATUS: Record<string, Predicate> = {
   test: isDry,
   error: isError,
   failed: isError,
+  manual: (p) => p.origin === ORIGIN_MANUAL,
+  byhand: (p) => p.origin === ORIGIN_MANUAL,
+  scheduled: (p) => p.origin === ORIGIN_SCHEDULE,
+  auto: (p) => p.origin === ORIGIN_SCHEDULE,
+  catchup: (p) => p.origin === ORIGIN_CATCHUP,
+  late: (p) => p.origin === ORIGIN_CATCHUP,
+  unknown: (p) => !p.origin,
 };
 
 const TOKEN = /^([a-z]+)(>=|<=|>|<|=)?(\d+(?:[.,]\d+)?)$/;
@@ -155,7 +173,15 @@ function compare(actual: number, op: string, target: number): boolean {
 /** Everything a bare word is matched against. */
 function haystack(p: Purchase): string {
   const status = isError(p) ? "error failed" : p.dry_run ? "dry run test" : "bought real";
-  return `${formatTimestamp(p.timestamp)} ${p.timestamp} ${status} ${p.order_id}`.toLowerCase();
+  // The words the row wears in the table, so "hand" finds a manual buy the way
+  // it would if you were reading the column rather than filtering it.
+  const origin =
+    p.origin === ORIGIN_MANUAL
+      ? "manual by hand"
+      : p.origin === ORIGIN_CATCHUP
+        ? "catchup caught up late"
+        : "";
+  return `${formatTimestamp(p.timestamp)} ${p.timestamp} ${status} ${origin} ${p.order_id}`.toLowerCase();
 }
 
 /**
@@ -259,11 +285,20 @@ export function buildFilter(query: string): Predicate {
   return (p) => predicates.every((match) => match(p));
 }
 
-/** The one-click shortcuts under the field — each is just a canned token. */
+/**
+ * The one-click shortcuts under the field — each is just a canned token.
+ *
+ * The two origin chips can safely sit here even on an install that has never
+ * used either: a chip carries the count it would leave behind and greys itself
+ * out at zero, so they show up as available only when there is something to
+ * find.
+ */
 export const QUERY_CHIPS: { label: string; token: string }[] = [
   { label: "Real buys", token: "bought" },
   { label: "Dry runs", token: "dry" },
   { label: "Errors", token: "error" },
+  { label: "By hand", token: "manual" },
+  { label: "Caught up", token: "catchup" },
   { label: "Last 90 days", token: "90d" },
   { label: "Bought in fear", token: "fg<30" },
   { label: "Full drops", token: "x1.5" },

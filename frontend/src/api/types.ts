@@ -94,6 +94,12 @@ export interface Purchase {
    * means "not known", not "nothing was charged".
    */
   filled: boolean;
+  /**
+   * What asked for the buy: `schedule`, `manual` or `catchup`. Empty means the
+   * row predates Drip recording it, or came from a file that never carried it —
+   * unknown, and never to be read as "scheduled". See `lib/origin.ts`.
+   */
+  origin: string;
 }
 
 /** Purchase.order_id sentinel for a buy that failed (see backend/app/constants.py). */

@@ -8,7 +8,14 @@ from datetime import datetime
 
 from sqlmodel import Session, select
 
-from .constants import ORDER_ID_DRY_RUN, ORDER_ID_ERROR, STATUS_SUCCESS, STATUS_TEST
+from .constants import (
+    ORDER_ID_DRY_RUN,
+    ORDER_ID_ERROR,
+    ORIGIN_UNKNOWN,
+    ORIGINS,
+    STATUS_SUCCESS,
+    STATUS_TEST,
+)
 from .models import Purchase
 from .strategy import determine_purchase_strategy
 
@@ -49,10 +56,11 @@ def import_purchases_csv(session: Session, text: str, include_errors: bool) -> d
             row = row[:8] + ["", row[8]]
 
         (ts, price, amount, btc, fng, rsi, ma, score, order_id, status) = row[:10]
-        # Drip's own export carries two more: what the exchange charged and
-        # whether the row's bitcoin was read off a real fill. A legacy file has
-        # neither, and a row without them is exactly what `filled=False` means.
-        fee, filled = (row + ["", ""])[10:12]
+        # Drip's own export carries three more: what the exchange charged,
+        # whether the row's bitcoin was read off a real fill, and what asked for
+        # the buy. A legacy file has none of them, and a row without them is
+        # exactly what `filled=False` and an unknown origin mean.
+        fee, filled, origin = (row + ["", "", ""])[10:13]
 
         if order_id == ORDER_ID_ERROR and not include_errors:
             skipped += 1
@@ -90,6 +98,11 @@ def import_purchases_csv(session: Session, text: str, include_errors: bool) -> d
                          or order_id == ORDER_ID_DRY_RUN),
                 fee_eur=float(fee) if fee.strip() else 0.0,
                 filled=filled.strip() in {"1", "True", "true"},
+                # Only a word this bot writes itself is taken; anything else in
+                # that column is somebody else's file and stays unknown, which
+                # is the honest reading of a column that was never there.
+                origin=(origin.strip().lower()
+                        if origin.strip().lower() in ORIGINS else ORIGIN_UNKNOWN),
             )
         except ValueError as exc:
             errors.append({"line": line_no, "message": f"Could not parse numbers: {exc}"})

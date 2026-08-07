@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.29",
+    date: "2026-08-08",
+    changes: [
+      "Every buy now records what asked for it — the weekly drip, a button you pressed, or a week Drip caught up after the Pi had been off — and the history says so under the date",
+      "Ask for them by name in the search: manual, catchup, scheduled, and unknown for the buys made before this was written down",
+      "Buys from before this release are reported as unknown rather than guessed at, and the CSV export carries the new column on the end, so an older reader still opens the file",
+    ],
+  },
+  {
     version: "2.28",
     date: "2026-08-08",
     changes: [

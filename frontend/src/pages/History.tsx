@@ -8,6 +8,7 @@ import XIcon from "~icons/ph/x";
 import { api, ORDER_ID_ERROR, type Purchase } from "../api/client";
 import { fmtEur, formatTimestamp } from "../lib/format";
 import { useStackAmount } from "../lib/units";
+import { originNote } from "../lib/origin";
 import { buildFilter } from "../lib/query";
 import { ScoreDrops } from "../components/drops";
 import PurchaseSearch from "../components/history/PurchaseSearch";
@@ -279,8 +280,17 @@ export default function HistorySection({
                     key={p.id}
                     className={`border-b border-sand/50 ${i % 2 ? "bg-sand-soft/30" : ""}`}
                   >
-                    <td className="whitespace-nowrap px-4 py-3 text-ink">
-                      {formatTimestamp(p.timestamp)}
+                    {/* Where the buy came from goes under its date, the way
+                        the fee goes under the amount it came out of: it is
+                        what explains this row landing on this day. Only the
+                        two exceptions speak — the weekly drip is what Drip
+                        does, and a row that never recorded an origin has
+                        nothing to say. */}
+                    <td className="whitespace-nowrap px-4 py-3 leading-tight text-ink">
+                      <div>{formatTimestamp(p.timestamp)}</div>
+                      {originNote(p.origin) && (
+                        <div className="text-2xs text-ink-soft">{originNote(p.origin)}</div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">{fmtEur(p.price_eur, 0)}</td>
                     {/* The amount is what the buy was ordered for; the fee is
@@ -419,8 +429,9 @@ export default function HistorySection({
  * One buy, as a card — the phone's row of the same table.
  *
  * It carries every column the table does, in the order they are actually read:
- * when it landed and what it cost you — the exchange's fee under the amount it
- * came out of — then how hard the bot bought and whether the order went
+ * when it landed — with what asked for it underneath, on the two kinds of buy
+ * that were not the weekly drip — and what it cost you, the exchange's fee
+ * under the amount it came out of; then how hard the bot bought and whether the order went
  * through, then the price it paid and the bitcoin it got, and last the two
  * readings behind the score. The bitcoin amount follows the unit switch, like
  * every other quantity on the page.
@@ -442,8 +453,13 @@ function BuyCard({
   return (
     <li className="flex flex-col gap-2.5 px-4 py-4">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-bold text-ink">
+        <span className="min-w-0 text-sm font-bold text-ink">
           {formatTimestamp(purchase.timestamp)}
+          {originNote(purchase.origin) && (
+            <span className="mt-0.5 block text-2xs font-semibold text-ink-soft">
+              {originNote(purchase.origin)}
+            </span>
+          )}
         </span>
         <span className="text-right">
           <span className="block font-display text-2xl font-semibold leading-none text-ink">

@@ -26,12 +26,13 @@ def export_purchases(session: Session = Depends(get_session)):
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     # The first ten columns are the legacy format and stay in that order, so a
-    # file from here still reads anywhere the old one did. Fee and Filled are
-    # appended rather than slotted in for the same reason — an older reader
-    # ignores them, and Drip's own importer picks them up when they are there.
+    # file from here still reads anywhere the old one did. Fee, Filled and
+    # Origin are appended rather than slotted in for the same reason — an older
+    # reader ignores the tail, and Drip's own importer picks up whatever of it
+    # is there. Anything new goes on the end too.
     writer.writerow(
         ["Timestamp", "Price", "Amount", "BTC", "FearGreed", "RSI", "MA350",
-         "Score", "OrderID", "Status", "Fee", "Filled"]
+         "Score", "OrderID", "Status", "Fee", "Filled", "Origin"]
     )
     for p in rows:
         writer.writerow([
@@ -47,6 +48,7 @@ def export_purchases(session: Session = Depends(get_session)):
             p.status,
             p.fee_eur,
             int(p.filled),
+            p.origin,
         ])
     return Response(
         content=buffer.getvalue(),

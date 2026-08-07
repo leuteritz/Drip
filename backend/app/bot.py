@@ -14,7 +14,13 @@ from datetime import date, datetime
 from sqlmodel import Session
 
 from . import notifier, strategy
-from .constants import ORDER_ID_DRY_RUN, ORDER_ID_ERROR, STATUS_TEST
+from .constants import (
+    ORDER_ID_DRY_RUN,
+    ORDER_ID_ERROR,
+    ORIGIN_UNKNOWN,
+    ORIGINS,
+    STATUS_TEST,
+)
 from .database import engine, load_settings
 from .models import Purchase
 from .trading import CoinbaseError, place_market_buy
@@ -34,6 +40,10 @@ def run_purchase(dry_run_override: bool | None = None,
 
     dry_run_override: None = use the stored setting,
     otherwise force/lift dry run explicitly (only useful for manual runs).
+    triggered_by: what asked for this run — "schedule", "manual" or "catchup".
+    It decides whether the pause applies and what Discord is told, and it is
+    kept on the row as `Purchase.origin` so the history can still say months
+    later which of the three a buy was.
     amount_eur_override: fixed amount for a manual buy instead of
     base_amount * multiplier; recorded with multiplier=1.0 so manual buys
     stay neutral in the bot-vs-DCA comparison (analytics derives the DCA
@@ -111,6 +121,11 @@ def run_purchase(dry_run_override: bool | None = None,
             dry_run=dry_run,
             fee_eur=fee_eur,
             filled=filled,
+            # What asked for this buy, written down rather than left to be
+            # guessed from the row later. Anything unrecognised is recorded as
+            # unknown: a wrong origin would be worse than none, since the
+            # history is read as a record of what the bot did on its own.
+            origin=triggered_by if triggered_by in ORIGINS else ORIGIN_UNKNOWN,
         )
         session.add(purchase)
         session.commit()

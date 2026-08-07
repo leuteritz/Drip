@@ -480,6 +480,9 @@ class PurchaseResponse(BaseModel):
     # and a fee of 0 there means unknown, not free.
     fee_eur: float = 0.0
     filled: bool = False
+    # What asked for the buy: "schedule", "manual", "catchup" — or empty, which
+    # is a row from before this was recorded and means unknown, not scheduled.
+    origin: str = ""
 
 
 class RunResultResponse(BaseModel):

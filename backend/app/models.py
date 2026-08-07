@@ -21,6 +21,17 @@ class Purchase(SQLModel, table=True):
     numbers were worked out here — every dry run, every imported legacy row, and
     a real buy whose fill could not be read in time — and a fee of 0 on such a
     row means "not known", never "none was charged".
+
+    `origin` is the same idea about the other end of the buy: what asked for it.
+    The bot already knew — `run_purchase` takes it, checks the pause with it and
+    tells Discord about it — and then threw it away, which left two things
+    unreadable afterwards. A buy somebody clicked is recorded with multiplier
+    1.0 so it stays neutral in the DCA comparison, which makes it identical to a
+    scheduled week that happened to score 1.0x; and a catch-up is a drip landing
+    days off schedule, which reads as a bug rather than as the machine making
+    good. An empty string is a row from before this was written down, or one
+    imported from a file that never carried it — unknown, and reported as
+    nothing rather than guessed at. See `constants.ORIGINS`.
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -38,6 +49,7 @@ class Purchase(SQLModel, table=True):
     dry_run: bool = True
     fee_eur: float = 0.0
     filled: bool = False
+    origin: str = ""
 
 
 class BotSettings(SQLModel, table=True):
