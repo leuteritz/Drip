@@ -17,9 +17,8 @@ default; live trading is a confirmed opt-in.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
   the rate you stack at, and the weeks the drip landed in - one the Pi slept through can
   be bought when it wakes, one you paused is told apart from it.
-- **A buy is read back from Coinbase**, never worked out here: your history holds the
-  bitcoin that actually arrived, the fee that came out of the amount, and whether the
-  weekly drip, your own hand or a catch-up asked for it.
+- **A buy is read back from Coinbase**: the bitcoin that actually arrived, the fee taken
+  out of the amount, and which of the three - the drip, your hand, a catch-up - asked.
 - **The drip is set where it is read** - click the amount, or the chip with the day and
   time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -
@@ -79,10 +78,11 @@ Tap the drops under the next buy to see the sum.
 
 Once a week Drip reports itself to Discord: what you stacked, how you stand against
 plain DCA and against the market's own average, which weeks it bought in, and what the
-signal says now. A run that falls over says so at the time; a late one says which week
-it is answering.
+signal says now. A run that falls over says so at the time, a late one says which week
+it is answering, and a buy that leaves your Coinbase account nearly empty warns you
+while there is still time to top it up.
 
-Thirteen sections, each switchable; the preview is built by the code that builds the
+Fourteen sections, each switchable; the preview is built by the code that builds the
 real message.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)

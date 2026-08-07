@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.30",
+    date: "2026-08-08",
+    changes: [
+      "Drip now says when the money on Coinbase is running out: a buy that leaves two buys' worth or less behind carries a warning, so you top up before an order is refused rather than after one was",
+      "The weekly report gained a Coinbase well line — what is left on the exchange and roughly how many buys it covers — switchable like every other block",
+      "An install without API keys has no well to report, so nothing is said; one that has them but could not reach Coinbase says exactly that instead of a number",
+    ],
+  },
+  {
     version: "2.29",
     date: "2026-08-08",
     changes: [

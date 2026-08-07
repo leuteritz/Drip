@@ -369,7 +369,12 @@ export function BtcReadout({
 
 /** Full when the well covers this many base buys. */
 const WELL_FULL_AT_BUYS = 10;
-/** At or below this many remaining buys the well reads as running dry. */
+/**
+ * At or below this many remaining buys the well reads as running dry — the same
+ * number, and the same whole-buys arithmetic, as `LOW_BUYS` in `backend/app/
+ * well.py`, which is what makes Discord call the well low on the week this chip
+ * turns rose. Change one and change the other.
+ */
 const WELL_LOW_BUYS = 2;
 
 /**

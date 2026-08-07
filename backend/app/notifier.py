@@ -63,16 +63,29 @@ def _late_by(slot: datetime, landed: datetime) -> str:
     return f"{days} {'day' if days == 1 else 'days'} late"
 
 
+def _buys_left(count: int) -> str:
+    """'about 3 more buys' / 'not enough for the next buy'."""
+    if count <= 0:
+        return "not enough for the next buy"
+    return f"about {count} more {'buy' if count == 1 else 'buys'}"
+
+
 def send_purchase_notification(analysis: "Analysis", purchase: Purchase,
                                enabled: bool, error: str | None,
                                manual: bool = False,
-                               late_slot: datetime | None = None) -> bool:
+                               late_slot: datetime | None = None,
+                               well: dict | None = None) -> bool:
     """The post-buy embed: what was bought and which indicators drove it.
 
     `late_slot` is set only by the catch-up job, and it is the reason the buy is
     worth explaining at all: a purchase appearing on a Wednesday when the drip
     is set to Monday looks like a bug unless the message says which slot it is
     answering, and how late the answer is.
+
+    `well` is `well.runway` and appears **only when it is low** — first, above
+    what was bought, because it is the one line here about the next buy rather
+    than this one. A healthy balance restated on every purchase is a line nobody
+    is still reading by the week it stops being true.
     """
     from .strategy import SCORE_MAX
 
@@ -85,7 +98,16 @@ def send_purchase_notification(analysis: "Analysis", purchase: Purchase,
     if purchase.filled and purchase.fee_eur > 0:
         amount += f"\n€{purchase.fee_eur:.2f} fee"
 
-    fields = [
+    fields = []
+    if well and well["low"]:
+        fields.append({
+            "name": "⚠️ Well running dry",
+            "value": (f"€{well['eur_available']:,.0f} left on Coinbase — "
+                      f"{_buys_left(well['buys_left'])}. Top up before the next drip."),
+            "inline": False,
+        })
+
+    fields += [
         {"name": "BTC price", "value": f"€{purchase.price_eur:,.2f}", "inline": True},
         {"name": "Amount", "value": amount, "inline": True},
         {"name": "Bitcoin", "value": f"{purchase.btc_amount:.8f} BTC", "inline": True},
@@ -236,6 +258,19 @@ def _digest_fields(digest: dict) -> list[dict]:
             "name": "Next buy",
             "value": (f"{when:%a} {when.day} {when:%b} at {when:%H:%M} · "
                       f"about €{digest['next_amount_eur']:.2f}"),
+            "inline": True,
+        })
+
+    # What is left to buy with. Nothing is said on an install with no keys —
+    # there is no well there to report — while a configured one whose balance
+    # could not be read says so, because that is a fault rather than an absence.
+    well = digest["well"]
+    if well["configured"]:
+        fields.append({
+            "key": "well",
+            "name": "Well running dry" if well["low"] else "Coinbase well",
+            "value": (f"€{well['eur_available']:,.0f} · {_buys_left(well['buys_left'])}"
+                      if well["available"] else "Balance unavailable"),
             "inline": True,
         })
 

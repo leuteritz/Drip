@@ -21,7 +21,7 @@ from datetime import date, datetime, timedelta
 
 from sqlmodel import Session
 
-from . import analytics, holdings, outlook, pulse, scheduler, strategy
+from . import analytics, holdings, outlook, pulse, scheduler, strategy, well
 from .database import load_digest_settings, load_settings
 from .market_data import ensure_candles
 from .models import DigestSettings, Purchase
@@ -61,6 +61,7 @@ BLOCKS: list[Block] = [
     Block("timing", "This week's timing", "What you paid against the week's average price"),
     Block("signal", "Signal right now", "Score, signal and the multiplier it produces"),
     Block("next", "Next buy", "When the next drip lands and roughly how big it is"),
+    Block("well", "Coinbase well", "Euros left on the exchange, and how many buys they cover"),
     Block("milestone", "Next milestone", "The next round number of sats, and how far off it is"),
     Block("streak", "Streak", "Weeks in a row with at least one buy"),
     Block("pulse", "Weeks kept", "Whether a buy landed in each of the recent weeks"),
@@ -172,6 +173,7 @@ def build(session: Session) -> dict:
     week = _week(purchases)
     market = _market(session)
     total_sats = performance["btc_total"] * SATS_PER_BTC
+    next_amount_eur = settings.base_amount_eur * analysis.multiplier
 
     today = date.today()
     return {
@@ -213,7 +215,12 @@ def build(session: Session) -> dict:
         "excluded": stack["excluded"],
         "analysis": analysis,
         "next_run": scheduler.next_run_time(),
-        "next_amount_eur": settings.base_amount_eur * analysis.multiplier,
+        "next_amount_eur": next_amount_eur,
+        # The one block that reads the exchange rather than the database. It is
+        # the exception to "no new API and no new failure mode" above and earns
+        # it by being unable to fail: `well.runway` never raises, and a balance
+        # it could not fetch is reported as one it could not fetch.
+        "well": well.runway(next_amount_eur),
     }
 
 

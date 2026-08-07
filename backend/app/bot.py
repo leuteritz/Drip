@@ -13,7 +13,7 @@ from datetime import date, datetime
 
 from sqlmodel import Session
 
-from . import notifier, strategy
+from . import notifier, strategy, well
 from .constants import (
     ORDER_ID_DRY_RUN,
     ORDER_ID_ERROR,
@@ -131,9 +131,14 @@ def run_purchase(dry_run_override: bool | None = None,
         session.commit()
         session.refresh(purchase)
 
+        # What is left for next week, read after the order rather than before
+        # it: the balance the message should report is the one the buy left
+        # behind. It never raises, for the same reason `read_fill` does not —
+        # the money is spent by now, and a warning about the *next* buy may not
+        # cost this one its row.
         notifier.send_purchase_notification(
             analysis, purchase, settings.discord_enabled, error, manual_amount,
-            late_slot,
+            late_slot, well.runway(settings.base_amount_eur * analysis.multiplier),
         )
 
         return {
