@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import DownloadSimpleIcon from "~icons/ph/download-simple";
 import ListDashesIcon from "~icons/ph/list-dashes";
+import ReceiptIcon from "~icons/ph/receipt";
 import TrashIcon from "~icons/ph/trash";
 import UploadSimpleIcon from "~icons/ph/upload-simple";
 import WarningIcon from "~icons/ph/warning-fill";
@@ -11,6 +12,7 @@ import { useStackAmount } from "../lib/units";
 import { originNote } from "../lib/origin";
 import { buildFilter } from "../lib/query";
 import { ScoreDrops } from "../components/drops";
+import BuyReceipt from "../components/history/BuyReceipt";
 import PurchaseSearch from "../components/history/PurchaseSearch";
 import ImportModal from "../components/ImportModal";
 import { Badge, Card, Loading, Modal, SectionHeading } from "../components/ui";
@@ -52,6 +54,9 @@ export default function HistorySection({
   const [error, setError] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [confirmWipe, setConfirmWipe] = useState(false);
+  // Which row is open as a receipt. Both shapes of the table set it, and the
+  // dialog fetches its own figures — nothing on the table itself needs them.
+  const [receiptOf, setReceiptOf] = useState<Purchase | null>(null);
 
   const deleteOne = async (p: Purchase) => {
     if (!window.confirm("Delete this entry from the history?")) return;
@@ -242,6 +247,7 @@ export default function HistorySection({
                     purchase={p}
                     busy={busy}
                     amount={stackAmount(p.btc_amount)}
+                    onOpen={() => setReceiptOf(p)}
                     onDelete={() => deleteOne(p)}
                   />
                 ))}
@@ -276,9 +282,16 @@ export default function HistorySection({
               </thead>
               <tbody>
                 {sorted.map((p, i) => (
+                  /* The whole row opens the receipt, so the target is the row
+                     rather than a 2rem icon. The icon in the action column is
+                     still a real button — it is what a keyboard and a screen
+                     reader reach, and what says the row can be opened at all. */
                   <tr
                     key={p.id}
-                    className={`border-b border-sand/50 ${i % 2 ? "bg-sand-soft/30" : ""}`}
+                    onClick={() => setReceiptOf(p)}
+                    className={`cursor-pointer border-b border-sand/50 transition hover:bg-water-soft/50 ${
+                      i % 2 ? "bg-sand-soft/30" : ""
+                    }`}
                   >
                     {/* Where the buy came from goes under its date, the way
                         the fee goes under the amount it came out of: it is
@@ -326,14 +339,26 @@ export default function HistorySection({
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => deleteOne(p)}
-                        disabled={busy}
-                        aria-label="Delete entry"
-                        className="rounded-lg p-2 text-ink-soft transition hover:bg-rose-soft hover:text-rose disabled:opacity-40"
-                      >
-                        <TrashIcon />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => setReceiptOf(p)}
+                          aria-label="What became of this buy"
+                          className="rounded-lg p-2 text-ink-soft transition hover:bg-water-soft hover:text-teal"
+                        >
+                          <ReceiptIcon />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteOne(p);
+                          }}
+                          disabled={busy}
+                          aria-label="Delete entry"
+                          className="rounded-lg p-2 text-ink-soft transition hover:bg-rose-soft hover:text-rose disabled:opacity-40"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -381,6 +406,10 @@ export default function HistorySection({
             </div>
           )}
         </Card>
+      )}
+
+      {receiptOf && (
+        <BuyReceipt purchase={receiptOf} onClose={() => setReceiptOf(null)} />
       )}
 
       {showImport && (
@@ -435,23 +464,28 @@ export default function HistorySection({
  * through, then the price it paid and the bitcoin it got, and last the two
  * readings behind the score. The bitcoin amount follows the unit switch, like
  * every other quantity on the page.
+ *
+ * The whole card opens the receipt — a phone has no hover to reveal anything
+ * with, so the target is the card and the icon beside the bin is what says so.
  */
 function BuyCard({
   purchase,
   amount,
   busy,
+  onOpen,
   onDelete,
 }: {
   purchase: Purchase;
   /** Already formatted in the reader's unit — the row never picks one itself. */
   amount: string;
   busy: boolean;
+  onOpen: () => void;
   onDelete: () => void;
 }) {
   const failed = purchase.order_id === ORDER_ID_ERROR;
 
   return (
-    <li className="flex flex-col gap-2.5 px-4 py-4">
+    <li onClick={onOpen} className="flex flex-col gap-2.5 px-4 py-4">
       <div className="flex items-baseline justify-between gap-3">
         <span className="min-w-0 text-sm font-bold text-ink">
           {formatTimestamp(purchase.timestamp)}
@@ -499,14 +533,26 @@ function BuyCard({
             F&amp;G {purchase.fear_greed} &middot; RSI {purchase.rsi.toFixed(1)}
           </div>
         </div>
-        <button
-          onClick={onDelete}
-          disabled={busy}
-          aria-label="Delete entry"
-          className="-mb-1 -mr-1 flex h-11 w-11 flex-none items-center justify-center rounded-full text-ink-soft transition hover:bg-rose-soft hover:text-rose disabled:opacity-40"
-        >
-          <TrashIcon className="text-base" />
-        </button>
+        <div className="-mb-1 -mr-1 flex flex-none items-center">
+          <button
+            onClick={onOpen}
+            aria-label="What became of this buy"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition hover:bg-water-soft hover:text-teal"
+          >
+            <ReceiptIcon className="text-base" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            disabled={busy}
+            aria-label="Delete entry"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition hover:bg-rose-soft hover:text-rose disabled:opacity-40"
+          >
+            <TrashIcon className="text-base" />
+          </button>
+        </div>
       </div>
     </li>
   );

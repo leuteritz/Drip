@@ -102,6 +102,77 @@ export interface Purchase {
   origin: string;
 }
 
+/** How the readings stored on a buy became the multiplier beside them.
+ *
+ *  `points_total` is those readings scored the way the backend scores today;
+ *  `score` is what the row recorded at the time. An imported history disagrees
+ *  about that, and so does any buy made before a threshold changed. */
+export interface ReceiptScoring {
+  score: number;
+  score_max: number;
+  points: { fng: number; rsi: number; ma: number };
+  points_total: number;
+  multiplier: number;
+  signal: string;
+  fear_greed: number;
+  rsi: number;
+  ma_350: number;
+  ma_distance_pct: number;
+}
+
+/** What the buy is worth now, and the multiplier's share of that.
+ *
+ *  `extra_eur` / `extra_btc` are what the score put in on top of the base
+ *  amount — negative below 1.0x, where it held money back — and
+ *  `multiplier_eur` is what that decision has been worth since. */
+export interface ReceiptOutcome {
+  current_price: number;
+  value_eur: number;
+  gain_eur: number;
+  gain_pct: number;
+  base_eur: number;
+  extra_eur: number;
+  extra_btc: number;
+  multiplier_eur: number;
+}
+
+/** Whether the buy caught a good price, against the days around it rather than
+ *  against the whole history — where a rising market makes every recent buy
+ *  look expensive and every early one cheap, whatever the timing was worth.
+ *  `vs_market_pct` is positive when it went in below that window's average. */
+export interface ReceiptStanding {
+  window_days: number;
+  /** How much of the window had prices — a buy from this week has no days after it. */
+  days_covered: number;
+  market_avg_eur: number;
+  vs_market_pct: number;
+}
+
+/** One buy, answered on its own terms — see `backend/app/receipt.py`.
+ *
+ *  `standing` and `free_at` are null on anything that is not real bitcoin: a
+ *  dry run and a failed order have no rank among the buys and no holding age. */
+export interface Receipt {
+  id: number;
+  timestamp: string;
+  origin: string;
+  status: string;
+  order_id: string;
+  dry_run: boolean;
+  failed: boolean;
+  real: boolean;
+  filled: boolean;
+  amount_eur: number;
+  btc_amount: number;
+  price_eur: number;
+  fee_eur: number;
+  scoring: ReceiptScoring;
+  outcome: ReceiptOutcome;
+  standing: ReceiptStanding | null;
+  free_at: string | null;
+  free_in_days: number;
+}
+
 /** Purchase.order_id sentinel for a buy that failed (see backend/app/constants.py). */
 export const ORDER_ID_ERROR = "ERROR";
 

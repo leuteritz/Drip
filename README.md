@@ -15,10 +15,12 @@ default; live trading is a confirmed opt-in.
 - **Four instruments float on it** - the signal, the market's mood, the price and your
   Coinbase well, whose button turns into Coinbase when you point at it.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
-  the rate you stack at, and the weeks the drip landed in - one the Pi slept through can
-  be bought when it wakes, one you paused is told apart from it.
-- **A buy is read back from Coinbase**: the bitcoin that actually arrived, the fee taken
-  out of the amount, and which of the three - the drip, your hand, a catch-up - asked.
+  the rate you stack at, and the weeks the drip landed in - a week the Pi slept through
+  is bought when it wakes, a week you paused is not.
+- **Every buy opens.** What those euros are worth today, what the multiplier had to do
+  with it, and the three readings that set its size - beside the bitcoin that actually
+  arrived, the fee taken out, and which of the three asked: the drip, your hand, a
+  catch-up.
 - **The drip is set where it is read** - click the amount, or the chip with the day and
   time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -

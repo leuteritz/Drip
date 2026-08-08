@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.31",
+    date: "2026-08-08",
+    changes: [
+      "Every buy in the history now opens: tap a row for what became of it — what those euros are worth today, and how far above or below what you paid they stand",
+      "It also says what the multiplier had to do with it: a 1.25x week put a fifth of its money in because the market looked cheap, and this is the first place that says what that decision has been worth since — including the weeks it cost you",
+      "The three readings behind the buy are laid out the way the next buy's are, so a row from two years ago can explain its own size; where the price ranks among your buys and when it turns a year old close the page",
+    ],
+  },
+  {
     version: "2.30",
     date: "2026-08-08",
     changes: [

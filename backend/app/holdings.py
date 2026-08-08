@@ -36,11 +36,14 @@ from .models import Purchase
 TIMELINE_MONTHS = 12  # how far ahead the ripening timeline looks
 
 
-def _plus_one_year(day: date) -> date:
+def plus_one_year(day: date) -> date:
     """The day the one-year holding period is over.
 
     29 February has no anniversary in a common year; rolling it to 1 March is
     the conservative direction - it never claims a lot is free too early.
+
+    Public because `receipt.py` ages a single buy with it: the one-year rule is
+    a statement about the calendar and there may only be one of it here.
     """
     try:
         return day.replace(year=day.year + 1)
@@ -137,7 +140,7 @@ def summary(session: Session, include_dry_run: bool = True) -> dict:
     locked_lots: list[dict] = []
     for purchase in real:
         acquired = purchase.timestamp.date()
-        free_at = _plus_one_year(acquired)
+        free_at = plus_one_year(acquired)
         lot = {
             "acquired": acquired.isoformat(),
             "free_at": free_at.isoformat(),

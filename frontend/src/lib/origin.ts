@@ -29,3 +29,19 @@ export function originNote(origin: string): string | null {
   if (origin === ORIGIN_CATCHUP) return "caught up";
   return null;
 }
+
+/**
+ * The same four states, named out loud — all four of them.
+ *
+ * `originNote` stays quiet on two because it is a caption on a row nobody asked
+ * a question about. The receipt is the opposite case: it is open because
+ * somebody wanted to know about this buy in particular, and "what asked for it"
+ * is one of the things they came for. Silence there would read as a missing
+ * answer rather than as an unremarkable one.
+ */
+export function originName(origin: string): string {
+  if (origin === ORIGIN_MANUAL) return "You asked for it by hand";
+  if (origin === ORIGIN_CATCHUP) return "Caught up after the Pi was off";
+  if (origin === ORIGIN_SCHEDULE) return "The weekly drip";
+  return "Not recorded — this buy predates Drip noting it down";
+}

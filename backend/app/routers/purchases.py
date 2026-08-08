@@ -5,10 +5,15 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import Response
 from sqlmodel import Session, select
 
-from .. import csv_import
+from .. import csv_import, receipt
 from ..database import get_session
 from ..models import Purchase
-from ..schemas import DeleteResponse, ImportResponse, PurchaseResponse
+from ..schemas import (
+    DeleteResponse,
+    ImportResponse,
+    PurchaseResponse,
+    ReceiptResponse,
+)
 
 router = APIRouter(prefix="/api/purchases", tags=["purchases"])
 
@@ -70,6 +75,15 @@ async def import_purchases(
     except UnicodeDecodeError:
         raise HTTPException(status_code=400, detail="File is not valid UTF-8 text")
     return csv_import.import_purchases_csv(session, text, include_errors)
+
+
+@router.get("/{purchase_id}/receipt", response_model=ReceiptResponse)
+def purchase_receipt(purchase_id: int, session: Session = Depends(get_session)):
+    """One buy, and what became of it. Read-only; see `receipt.py`."""
+    purchase = session.get(Purchase, purchase_id)
+    if purchase is None:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    return receipt.build(session, purchase)
 
 
 def _delete_matching(session: Session, stmt) -> dict:

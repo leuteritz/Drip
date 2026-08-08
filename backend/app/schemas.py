@@ -485,6 +485,87 @@ class PurchaseResponse(BaseModel):
     origin: str = ""
 
 
+class ReceiptScoring(BaseModel):
+    """How the stored readings became the multiplier on the row.
+
+    `points_total` is those readings scored the way `score_indicators` scores
+    today; `score` is what the row recorded at the time. They part company on an
+    imported history and after any change to a threshold, so both are sent and
+    the dialog says which is which rather than showing a sum that does not add
+    up.
+    """
+
+    score: int
+    score_max: int
+    points: dict[str, int]
+    points_total: int
+    multiplier: float
+    signal: str
+    fear_greed: int
+    rsi: float
+    ma_350: float
+    ma_distance_pct: float
+
+
+class ReceiptOutcome(BaseModel):
+    """What the buy is worth now, and the multiplier's share of that.
+
+    `extra_*` is what the score added on top of the base amount — negative below
+    1.0x, where it held money back — and `multiplier_eur` is what that decision
+    has been worth since, in euros.
+    """
+
+    current_price: float
+    value_eur: float
+    gain_eur: float
+    gain_pct: float
+    base_eur: float
+    extra_eur: float
+    extra_btc: float
+    multiplier_eur: float
+
+
+class ReceiptStanding(BaseModel):
+    """Whether the buy caught a good price, against the days around it.
+
+    `vs_market_pct` is positive when it went in below what the market averaged
+    over that window. `days_covered` is how much of the window had prices at
+    all — a buy from this week has no days after it.
+    """
+
+    window_days: int
+    days_covered: int
+    market_avg_eur: float
+    vs_market_pct: float
+
+
+class ReceiptResponse(BaseModel):
+    """One buy, answered on its own terms.
+
+    `standing` and `free_at` are absent on anything that is not real bitcoin — a
+    dry run and a failed order have no place among the buys and no holding age.
+    """
+
+    id: int
+    timestamp: datetime
+    origin: str
+    status: str
+    order_id: str
+    dry_run: bool
+    failed: bool
+    real: bool
+    filled: bool
+    amount_eur: float
+    btc_amount: float
+    price_eur: float
+    fee_eur: float
+    scoring: ReceiptScoring
+    outcome: ReceiptOutcome
+    standing: Optional[ReceiptStanding] = None
+    free_at: Optional[str] = None
+    free_in_days: int = 0
+
+
 class RunResultResponse(BaseModel):
     """A manual/scheduled cycle: either skipped, or a recorded purchase."""
 

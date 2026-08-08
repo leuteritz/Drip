@@ -24,6 +24,7 @@ import type {
   Performance,
   Pulse,
   Purchase,
+  Receipt,
   RollingWindows,
   RunResult,
   ScorePoint,
@@ -87,6 +88,9 @@ export const api = {
       body: JSON.stringify({ amount_eur: amountEur, dry_run: null }),
     }),
   getPurchases: () => request<Purchase[]>("/api/purchases"),
+  // One buy on its own terms. Fetched when a row is opened rather than with the
+  // history: it prices the stack against today and nothing on the table needs it.
+  getReceipt: (id: number) => request<Receipt>(`/api/purchases/${id}/receipt`),
   getIndicators: () => request<Indicators>("/api/market/indicators"),
   getCandles: (days: number) => request<Candle[]>(`/api/market/candles?days=${days}`),
   getPerformance: (includeDryRun: boolean) =>
