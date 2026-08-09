@@ -51,7 +51,9 @@ docker compose up -d --build
 
 The dashboard is then at `http://<pi-address>:8080`; **Setup** takes your keys and
 links to the two Coinbase pages you need - where a key is made, and where money goes
-in. To update: `git pull && docker compose up -d --build` - SQLite survives it.
+in. It also hands you the whole database as one file and takes it back again, so a
+Drip moves to another Pi by carrying it over. To update:
+`git pull && docker compose up -d --build` - SQLite survives it.
 
 ## On a wall
 

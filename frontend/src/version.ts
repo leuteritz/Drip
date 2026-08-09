@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.33",
+    date: "2026-08-09",
+    changes: [
+      "The backup you download can now be uploaded again — which is what makes it a backup rather than a copy. Setup → Restore takes the file, and a Drip moves to a new Pi by handing it over",
+      "The file is checked before anything is touched: a half-finished download, somebody else's database, or a file that is not one at all is refused with the reason, and your history stays exactly where it was",
+      "A backup from an older Drip is brought up to date on the way in, and the database it replaced is kept beside the new one in case the wrong file was picked",
+    ],
+  },
+  {
     version: "2.32",
     date: "2026-08-09",
     changes: [

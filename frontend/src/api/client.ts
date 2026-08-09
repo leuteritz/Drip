@@ -174,6 +174,17 @@ export const api = {
   clearResearchCache: () =>
     request<Maintenance>("/api/setup/cache/research", { method: "DELETE" }),
   backupUrl: "/api/setup/backup",
+  // The other half of the backup, and the only destructive call in the app that
+  // is not about the purchase history: it replaces the whole database. Refusals
+  // come back as 400 with a sentence, so `describeError` is what the dialog
+  // shows — the backend is the only thing that knows why a file was no good.
+  restoreBackup: async (file: File): Promise<Maintenance> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const resp = await fetch("/api/setup/restore", { method: "POST", body: fd });
+    if (!resp.ok) throw new Error(describeError(resp.status, await resp.text()));
+    return resp.json() as Promise<Maintenance>;
+  },
   testNotification: () =>
     request<{ sent: boolean; reason?: string }>("/api/bot/test-notification", {
       method: "POST",

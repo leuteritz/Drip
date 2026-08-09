@@ -8,21 +8,20 @@ answers with numbers about the install rather than about bitcoin.
 
 Secrets go in but never come back out: `GET` returns `credentials.mask()`.
 """
+import calendar
 import logging
 import os
-import sqlite3
 import sys
-import tempfile
 import time
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlmodel import Session, func, select
 from starlette.background import BackgroundTask
 
+from .. import backup as backups
 from .. import credentials, indicators, research, scheduler, trading
-from ..config import DATA_DIR
 from ..database import get_session
 from ..models import Candle, Purchase
 from ..schemas import (
@@ -37,7 +36,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/setup", tags=["setup"])
 
-DB_PATH = DATA_DIR / "bot.db"
+# The one definition lives in `backup.py`, which is the module that moves it.
+DB_PATH = backups.DB_PATH
 
 # Import time is close enough to process start, and it is the honest answer to
 # "how long has this backend been up" - the scheduler is started right after.
@@ -163,22 +163,56 @@ def clear_research_cache():
 def backup():
     """The whole SQLite database as a download.
 
-    Taken through SQLite's own backup API rather than by reading the file from
-    underneath a running app, so the copy is consistent even mid-write. It
-    contains everything, credentials included - treat it as a secret.
+    Consistent even mid-write, and it contains everything, credentials
+    included - treat it as a secret. See `backup.py` for how it is taken.
     """
-    if not DB_PATH.exists():
+    try:
+        path, filename = backups.snapshot()
+    except FileNotFoundError:
         raise HTTPException(status_code=404, detail="No database file yet")
 
-    handle, path = tempfile.mkstemp(prefix="drip-backup-", suffix=".db")
-    os.close(handle)
-    with sqlite3.connect(DB_PATH) as source, sqlite3.connect(path) as target:
-        source.backup(target)
-
-    stamp = datetime.now().strftime("%Y%m%d-%H%M")
     return FileResponse(
         path,
         media_type="application/vnd.sqlite3",
-        filename=f"drip-backup-{stamp}.db",
+        filename=filename,
         background=BackgroundTask(os.unlink, path),
     )
+
+
+@router.post("/restore", response_model=MaintenanceResponse)
+def restore(file: UploadFile = File(...)):
+    """Replace the database with an uploaded backup.
+
+    The one endpoint here that is destructive and cannot be undone by waiting -
+    everything else under Setup either reports or empties a cache. It is the
+    other half of `/backup`: a copy you cannot put back is not a backup, and
+    without this an SD card that stopped answering left somebody with a file and
+    no way in.
+
+    Refusals are 400 with the reason in words, and nothing has been touched by
+    the time one is raised: `backup.stage` writes the upload to a temporary file
+    and proves it is a Drip database before `backup.apply` opens the live one.
+    """
+    try:
+        staged, facts = backups.stage(file.file, file.filename or "")
+    except backups.RestoreError as exc:
+        logger.warning("Restore refused: %s", exc)
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    try:
+        state = backups.apply(staged)
+    except Exception as exc:
+        logger.exception("Restore failed while replacing the database")
+        staged.unlink(missing_ok=True)
+        raise HTTPException(status_code=500, detail=f"The restore failed: {exc}")
+
+    mode = "dry run" if state["dry_run"] else "live"
+    return {
+        "ok": True,
+        "detail": (
+            f"Restored {facts['purchases']:,} buys and {facts['candles']:,} "
+            f"cached days. The drip is set to "
+            f"{calendar.day_name[state['schedule_weekday']]} "
+            f"{state['schedule_time']}, in {mode}."
+        ),
+    }

@@ -1,9 +1,10 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import BroomIcon from "~icons/ph/broom";
 import DownloadIcon from "~icons/ph/download-simple";
 import HardDrivesIcon from "~icons/ph/hard-drives";
 import TableIcon from "~icons/ph/table";
 import TrashIcon from "~icons/ph/trash";
+import UploadIcon from "~icons/ph/upload-simple";
 import { api } from "../../api/client";
 
 /**
@@ -57,6 +58,9 @@ export default function Maintenance({ onChanged }: { onChanged: () => void }) {
           label="Backup"
           href={api.backupUrl}
         />
+        {/* Directly under the backup, because it is the same object pointing
+            the other way: a copy you cannot put back is not a backup. */}
+        <Restore />
         <Download
           icon={<TableIcon />}
           title="Export the history"
@@ -156,6 +160,80 @@ function Action({
         }`}
       >
         {busy ? "Working…" : asked ? confirm : label}
+      </button>
+    </div>
+  );
+}
+
+/** How long the result is left on screen before the page reloads itself. */
+const RELOAD_AFTER_MS = 3000;
+
+/**
+ * Putting a backup back — the only thing in this app that replaces everything.
+ *
+ * Two steps rather than one, and they are the two questions: *which file*, then
+ * *are you sure*. The picker comes first because a confirmation asked before
+ * there is anything to confirm is a click people learn to get past; asked with
+ * the filename in front of them, it is a real question.
+ *
+ * It reloads the page afterwards instead of refreshing what it can reach. The
+ * settings, the history, the keys and the schedule all just became a different
+ * database's, and `App` holds every one of them — a partial refresh would leave
+ * some corner of the page describing an install that no longer exists.
+ */
+function Restore() {
+  const input = useRef<HTMLInputElement | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const go = async () => {
+    if (!file) {
+      input.current?.click();
+      return;
+    }
+    setBusy(true);
+    setResult(null);
+    try {
+      const { detail } = await api.restoreBackup(file);
+      setResult(`${detail} Reloading…`);
+      window.setTimeout(() => window.location.reload(), RELOAD_AFTER_MS);
+    } catch (e) {
+      setResult(e instanceof Error ? e.message : String(e));
+      setBusy(false);
+      setFile(null);
+    }
+  };
+
+  return (
+    <div className={ROW}>
+      <Body
+        icon={<UploadIcon />}
+        title="Restore a backup"
+        description="Replaces the whole database with a backup file — every buy, setting and key in it. There is no undo."
+        result={result ?? (file ? `${file.name} — this replaces everything.` : null)}
+      />
+      <input
+        ref={input}
+        type="file"
+        accept=".db,application/vnd.sqlite3,application/octet-stream"
+        className="hidden"
+        onChange={(e) => {
+          setFile(e.target.files?.[0] ?? null);
+          setResult(null);
+          // Cleared so picking the same file twice still fires a change.
+          e.target.value = "";
+        }}
+      />
+      <button
+        type="button"
+        onClick={go}
+        disabled={busy}
+        className={`${BUTTON} ${
+          file ? "bg-rose-deep text-cream" : "bg-rose-soft text-rose hover:opacity-80"
+        }`}
+      >
+        {busy ? "Restoring…" : file ? "Replace everything" : <><UploadIcon /> Restore</>}
       </button>
     </div>
   );
