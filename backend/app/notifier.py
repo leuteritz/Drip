@@ -150,6 +150,17 @@ def _day_month(iso: str) -> str:
     return f"{day.day} {day:%b}"
 
 
+def _day_month_year(iso: str) -> str:
+    """'2022-06-18' -> '18 Jun 2022'.
+
+    Every other date in the report is inside the week it covers, where the year
+    is noise. The waterline is the one block that reaches back over the whole
+    history, and a drawdown dated '18 Jun' reads as this June.
+    """
+    day = date.fromisoformat(iso)
+    return f"{day.day} {day:%b} {day.year}"
+
+
 def _pulse_line(beat: dict) -> str:
     """The rhythm block: how many of the recent periods a buy actually landed in.
 
@@ -237,6 +248,45 @@ def _custody_line(keeping: dict) -> str:
     return line
 
 
+def _waterline_line(water: dict) -> str:
+    """The waterline block: how deep the stack is, or how deep it has been.
+
+    The message is deliberately not the card. The card plots five years of
+    depth; this says the one thing a saver reads a weekly report for — whether
+    the stack is under right now, and if it is, that the drip has kept buying
+    through it. That second half is the whole point of the block: an empty
+    encouragement is worthless, a count of the buys made down there is not.
+
+    A stack that has never been under water says so in four words. Not saying
+    it would leave the block silent on the best possible answer.
+    """
+    if not water["available"]:
+        return ""
+
+    under = water["bought_under"]
+    if water["current"]:
+        run = water["current"]
+        line = (f"**{abs(water['depth_now_pct']):.1f}% below what you paid**, "
+                f"{run['days']} days now (deepest {abs(run['depth_pct']):.1f}%)")
+        if run["buys"]:
+            line += (f"\nYou have kept buying: **{run['buys']} "
+                     f"{'buy' if run['buys'] == 1 else 'buys'}** since it went under, "
+                     f"{run['sats']:,.0f} sats")
+        return line
+
+    if not water["deepest"]:
+        return "**Never been under water** - every day since the first buy has "\
+               "been worth more than it cost"
+
+    worst = water["deepest"]
+    line = (f"**Above water.** The worst was {abs(worst['depth_pct']):.1f}% down "
+            f"on {_day_month_year(worst['deepest_on'])}, over {worst['days']} days")
+    if under["buys"]:
+        line += (f"\nYou bought **{under['buys']} times** under water "
+                 f"({under['sats']:,.0f} sats, now {under['profit_pct']:+.0f}%)")
+    return line
+
+
 # What each preflight status looks like in a message. `pass` has no mark
 # because a passing check never appears on its own line — see `_preflight_line`.
 _PREFLIGHT_MARK = {PREFLIGHT_FAIL: "⛔", PREFLIGHT_WARN: "⚠", PREFLIGHT_UNKNOWN: "❔"}
@@ -275,6 +325,7 @@ def _digest_fields(digest: dict) -> list[dict]:
     """Every field the report can carry, in reading order, each tagged with the
     block it belongs to. Blocks with nothing to say leave their field out."""
     week, total, basis = digest["week"], digest["total"], digest["cost_basis"]
+    water = digest["waterline"]
     market, timing, stack = digest["market"], digest["timing"], digest["holdings"]
     milestone, streak = digest["milestone"], digest["streak"]
     analysis, edge = digest["analysis"], digest["vs_dca"]
@@ -322,6 +373,15 @@ def _digest_fields(digest: dict) -> list[dict]:
             "inline": True,
         },
     ]
+
+    waterline_value = _waterline_line(water)
+    if waterline_value:
+        fields.append({
+            "key": "waterline",
+            "name": "Under water",
+            "value": waterline_value,
+            "inline": False,
+        })
 
     if timing["available"]:
         fields.append({

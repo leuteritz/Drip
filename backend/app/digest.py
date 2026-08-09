@@ -23,7 +23,7 @@ from sqlmodel import Session
 
 from . import (
     analytics, cadence, custody, holdings, outlook, preflight, pulse,
-    scheduler, strategy, well,
+    scheduler, strategy, waterline, well,
 )
 from .database import load_digest_settings, load_settings
 from .market_data import ensure_candles
@@ -61,6 +61,7 @@ BLOCKS: list[Block] = [
     Block("stack", "Your stack", "Total sats, euros invested and what it is worth now"),
     Block("dca", "vs. plain DCA", "What the score multiplier earned over buying a flat amount"),
     Block("basis", "Entry vs. market", "Your average price against the market's own average"),
+    Block("waterline", "Under water", "How deep the stack has been, and what you bought down there"),
     Block("timing", "This week's timing", "What you paid against the week's average price"),
     Block("signal", "Signal right now", "Score, signal and the multiplier it produces"),
     Block("next", "Next buy", "When the next drip lands and roughly how big it is"),
@@ -214,6 +215,11 @@ def build(session: Session) -> dict:
             "pp": performance["profit_pct"] - dca["profit_pct"],
         },
         "cost_basis": stack["cost_basis"],
+        # Cut from the same daily series the dashboard's comparison chart plots,
+        # so the report and the card cannot disagree about which days the stack
+        # was under water. Arithmetic over rows and candles that are already
+        # loaded — the rule above holds.
+        "waterline": waterline.summary(session, include_dry_run=True),
         "milestone": outlook.next_milestone(
             total_sats, outlook.rate_per_week(purchases, drip)["sats"]
         ),

@@ -11,6 +11,7 @@ import {
   type Outlook,
   type Pulse,
   type Purchase,
+  type Waterline,
 } from "../api/client";
 import { fmtEur, fmtPct } from "../lib/format";
 import ComparisonChart from "../components/ComparisonChart";
@@ -20,6 +21,7 @@ import CustodyCard from "../components/stack/Custody";
 import HoldingPeriods from "../components/stack/HoldingPeriods";
 import OutlookCard from "../components/stack/Outlook";
 import PulseCard from "../components/stack/Pulse";
+import WaterlineCard from "../components/stack/Waterline";
 import {
   Card,
   CardHeader,
@@ -45,9 +47,9 @@ const RANGES = [
  * that landed, and it is the only thing on the page that can tell you a week
  * never did. Then the cards that describe the stack itself rather than the
  * strategy behind it: how well it was bought (`CostBasisCard`), how old it is
- * (`HoldingPeriods`) and where it is being kept (`CustodyCard`). Whether the
- * strategy is any good is a different question, and lives in the Research
- * section.
+ * (`HoldingPeriods`), what holding it has actually felt like (`WaterlineCard`)
+ * and where it is being kept (`CustodyCard`). Whether the strategy is any good
+ * is a different question, and lives in the Research section.
  *
  * `OutlookCard` closes the section because it is the only part that faces
  * forwards: the page reads what happened, then what you hold, then where that
@@ -80,6 +82,7 @@ export default function Overview({
   const [holdings, setHoldings] = useState<Holdings | null>(null);
   const [outlook, setOutlook] = useState<Outlook | null>(null);
   const [pulse, setPulse] = useState<Pulse | null>(null);
+  const [waterline, setWaterline] = useState<Waterline | null>(null);
   const [rangeDays, setRangeDays] = useState(90);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,6 +114,9 @@ export default function Overview({
     loadComparison(includeDryRun);
     api.getHoldings(includeDryRun).then(setHoldings).catch((e) => setError(String(e)));
     api.getOutlook(includeDryRun).then(setOutlook).catch((e) => setError(String(e)));
+    // Cut from the same series the chart above plots, so it follows the same
+    // filter — a card showing days the chart does not would be worse than none.
+    api.getWaterline(includeDryRun).then(setWaterline).catch((e) => setError(String(e)));
   }, [includeDryRun, purchases, loadComparison]);
 
   // Neither the record of which weeks got a buy nor where the stack is kept
@@ -232,6 +238,11 @@ export default function Overview({
           />
           <HoldingPeriods data={holdings} />
         </div>
+
+        {/* What holding it has actually felt like. Every card above is an
+            average over the buys that landed, and an average is exactly what
+            hides the stretches that make people stop. */}
+        <WaterlineCard data={waterline} />
 
         {/* Where the result of all that is actually sitting — the one card
             about custody rather than about how the saving went. */}

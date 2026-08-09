@@ -15,15 +15,15 @@ opt-in.
 - **Your stack is a tank of water** that fizzes at the strength of the week's signal,
   with four instruments floating on it - the signal, the market's mood, the price and
   your Coinbase well.
-- **It checks itself before Monday** - the key, the money on the exchange, the price
-  feed, the schedule. A buy that would not land is said in the top bar, days before the
-  week it would have cost.
-- **It says where the stack is kept** - how much of what it bought is still on the
-  exchange, and how much has been moved somewhere only you can reach.
+- **It checks itself before Monday** - the key, the money, the price feed, the schedule.
+  A buy that would not land is said in the top bar, days before the week it would cost.
+- **It remembers what you sat through** - how far under water the stack went, how long
+  it took to come back, and the buys you made down there. Those are the cheap ones.
+- **It says where the stack is kept**, and how much has moved somewhere only you reach.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
   and the weeks the drip landed in - one the Pi slept through is bought when it wakes.
-- **Every buy opens.** What those euros are worth today, what the multiplier had to do
-  with it, and the three readings that set its size.
+- **Every buy opens** - what those euros are worth today, and the readings that set its
+  size.
 - **The drip is set where it is read** - click the amount, or the chip with the rhythm,
   the day and the time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -
@@ -84,11 +84,11 @@ Tap the drops under the next buy to see the sum.
 ## Weekly report
 
 Once a week Drip reports itself to Discord: what you stacked, how you stand against
-plain DCA and the market's own average, where that stack is being kept, and what the
-signal says now. Anything that would stop next week's buy - an empty account, a key
-Coinbase no longer accepts - is named while there is still time to fix it.
+plain DCA, how far under water it has been, where it is kept, and what the signal says
+now. Anything that would stop next week's buy - an empty account, a key Coinbase no
+longer accepts - is named while there is still time to fix it.
 
-Sixteen sections, each switchable; the preview is built by the code that builds the
+Seventeen sections, each switchable; the preview is built by the code that builds the
 real message.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)

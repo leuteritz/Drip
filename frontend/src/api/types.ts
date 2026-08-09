@@ -266,6 +266,70 @@ export interface Custody {
   over: boolean;
 }
 
+/** One stretch the stack spent below what it cost.
+ *
+ *  `depth_pct` is the worst single day of it and is always negative.
+ *  `recovered` is false for a stretch still running, which is why the card may
+ *  not print a "back above water after N days" for it.
+ */
+export interface WaterlineEpisode {
+  start: string;
+  end: string;
+  days: number;
+  depth_pct: number;
+  deepest_on: string;
+  recovered: boolean;
+  buys: number;
+  eur: number;
+  sats: number;
+}
+
+/** One half of the buys — made under water, or made above it. Both are valued
+ *  at today's price, so the two profit figures are arithmetic on one basis. */
+export interface WaterlineSide {
+  buys: number;
+  eur: number;
+  sats: number;
+  value_eur: number;
+  profit_pct: number;
+  avg_price_eur: number;
+}
+
+/** One drawn point: the deepest day of its bucket, and that day's date. */
+export interface WaterlinePoint {
+  date: string;
+  depth_pct: number;
+}
+
+/** How far under water the stack went, and what was bought down there.
+ *
+ *  `available` is false while there is not enough series to say anything — a
+ *  different state from having never gone under, which is an answer and is
+ *  reported as `episodes: 0`. Every figure is measured over *counted* episodes
+ *  only: anything shallower than `threshold_pct` is the fee and the spread.
+ */
+export interface Waterline {
+  as_of: string;
+  include_dry_run: boolean;
+  available: boolean;
+  threshold_pct: number;
+  current_price: number | null;
+  days: number;
+  days_under: number;
+  under_pct: number;
+  episodes: number;
+  depth_now_pct: number;
+  /** The stretch still running, or null — never the last one that ended. */
+  current: WaterlineEpisode | null;
+  deepest: WaterlineEpisode | null;
+  longest: WaterlineEpisode | null;
+  /** The last three, newest first. */
+  recent: WaterlineEpisode[];
+  bought_under: WaterlineSide | null;
+  bought_above: WaterlineSide | null;
+  curve: WaterlinePoint[];
+}
+
 /** One period of the bot's own record — a day, week, fortnight or month. */
 export interface PulsePeriod {
   /** The first day of the period. */

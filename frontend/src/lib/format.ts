@@ -75,6 +75,11 @@ export const formatDayMonthYear = (iso: string) =>
     year: "numeric",
   });
 
+/** "Jun 2022" — an axis that spans years, where the day is noise and the year
+ *  is the whole point. The waterline's depth curve is the one that does. */
+export const formatMonthYear = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+
 /** "4 Aug 2026, 09:00" — the history table's full timestamp. */
 export const formatTimestamp = (iso: string) =>
   new Date(iso).toLocaleString("en-GB", {

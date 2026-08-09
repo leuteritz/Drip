@@ -428,6 +428,73 @@ class OutlookResponse(BaseModel):
     streak: StreakOutlook
 
 
+class WaterlineEpisode(BaseModel):
+    """One stretch the stack spent below what it cost.
+
+    `depth_pct` is the worst single day of it and is always negative;
+    `recovered` is false for a stretch that is still running, which is why the
+    card may not print a "back above water" for it.
+    """
+
+    start: str
+    end: str
+    days: int
+    depth_pct: float
+    deepest_on: str
+    recovered: bool
+    buys: int
+    eur: float
+    sats: float
+
+
+class WaterlineSide(BaseModel):
+    """One half of the buys — those made under water, and those made above it.
+    Both are valued at today's price, so the two profit figures are arithmetic
+    on the same basis."""
+
+    buys: int
+    eur: float
+    sats: float
+    value_eur: float
+    profit_pct: float
+    avg_price_eur: float
+
+
+class WaterlinePoint(BaseModel):
+    """One drawn point: the deepest day of its bucket, and that day's date."""
+
+    date: str
+    depth_pct: float
+
+
+class WaterlineResponse(BaseModel):
+    """How far under water the stack went, and what was bought down there.
+
+    `available` is false while there is not enough daily series to say anything
+    — a different state from having never gone under, which is an answer.
+    Everything below it is measured over *counted* episodes only: a stretch
+    shallower than `threshold_pct` is the fee and the spread, not a drawdown.
+    """
+
+    as_of: str
+    include_dry_run: bool
+    available: bool
+    threshold_pct: float
+    current_price: Optional[float] = None
+    days: int = 0
+    days_under: int = 0
+    under_pct: float = 0.0
+    episodes: int = 0
+    depth_now_pct: float = 0.0
+    current: Optional[WaterlineEpisode] = None
+    deepest: Optional[WaterlineEpisode] = None
+    longest: Optional[WaterlineEpisode] = None
+    recent: list[WaterlineEpisode] = []
+    bought_under: Optional[WaterlineSide] = None
+    bought_above: Optional[WaterlineSide] = None
+    curve: list[WaterlinePoint] = []
+
+
 class PulsePeriod(BaseModel):
     """One period of the record — a day, week, fortnight or month, whichever the
     cadence makes it. `state` is one of landed / failed / missed / paused: a

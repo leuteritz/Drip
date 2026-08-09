@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
-from .. import analytics, custody, holdings, outlook, pulse
+from .. import analytics, custody, holdings, outlook, pulse, waterline
 from ..database import get_session, load_settings
 from ..schemas import (
     ComparisonPoint,
@@ -10,6 +10,7 @@ from ..schemas import (
     OutlookResponse,
     PerformanceResponse,
     PulseResponse,
+    WaterlineResponse,
 )
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
@@ -43,6 +44,17 @@ def pulse_summary(periods: int | None = Query(default=None, ge=4, le=400),
     because the question is whether the machine woke up.
     """
     return pulse.summary(session, periods)
+
+
+@router.get("/waterline", response_model=WaterlineResponse)
+def waterline_summary(include_dry_run: bool = Query(default=True),
+                      session: Session = Depends(get_session)):
+    """How far under water the stack went, and what was bought down there.
+
+    Takes the dry-run filter because it is cut from the same daily series the
+    comparison chart plots, and the two must show the same days.
+    """
+    return waterline.summary(session, include_dry_run)
 
 
 @router.get("/custody", response_model=CustodyResponse)

@@ -34,6 +34,7 @@ import type {
   SetupInfo,
   SimulationResult,
   StrategyGrid,
+  Waterline,
 } from "./types";
 
 export type * from "./types";
@@ -142,6 +143,10 @@ export const api = {
     request<Holdings>(`/api/stats/holdings?include_dry_run=${includeDryRun}`),
   getOutlook: (includeDryRun: boolean) =>
     request<Outlook>(`/api/stats/outlook?include_dry_run=${includeDryRun}`),
+  // Takes the filter: it is cut from the same series the comparison chart
+  // plots, and the two have to show the same days.
+  getWaterline: (includeDryRun: boolean) =>
+    request<Waterline>(`/api/stats/waterline?include_dry_run=${includeDryRun}`),
   // No dry-run flag on purpose: the pulse counts every run the bot made.
   getPulse: () => request<Pulse>("/api/stats/pulse"),
   // Nor here, for a stronger reason: a test run never bought bitcoin, so it

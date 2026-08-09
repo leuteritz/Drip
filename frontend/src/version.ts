@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.37",
+    date: "2026-08-09",
+    changes: [
+      "A new card says how far under water your stack has been: how deep it went, how long it took to come back, and how much of your time buying has been spent below what you paid",
+      "It counts the buys you made while it was down there and what they are worth today — the drip buys its cheapest bitcoin exactly when it is least pleasant to look at",
+      "The weekly report says the same in one line, and says \"never been under water\" when that is the honest answer",
+    ],
+  },
+  {
     version: "2.36",
     date: "2026-08-09",
     changes: [
