@@ -57,7 +57,11 @@ export default function EmbedPreview({
                 <div className="text-2xs font-bold leading-tight text-cream">
                   {field.name}
                 </div>
-                <div className="mt-0.5 text-xs leading-snug text-cream/65">
+                {/* `whitespace-pre-line` because a newline in a field value is
+                    Discord's own line break, and two blocks write one — the
+                    pulse's overdue warning and the custody nudge. Collapsing it
+                    made the preview show a run-on sentence Discord would not. */}
+                <div className="mt-0.5 whitespace-pre-line text-xs leading-snug text-cream/65">
                   <RichText text={field.value} />
                 </div>
               </div>

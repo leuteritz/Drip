@@ -72,6 +72,12 @@ class BotSettings(SQLModel, table=True):
     # it is the one thing here that can spend money at a moment nobody chose,
     # so it is asked for rather than assumed. See `pulse.missed_slot`.
     catch_up: bool = False
+    # What the stack on the exchange may be worth before Drip mentions that it
+    # is still sitting there. A round number rather than a share of anything:
+    # the question is how much of somebody else's risk is being carried, and
+    # that is an amount. 0 keeps the figures and drops the nudge. See
+    # `custody.py`; it reaches an existing install through `_migrate_columns`.
+    custody_threshold_eur: float = 1000.0
 
 
 class PauseWindow(SQLModel, table=True):

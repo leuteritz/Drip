@@ -23,6 +23,8 @@ class SettingsUpdate(BaseModel):
     paused_until: Optional[date] = None
     discord_enabled: Optional[bool] = None
     catch_up: Optional[bool] = None
+    # 0 switches the custody nudge off; the figures stay either way.
+    custody_threshold_eur: Optional[float] = Field(default=None, ge=0, le=10_000_000)
 
 
 class DigestUpdate(BaseModel):
@@ -351,6 +353,34 @@ class HoldingsResponse(BaseModel):
     next_free_in_days: int
     timeline: list[RipeningMonth]
     excluded: ExcludedBuys
+
+
+class CustodyResponse(BaseModel):
+    """Where the bought bitcoin is, and what the exchange is holding of it.
+
+    `bought_btc`, `since` and `days` come out of the purchase history and are
+    always known. Everything else is the exchange's answer: `configured` says
+    whether there are keys to ask with, `available` whether the balance was
+    actually read, and only then do `btc_on_exchange`, `value_eur`,
+    `difference_btc` and `over` mean anything. `standing` is one of
+    `held` | `partly` | `moved` | `unknown` — the last is what an install with
+    no keys reports, since what Drip bought does not say where it is now.
+    """
+
+    bought_btc: float
+    since: Optional[str]
+    days: int
+    threshold_eur: float
+    configured: bool
+    available: bool
+    standing: str
+    btc_on_exchange: Optional[float]
+    # Positive means the account holds more than Drip bought — somebody else's
+    # bitcoin sharing it, which is not a thing Drip explains.
+    difference_btc: Optional[float]
+    value_eur: Optional[float]
+    current_price: Optional[float]
+    over: bool
 
 
 class MilestoneOutlook(BaseModel):

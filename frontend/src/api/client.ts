@@ -12,6 +12,7 @@ import type {
   CoinbaseTest,
   ComparisonPoint,
   CredentialsUpdate,
+  Custody,
   DigestPreview,
   DigestSettings,
   DigestUpdate,
@@ -143,6 +144,9 @@ export const api = {
     request<Outlook>(`/api/stats/outlook?include_dry_run=${includeDryRun}`),
   // No dry-run flag on purpose: the pulse counts every run the bot made.
   getPulse: () => request<Pulse>("/api/stats/pulse"),
+  // Nor here, for a stronger reason: a test run never bought bitcoin, so it
+  // cannot be in anyone's custody.
+  getCustody: () => request<Custody>("/api/stats/custody"),
   deletePurchase: (id: number) =>
     request<{ deleted: number }>(`/api/purchases/${id}`, { method: "DELETE" }),
   clearTestRuns: () =>

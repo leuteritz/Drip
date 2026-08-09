@@ -6,6 +6,7 @@ import {
   type BotSettings,
   type Candle,
   type ComparisonPoint,
+  type Custody,
   type Holdings,
   type Outlook,
   type Pulse,
@@ -15,6 +16,7 @@ import { fmtEur, fmtPct } from "../lib/format";
 import ComparisonChart from "../components/ComparisonChart";
 import PriceChart from "../components/PriceChart";
 import CostBasisCard from "../components/stack/CostBasisCard";
+import CustodyCard from "../components/stack/Custody";
 import HoldingPeriods from "../components/stack/HoldingPeriods";
 import OutlookCard from "../components/stack/Outlook";
 import PulseCard from "../components/stack/Pulse";
@@ -41,14 +43,15 @@ const RANGES = [
  * and buys pinned onto the price line — then `PulseCard`, which is about the
  * bot rather than the money: every figure above it is an average of the buys
  * that landed, and it is the only thing on the page that can tell you a week
- * never did. Then the two cards that describe the stack itself rather than the
- * strategy behind it: how well it was bought (`CostBasisCard`) and how old it
- * is (`HoldingPeriods`). Whether the strategy is any good is a different
- * question, and lives in the Research section.
+ * never did. Then the cards that describe the stack itself rather than the
+ * strategy behind it: how well it was bought (`CostBasisCard`), how old it is
+ * (`HoldingPeriods`) and where it is being kept (`CustodyCard`). Whether the
+ * strategy is any good is a different question, and lives in the Research
+ * section.
  *
  * `OutlookCard` closes the section because it is the only part that faces
- * forwards: the page reads what happened, then what you hold, then where it is
- * going if nothing changes.
+ * forwards: the page reads what happened, then what you hold, then where that
+ * is sitting, then where it is going if nothing changes.
  *
  * The reservoir headline and its stats live in the hero header (SiteHeader);
  * the "include dry runs" filter is lifted to App (it drives both the header
@@ -73,6 +76,7 @@ export default function Overview({
   const [candlesLoaded, setCandlesLoaded] = useState(false);
   const [comparison, setComparison] = useState<ComparisonPoint[]>([]);
   const [compLoaded, setCompLoaded] = useState(false);
+  const [custody, setCustody] = useState<Custody | null>(null);
   const [holdings, setHoldings] = useState<Holdings | null>(null);
   const [outlook, setOutlook] = useState<Outlook | null>(null);
   const [pulse, setPulse] = useState<Pulse | null>(null);
@@ -109,11 +113,17 @@ export default function Overview({
     api.getOutlook(includeDryRun).then(setOutlook).catch((e) => setError(String(e)));
   }, [includeDryRun, purchases, loadComparison]);
 
-  // The record of which weeks got a buy takes no dry-run filter — it counts
-  // every run the bot made — so it refreshes on the history alone.
+  // Neither the record of which weeks got a buy nor where the stack is kept
+  // takes a dry-run filter — one counts every run the bot made, the other only
+  // ever counts real bitcoin — so both refresh on the history alone. Custody
+  // also follows the threshold, since that is what decides whether it nudges.
   useEffect(() => {
     api.getPulse().then(setPulse).catch((e) => setError(String(e)));
   }, [purchases]);
+
+  useEffect(() => {
+    api.getCustody().then(setCustody).catch((e) => setError(String(e)));
+  }, [purchases, settings?.custody_threshold_eur]);
 
   const strategySeries = comparison.slice(-rangeDays);
   const latest = strategySeries.length
@@ -222,6 +232,14 @@ export default function Overview({
           />
           <HoldingPeriods data={holdings} />
         </div>
+
+        {/* Where the result of all that is actually sitting — the one card
+            about custody rather than about how the saving went. */}
+        <CustodyCard
+          data={custody}
+          settings={settings}
+          onSaveSettings={onSaveSettings}
+        />
 
         {/* ...and the only one that faces the other way. */}
         <OutlookCard data={outlook} />

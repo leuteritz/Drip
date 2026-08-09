@@ -12,15 +12,16 @@ opt-in.
 
 *Example history, not a real account. Night theme; there is a day one too.*
 
-- **Your stack is a tank of water**, and it fizzes at the strength of the week's signal.
-- **Four instruments float on it** - the signal, the market's mood, the price and your
-  Coinbase well, whose button turns into Coinbase when you point at it.
+- **Your stack is a tank of water** that fizzes at the strength of the week's signal,
+  with four instruments floating on it - the signal, the market's mood, the price and
+  your Coinbase well.
 - **It checks itself before Monday** - the key, the money on the exchange, the price
   feed, the schedule. A buy that would not land is said in the top bar, days before the
   week it would have cost.
+- **It says where the stack is kept** - how much of what it bought is still on the
+  exchange, and how much has been moved somewhere only you can reach.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
-  the rate you stack at, and the weeks the drip landed in - a week the Pi slept through
-  is bought when it wakes, a week you paused is not.
+  and the weeks the drip landed in - one the Pi slept through is bought when it wakes.
 - **Every buy opens.** What those euros are worth today, what the multiplier had to do
   with it, and the three readings that set its size.
 - **The drip is set where it is read** - click the amount, or the chip with the rhythm,
@@ -83,12 +84,11 @@ Tap the drops under the next buy to see the sum.
 ## Weekly report
 
 Once a week Drip reports itself to Discord: what you stacked, how you stand against
-plain DCA and against the market's own average, which weeks it bought in, and what the
-signal says now. A run that falls over says so at the time, a late one says which week
-it is answering, and anything that would stop next week's buy - an empty account, a key
+plain DCA and the market's own average, where that stack is being kept, and what the
+signal says now. Anything that would stop next week's buy - an empty account, a key
 Coinbase no longer accepts - is named while there is still time to fix it.
 
-Fifteen sections, each switchable; the preview is built by the code that builds the
+Sixteen sections, each switchable; the preview is built by the code that builds the
 real message.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)

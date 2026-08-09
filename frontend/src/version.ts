@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.36",
+    date: "2026-08-09",
+    changes: [
+      "The dashboard now says where your bitcoin actually is: how much of what Drip bought is still sitting on Coinbase, and how much has been moved somewhere only you can reach",
+      "Set the amount that is too much to leave on an exchange, and the weekly report mentions the balance once it is worth more than that",
+      "Without a Coinbase key Drip states what it bought and nothing about where it is — it will not assume the whole stack is still on the exchange",
+    ],
+  },
+  {
     version: "2.35",
     date: "2026-08-09",
     changes: [

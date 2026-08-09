@@ -22,8 +22,8 @@ from datetime import date, datetime, timedelta
 from sqlmodel import Session
 
 from . import (
-    analytics, cadence, holdings, outlook, preflight, pulse, scheduler,
-    strategy, well,
+    analytics, cadence, custody, holdings, outlook, preflight, pulse,
+    scheduler, strategy, well,
 )
 from .database import load_digest_settings, load_settings
 from .market_data import ensure_candles
@@ -70,6 +70,7 @@ BLOCKS: list[Block] = [
     Block("streak", "Streak", "How long the drip has run without missing a slot"),
     Block("pulse", "Drip kept", "Whether a buy landed each time one was due"),
     Block("tax", "One-year rule", "Which buys are past the German holding period (§23 EStG)"),
+    Block("custody", "Where it is kept", "How much of the stack is still sitting on the exchange"),
     Block("failed", "Failed buys", "Buys recorded as errors, which every other figure leaves out"),
 ]
 
@@ -181,6 +182,14 @@ def build(session: Session) -> dict:
     market = _market(session)
     total_sats = performance["btc_total"] * SATS_PER_BTC
     next_amount_eur = settings.base_amount_eur * analysis.multiplier
+    # The other module that reads the exchange, and it earns its place on the
+    # same terms `well` does: it cannot fail, and it costs nothing new — it and
+    # `well` share the 30s balance cache, so only the first of them actually
+    # asks, and the price is handed in from `holdings` above rather than
+    # fetched a second time.
+    keeping = custody.summary(
+        session, settings.custody_threshold_eur, price=stack["current_price"]
+    )
 
     today = date.today()
     return {
@@ -220,6 +229,18 @@ def build(session: Session) -> dict:
             "next_free_in_days": stack["next_free_in_days"],
         },
         "excluded": stack["excluded"],
+        # Sats alongside the raw bitcoin for the same reason `holdings` above
+        # carries them: the report speaks sats and the embed may not do its own
+        # arithmetic on a figure this one is about.
+        "custody": {
+            **keeping,
+            "bought_sats": keeping["bought_btc"] * SATS_PER_BTC,
+            "on_exchange_sats": (
+                keeping["btc_on_exchange"] * SATS_PER_BTC
+                if keeping["btc_on_exchange"] is not None
+                else None
+            ),
+        },
         "analysis": analysis,
         "next_run": scheduler.next_run_time(),
         "next_amount_eur": next_amount_eur,

@@ -44,3 +44,16 @@ PREFLIGHT_PASS = "pass"
 PREFLIGHT_WARN = "warn"
 PREFLIGHT_FAIL = "fail"
 PREFLIGHT_UNKNOWN = "unknown"
+
+# Where the stack is, in one word. Here for the same reason the four above are:
+# `custody` decides them, `notifier` words them and the frontend colours them.
+#
+# `CUSTODY_UNKNOWN` is a first-class answer too, and it is the *only* honest one
+# on an install with no keys — what Drip bought is a fact it owns, where that
+# bitcoin is today is not. There is deliberately no word for "more than was
+# bought": that is bitcoin from elsewhere sharing the account, and everything
+# Drip bought is still on it, which is `CUSTODY_HELD`.
+CUSTODY_HELD = "held"        # all of it is still on the exchange
+CUSTODY_PARTLY = "partly"    # some has been moved off
+CUSTODY_MOVED = "moved"      # what is left there is change, not a holding
+CUSTODY_UNKNOWN = "unknown"  # no keys, or the balance could not be read

@@ -20,6 +20,9 @@ export interface BotSettings {
   discord_enabled: boolean;
   /** Buy a slot that went by while Drip was not running. Off unless asked for. */
   catch_up: boolean;
+  /** What the stack on the exchange may be worth before Drip mentions that it
+   *  is still there. 0 keeps the figures and drops the nudge. */
+  custody_threshold_eur: number;
 }
 
 export interface BotStatus {
@@ -226,6 +229,41 @@ export interface Outlook {
   /** Consecutive periods of the drip's own cadence with a buy in them — not
    *  weeks, since a monthly saver who never missed one was reporting 1. */
   streak: { periods: number; total_periods: number; cadence: CadenceKey };
+}
+
+/** Where the stack is kept, in one word.
+ *
+ *  `unknown` is what an install with no keys reports and is never folded into
+ *  the others: what Drip bought is a fact it owns, where that bitcoin is today
+ *  is only Coinbase's to answer. There is no word for "more than was bought" —
+ *  that is somebody else's bitcoin sharing the account, and everything Drip
+ *  bought is still on it, which is `held`.
+ */
+export type CustodyStanding = "held" | "partly" | "moved" | "unknown";
+
+/** How much of what Drip bought is still sitting on the exchange.
+ *
+ *  `bought_btc`, `since` and `days` come out of the purchase history and are
+ *  always known. The rest is the exchange's answer, and only means anything
+ *  once `available` is true.
+ */
+export interface Custody {
+  bought_btc: number;
+  since: string | null;
+  days: number;
+  threshold_eur: number;
+  /** Whether there are keys to ask the exchange with. */
+  configured: boolean;
+  /** Whether a balance was actually read. */
+  available: boolean;
+  standing: CustodyStanding;
+  btc_on_exchange: number | null;
+  /** Positive means the account holds more than Drip ever bought. */
+  difference_btc: number | null;
+  value_eur: number | null;
+  current_price: number | null;
+  /** Worth more than the threshold the install set. */
+  over: boolean;
 }
 
 /** One period of the bot's own record — a day, week, fortnight or month. */

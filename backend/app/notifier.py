@@ -11,7 +11,13 @@ from typing import TYPE_CHECKING
 import requests
 
 from . import credentials
-from .constants import PREFLIGHT_FAIL, PREFLIGHT_UNKNOWN, PREFLIGHT_WARN
+from .constants import (
+    CUSTODY_MOVED,
+    CUSTODY_PARTLY,
+    PREFLIGHT_FAIL,
+    PREFLIGHT_UNKNOWN,
+    PREFLIGHT_WARN,
+)
 from .models import Purchase
 
 if TYPE_CHECKING:  # avoids importing the strategy module at runtime
@@ -190,6 +196,44 @@ def _pulse_line(beat: dict) -> str:
         days = beat["overdue"]["days"]
         when = "today" if days < 1 else f"{days} {'day' if days == 1 else 'days'} ago"
         line += f"\n⚠ The buy due {when} has not landed - the bot may not be running."
+    return line
+
+
+def _custody_line(keeping: dict) -> str:
+    """The custody block: how much of the stack is still on the exchange.
+
+    Three sentences and a fourth for the case there is no answer. The nudge is
+    appended only above the install's own threshold, because a saver who keeps
+    a fortnight's buying on the exchange is not doing anything wrong and a line
+    telling them off every week is one they stop reading before the week it is
+    about a year's savings.
+
+    It never says *why* the balance differs from what Drip bought. A smaller
+    one means bitcoin has left the account; a larger one means somebody else's
+    is sharing it. Both are stated as the fact they are.
+    """
+    if not keeping["available"]:
+        return "Balance unavailable"
+
+    sats = keeping["on_exchange_sats"]
+    bought = keeping["bought_sats"]
+    value = f"€{keeping['value_eur']:,.0f}"
+
+    if keeping["standing"] == CUSTODY_MOVED:
+        return (f"**Off the exchange** - {bought:,.0f} sats are somewhere Drip "
+                "cannot see, which is the point")
+    if keeping["standing"] == CUSTODY_PARTLY:
+        line = f"**{sats:,.0f} of {bought:,.0f} sats** still on Coinbase ({value})"
+    else:
+        line = f"**{sats:,.0f} sats** on Coinbase ({value})"
+
+    if keeping["over"]:
+        # ⚠ rather than a lightbulb: Fraunces and Outfit are the only faces the
+        # Pi ships, and neither carries an emoji past the old dingbat block — a
+        # 💡 renders as a tofu box in the dashboard's own preview. Discord would
+        # have drawn it; the preview is the half that has to be honest.
+        line += (f"\n⚠ Above the €{keeping['threshold_eur']:,.0f} you set - worth "
+                 "moving to a wallet only you hold the keys to.")
     return line
 
 
@@ -375,6 +419,19 @@ def _digest_fields(digest: dict) -> list[dict]:
             "key": "tax",
             "name": "Past the one-year rule",
             "value": ripe,
+            "inline": False,
+        })
+
+    # Where all of that is being kept. Silent on an install with no keys, the
+    # same rule the well follows and for a stronger reason: what Drip bought
+    # says nothing about where it is now, and a warning about a risk somebody
+    # may have retired years ago is worse than saying nothing.
+    keeping = digest["custody"]
+    if keeping["configured"]:
+        fields.append({
+            "key": "custody",
+            "name": "Still on the exchange" if keeping["over"] else "Where it is kept",
+            "value": _custody_line(keeping),
             "inline": False,
         })
 
