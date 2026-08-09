@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
 from .. import bot as bot_runner
-from .. import credentials, notifier, scheduler
+from .. import credentials, notifier, preflight, scheduler
 from ..bot import is_paused
 from ..database import get_session, load_settings
 from ..schemas import (
     BotStatusResponse,
     ManualBuyRequest,
+    PreflightResponse,
     RunRequest,
     RunResultResponse,
     TestNotificationResponse,
@@ -28,6 +29,24 @@ def status(session: Session = Depends(get_session)):
         "has_credentials": creds.has_coinbase,
         "discord_configured": bool(creds.discord_webhook),
     }
+
+
+@router.get("/preflight", response_model=PreflightResponse)
+def preflight_check(session: Session = Depends(get_session)):
+    """Everything that has to hold for the next drip to land.
+
+    Lives under the bot rather than under setup because it is about the next
+    *run*, not about the install: setup answers what is configured, this answers
+    whether the configuration will survive Monday. Always 200 — a key Coinbase
+    rejects is an answer, the same way `/api/setup/coinbase/test` treats one.
+
+    Read-only: the balance comes from the cache the header already fills, and
+    the market is scored the way the buy itself will be — so the runway it
+    reports is measured against the same figure the hero prices the next drip
+    at. On a cold candle cache that first call is the slow one, which is why
+    the dialog behind it says what it is waiting for.
+    """
+    return preflight.summary(session)
 
 
 def _run(dry_run: bool | None, amount_eur: float | None = None) -> dict:

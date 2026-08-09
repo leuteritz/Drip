@@ -30,3 +30,17 @@ ORIGIN_CATCHUP = "catchup"
 # because guessing is the one thing this column exists to stop.
 ORIGIN_UNKNOWN = ""
 ORIGINS = (ORIGIN_SCHEDULE, ORIGIN_MANUAL, ORIGIN_CATCHUP)
+
+# The answer one preflight check can give. Not on-disk — nothing stores these —
+# but they are the API's own vocabulary and three modules speak it: `preflight`
+# decides them, `notifier` ranks them into a message and the frontend colours
+# them. They live here rather than in `preflight` because `notifier` cannot
+# import that module without closing a circle back through `bot`.
+#
+# `PREFLIGHT_UNKNOWN` is a first-class answer and never a synonym for either of
+# its neighbours: a balance that could not be fetched is not a healthy one and
+# not an empty one, and being able to say so is what makes the rest credible.
+PREFLIGHT_PASS = "pass"
+PREFLIGHT_WARN = "warn"
+PREFLIGHT_FAIL = "fail"
+PREFLIGHT_UNKNOWN = "unknown"

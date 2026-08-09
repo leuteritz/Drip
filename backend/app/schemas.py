@@ -705,3 +705,34 @@ class CoinbaseTestResponse(BaseModel):
 class MaintenanceResponse(BaseModel):
     ok: bool
     detail: str
+
+
+class PreflightCheck(BaseModel):
+    """One thing that has to be true before the next buy can land.
+
+    `detail` is a whole sentence and arrives rendered, for the same reason the
+    digest's fields do: only the backend knows what went wrong, and a client
+    writing that sentence itself would be a second copy of the reasoning.
+    """
+
+    key: str
+    label: str
+    status: str  # pass | warn | fail | unknown
+    detail: str
+
+
+class PreflightResponse(BaseModel):
+    """Will the next drip go through — asked before it is due, not after.
+
+    `status` is the worst of the checks, `unknown` ranking between `pass` and
+    `warn`: not knowing is worse than being fine and less urgent than a fault.
+    `dry_run` is on the payload because it changes what a failure *means* — no
+    order is placed on a test run, so a missing key cannot stop it.
+    """
+
+    status: str
+    ready: bool
+    dry_run: bool
+    next_run: Optional[str]
+    next_amount_eur: float
+    checks: list[PreflightCheck]

@@ -22,6 +22,7 @@ import type {
   Maintenance,
   Outlook,
   Performance,
+  Preflight,
   Pulse,
   Purchase,
   Receipt,
@@ -74,6 +75,10 @@ export const api = {
     }),
   resume: () => request<BotSettings>("/api/settings/resume", { method: "POST" }),
   getStatus: () => request<BotStatus>("/api/bot/status"),
+  // Whether the next drip would actually land. Under /api/bot rather than
+  // /api/setup because it is about the next run, not about the install: one
+  // asks what is configured, the other whether that survives Monday.
+  getPreflight: () => request<Preflight>("/api/bot/preflight"),
   runNow: (dryRun: boolean | null) =>
     request<RunResult>("/api/bot/run", {
       method: "POST",

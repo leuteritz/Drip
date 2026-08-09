@@ -16,6 +16,7 @@ import type {
   DigestUpdate,
   Indicators,
   Performance,
+  Preflight,
   Purchase,
   RunResult,
 } from "../api/client";
@@ -32,6 +33,7 @@ import { NAV, useScrolled, useScrollSpy, type Section } from "./header/hooks";
 import LoadPill from "./header/LoadPill";
 import ModeToggle from "./header/ModeToggle";
 import NextBuyActions, { type SpoutEdit } from "./header/NextBuyActions";
+import PreflightPill from "./header/PreflightPill";
 import {
   BtcReadout,
   MarketReadout,
@@ -47,6 +49,7 @@ import TankBackdrop from "./header/TankBackdrop";
 import ThemeToggle from "./header/ThemeToggle";
 import VersionBadge from "./header/VersionBadge";
 import ManualBuyDialog from "./ManualBuyDialog";
+import PreflightDialog from "./preflight/PreflightDialog";
 import { buildCommands } from "./palette/buildCommands";
 import CommandPalette from "./palette/CommandPalette";
 import PaletteButton from "./palette/PaletteButton";
@@ -68,6 +71,7 @@ export default function SiteHeader({
   indicators,
   performance,
   balance,
+  preflight,
   purchases,
   loading,
   themeChoice,
@@ -89,6 +93,7 @@ export default function SiteHeader({
   onSendDigest,
   onCredentialsChanged,
   onHistoryChanged,
+  onRecheck,
   running,
   buying,
   runResult,
@@ -99,6 +104,8 @@ export default function SiteHeader({
   indicators: Indicators | null;
   performance: Performance | null;
   balance: AccountBalance | null;
+  /** Whether the next drip would land. Null while it is still being asked. */
+  preflight: Preflight | null;
   /** The buy history, so the palette can answer questions about it. */
   purchases: Purchase[];
   /** What the page is still fetching — named in the bar by `LoadPill`. */
@@ -123,6 +130,9 @@ export default function SiteHeader({
   onSendDigest: () => Promise<boolean>;
   onCredentialsChanged: () => void;
   onHistoryChanged: () => void;
+  /** Ask the preflight again — the dialog's own button, and what a fixed key
+   *  needs before the pill will go away. */
+  onRecheck: () => void;
   running: boolean;
   buying: boolean;
   runResult: RunResult | null;
@@ -139,6 +149,7 @@ export default function SiteHeader({
   // land straight on Coinbase.
   const [setupTab, setSetupTab] = useState<SetupTab | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [preflightOpen, setPreflightOpen] = useState(false);
   // Bumped by every landed buy, and only used as a key: remounting Splash is
   // what replays the animation.
   const [splash, setSplash] = useState(0);
@@ -197,6 +208,7 @@ export default function SiteHeader({
         openSetup: () => setSetupTab("coinbase"),
         openSystem: () => setSetupTab("system"),
         openDigest: () => setDigestOpen(true),
+        openPreflight: () => setPreflightOpen(true),
         openBuy: () => setBuyOpen(true),
         openExplain: () => setExplainOpen(true),
         editAmount: () => editSpout("amount"),
@@ -260,6 +272,10 @@ export default function SiteHeader({
             </span>
             <VersionBadge />
             <LoadPill loading={loading} />
+            <PreflightPill
+              report={preflight}
+              onOpen={() => setPreflightOpen(true)}
+            />
             {status?.paused && status.paused_until && (
               <HeaderPill>
                 <DropSlashIcon /> Off until {formatDayMonth(status.paused_until)}
@@ -414,6 +430,15 @@ export default function SiteHeader({
           purchases={purchases}
           onSearchHistory={searchHistory}
           onClose={() => setPaletteOpen(false)}
+        />
+      )}
+
+      {preflightOpen && (
+        <PreflightDialog
+          report={preflight}
+          refreshing={preflight === null}
+          onRefresh={onRecheck}
+          onClose={() => setPreflightOpen(false)}
         />
       )}
 

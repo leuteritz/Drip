@@ -20,6 +20,7 @@ export type LoadKey =
   | "digest"
   | "performance"
   | "balance"
+  | "preflight"
   | "indicators";
 
 export const LOAD_LABELS: Record<LoadKey, string> = {
@@ -29,6 +30,7 @@ export const LOAD_LABELS: Record<LoadKey, string> = {
   digest: "the weekly report",
   performance: "what your stack is worth",
   balance: "your Coinbase balance",
+  preflight: "whether the next buy will land",
   indicators: "this week's signal",
 };
 
@@ -37,6 +39,7 @@ const ORDER: LoadKey[] = [
   "indicators",
   "performance",
   "balance",
+  "preflight",
   "purchases",
   "status",
   "settings",

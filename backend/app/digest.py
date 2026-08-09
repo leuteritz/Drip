@@ -21,7 +21,7 @@ from datetime import date, datetime, timedelta
 
 from sqlmodel import Session
 
-from . import analytics, holdings, outlook, pulse, scheduler, strategy, well
+from . import analytics, holdings, outlook, preflight, pulse, scheduler, strategy, well
 from .database import load_digest_settings, load_settings
 from .market_data import ensure_candles
 from .models import DigestSettings, Purchase
@@ -62,6 +62,7 @@ BLOCKS: list[Block] = [
     Block("signal", "Signal right now", "Score, signal and the multiplier it produces"),
     Block("next", "Next buy", "When the next drip lands and roughly how big it is"),
     Block("well", "Coinbase well", "Euros left on the exchange, and how many buys they cover"),
+    Block("preflight", "Ready to buy", "Whether anything would stop the next drip from landing"),
     Block("milestone", "Next milestone", "The next round number of sats, and how far off it is"),
     Block("streak", "Streak", "Weeks in a row with at least one buy"),
     Block("pulse", "Weeks kept", "Whether a buy landed in each of the recent weeks"),
@@ -221,6 +222,12 @@ def build(session: Session) -> dict:
         # it by being unable to fail: `well.runway` never raises, and a balance
         # it could not fetch is reported as one it could not fetch.
         "well": well.runway(next_amount_eur),
+        # The other half of that sentence, and the only block about a buy that
+        # has not happened yet. It earns its place on the same terms: it cannot
+        # raise, and it costs nothing new — the balance comes out of the cache
+        # `well` just filled and the price feed was already called by `analyze`
+        # above. The amount is handed in so the market is not scored twice.
+        "preflight": preflight.summary(session, next_amount_eur),
     }
 
 

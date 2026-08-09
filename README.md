@@ -14,13 +14,14 @@ default; live trading is a confirmed opt-in.
 - **Your stack is a tank of water**, and it fizzes at the strength of the week's signal.
 - **Four instruments float on it** - the signal, the market's mood, the price and your
   Coinbase well, whose button turns into Coinbase when you point at it.
+- **It checks itself before Monday** - the key, the money on the exchange, the price
+  feed, the schedule. A buy that would not land is said in the top bar, days before the
+  week it would have cost.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
   the rate you stack at, and the weeks the drip landed in - a week the Pi slept through
   is bought when it wakes, a week you paused is not.
 - **Every buy opens.** What those euros are worth today, what the multiplier had to do
-  with it, and the three readings that set its size - beside the bitcoin that actually
-  arrived, the fee taken out, and which of the three asked: the drip, your hand, a
-  catch-up.
+  with it, and the three readings that set its size.
 - **The drip is set where it is read** - click the amount, or the chip with the day and
   time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -
@@ -81,10 +82,10 @@ Tap the drops under the next buy to see the sum.
 Once a week Drip reports itself to Discord: what you stacked, how you stand against
 plain DCA and against the market's own average, which weeks it bought in, and what the
 signal says now. A run that falls over says so at the time, a late one says which week
-it is answering, and a buy that leaves your Coinbase account nearly empty warns you
-while there is still time to top it up.
+it is answering, and anything that would stop next week's buy - an empty account, a key
+Coinbase no longer accepts - is named while there is still time to fix it.
 
-Fourteen sections, each switchable; the preview is built by the code that builds the
+Fifteen sections, each switchable; the preview is built by the code that builds the
 real message.
 
 ![The weekly report editor](docs/screenshot-weekly-report.png)

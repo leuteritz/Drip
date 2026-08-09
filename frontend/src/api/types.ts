@@ -603,6 +603,34 @@ export interface Maintenance {
   detail: string;
 }
 
+/** How one preflight check came out. `unknown` is never folded into either of
+ *  its neighbours: a balance that could not be fetched is not a healthy one and
+ *  not an empty one, and saying so is what makes the rest credible. */
+export type PreflightStatus = "pass" | "warn" | "fail" | "unknown";
+
+/** One thing that has to hold before the next drip can land. `detail` arrives
+ *  rendered from the backend — only it knows what went wrong. */
+export interface PreflightCheck {
+  key: string;
+  label: string;
+  status: PreflightStatus;
+  detail: string;
+}
+
+/** Will the next buy go through — asked before it is due, not after.
+ *
+ *  `status` is the worst of the checks. `dry_run` changes what a failure
+ *  *means*: no order is placed on a test run, so a missing key cannot stop it
+ *  and the backend has already softened it to a warning. */
+export interface Preflight {
+  status: PreflightStatus;
+  ready: boolean;
+  dry_run: boolean;
+  next_run: string | null;
+  next_amount_eur: number;
+  checks: PreflightCheck[];
+}
+
 export interface ImportResult {
   imported: number;
   skipped: number;

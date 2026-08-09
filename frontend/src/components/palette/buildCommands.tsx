@@ -13,6 +13,7 @@ import NewspaperIcon from "~icons/ph/newspaper";
 import PauseIcon from "~icons/ph/pause";
 import PlayIcon from "~icons/ph/play-fill";
 import QuestionIcon from "~icons/ph/question";
+import ShieldCheckIcon from "~icons/ph/shield-check";
 import SlidersIcon from "~icons/ph/sliders-horizontal";
 import SunIcon from "~icons/ph/sun";
 import type { BotStatus, Indicators } from "../../api/client";
@@ -40,6 +41,7 @@ export interface CommandContext {
   openSetup: () => void;
   openSystem: () => void;
   openDigest: () => void;
+  openPreflight: () => void;
   openBuy: () => void;
   openExplain: () => void;
   editAmount: () => void;
@@ -100,6 +102,16 @@ export function buildCommands(ctx: CommandContext): Command[] {
       group: "Open",
       Icon: NewspaperIcon,
       run: ctx.openDigest,
+    },
+    // The only way in when nothing is wrong: the bar's pill shows for a blocked
+    // buy alone, so this is where "is my bot actually fine?" gets asked.
+    {
+      id: "open-preflight",
+      label: "Check the next buy",
+      hint: "Key, balance, price feed and schedule — before Monday, not after",
+      group: "Open",
+      Icon: ShieldCheckIcon,
+      run: ctx.openPreflight,
     },
     {
       id: "open-buy",

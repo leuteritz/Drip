@@ -10,6 +10,7 @@ import {
   type DigestUpdate,
   type Indicators,
   type Performance,
+  type Preflight,
   type Purchase,
   type RunResult,
 } from "./api/client";
@@ -43,6 +44,10 @@ export default function App() {
   // bottom of it, and both speak the one query language in lib/query.ts.
   const [historyQuery, setHistoryQuery] = useState("");
   const [balance, setBalance] = useState<AccountBalance | null>(null);
+  // Whether the next drip would land. Owned here rather than fetched by its own
+  // dialog — unlike Research, this one has something to say while it is closed:
+  // the sticky bar's pill is the only warning a blocked buy ever gets.
+  const [preflight, setPreflight] = useState<Preflight | null>(null);
   const [running, setRunning] = useState(false);
   const [buying, setBuying] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
@@ -87,6 +92,13 @@ export default function App() {
   const reloadIndicators = useCallback(() => {
     track("indicators", api.getIndicators()).then(setIndicators).catch(report);
   }, [report, track]);
+  // Deliberately not refetched on every settings change: the amount persists as
+  // it is typed, and asking Coinbase per keystroke would be a request storm for
+  // an answer that only moves when a key, the mode or the balance does.
+  const reloadPreflight = useCallback(() => {
+    setPreflight(null);
+    track("preflight", api.getPreflight()).then(setPreflight).catch(report);
+  }, [report, track]);
 
   // A key or webhook saved in Setup changes what the rest of the page may
   // claim: whether the header can show a balance, whether the report can be
@@ -95,7 +107,8 @@ export default function App() {
     reloadStatus();
     reloadBalance();
     reloadDigest();
-  }, [reloadBalance, reloadDigest, reloadStatus]);
+    reloadPreflight();
+  }, [reloadBalance, reloadDigest, reloadPreflight, reloadStatus]);
 
   const onToggleDryRun = useCallback(
     (v: boolean) => {
@@ -112,11 +125,14 @@ export default function App() {
       try {
         setSettings(await api.updateSettings({ dry_run: dry }));
         reloadStatus();
+        // Going live changes what a failed check *means*: a missing key cannot
+        // stop a test run and can stop a real one, so the answer is re-asked.
+        reloadPreflight();
       } catch (e) {
         report(e);
       }
     },
-    [reloadStatus, report],
+    [reloadPreflight, reloadStatus, report],
   );
 
   // Persist a settings change (amount, schedule, Discord) from the header's
@@ -227,10 +243,11 @@ export default function App() {
       if (dig) setDigest(dig);
       loadPerformance(true);
       reloadBalance();
+      reloadPreflight();
       // Indicators last: the first call may fetch 350 days of candles.
       reloadIndicators();
     })();
-  }, [loadPerformance, reloadBalance, reloadIndicators, report, track]);
+  }, [loadPerformance, reloadBalance, reloadIndicators, reloadPreflight, report, track]);
 
   if (isTank) {
     return (
@@ -260,6 +277,7 @@ export default function App() {
             indicators={indicators}
             performance={performance}
             balance={balance}
+            preflight={preflight}
             purchases={purchases}
             loading={inFlight}
             themeChoice={themeChoice}
@@ -282,6 +300,7 @@ export default function App() {
             onSendDigest={sendDigest}
             onCredentialsChanged={credentialsChanged}
             onHistoryChanged={reloadPurchases}
+            onRecheck={reloadPreflight}
             running={running}
             runResult={runResult}
           />

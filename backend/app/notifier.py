@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 import requests
 
 from . import credentials
+from .constants import PREFLIGHT_FAIL, PREFLIGHT_UNKNOWN, PREFLIGHT_WARN
 from .models import Purchase
 
 if TYPE_CHECKING:  # avoids importing the strategy module at runtime
@@ -183,6 +184,40 @@ def _pulse_line(beat: dict) -> str:
     return line
 
 
+# What each preflight status looks like in a message. `pass` has no mark
+# because a passing check never appears on its own line — see `_preflight_line`.
+_PREFLIGHT_MARK = {PREFLIGHT_FAIL: "⛔", PREFLIGHT_WARN: "⚠", PREFLIGHT_UNKNOWN: "❔"}
+
+
+def _preflight_line(report: dict) -> str:
+    """What would stop the next drip, or one line saying nothing would.
+
+    Only the checks that have something to say are listed. A report that names
+    all six every week is a report where the one line that matters is the
+    hardest to find, and the whole point of asking before the buy is that the
+    answer arrives while it can still be acted on.
+
+    An `unknown` is dropped as soon as anything worse is on the list, because it
+    is almost always that thing's own shadow: with no key stored, "Coinbase
+    would not answer" and "there is no balance to read" are not two more faults,
+    they are the same fault said three times. Alone, it is the whole message —
+    a check that could not be run is exactly the kind of quiet this is for. The
+    dashboard still shows all six; a message is not a list.
+    """
+    trouble = [c for c in report["checks"] if c["status"] != "pass"]
+    if not trouble:
+        return ("**Everything checks out** - key, balance, price feed and "
+                "schedule are all in place.")
+
+    if any(c["status"] in (PREFLIGHT_FAIL, PREFLIGHT_WARN) for c in trouble):
+        trouble = [c for c in trouble if c["status"] != PREFLIGHT_UNKNOWN]
+
+    lines = [f"{_PREFLIGHT_MARK[c['status']]} {c['detail']}" for c in trouble]
+    if report["dry_run"]:
+        lines.append("_Drip is in dry run, so nothing would have been bought anyway._")
+    return "\n".join(lines)
+
+
 def _digest_fields(digest: dict) -> list[dict]:
     """Every field the report can carry, in reading order, each tagged with the
     block it belongs to. Blocks with nothing to say leave their field out."""
@@ -273,6 +308,15 @@ def _digest_fields(digest: dict) -> list[dict]:
                       if well["available"] else "Balance unavailable"),
             "inline": True,
         })
+
+    # Deliberately after the well: the balance is one of the things this checks,
+    # and the summary reads better once the figure behind it has been stated.
+    fields.append({
+        "key": "preflight",
+        "name": "Ready to buy" if digest["preflight"]["ready"] else "Before the next buy",
+        "value": _preflight_line(digest["preflight"]),
+        "inline": False,
+    })
 
     if milestone["available"]:
         eta = (f" · about {milestone['weeks_away']} weeks away"

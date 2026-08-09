@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.32",
+    date: "2026-08-09",
+    changes: [
+      "Drip now checks whether the next buy will actually go through — the key, the money on the exchange, the price feed and the schedule — before the day it is due, instead of you finding out from a week that never happened",
+      "If something would stop it, the top bar says so and the check lists what: a key Coinbase no longer accepts, an account that will not cover the next buy, a scheduler that came up without its job. Press Ctrl+K and search for it any time you just want to know it is fine",
+      "The weekly report carries the same answer, and says nothing more than it has to — everything in order is one line; anything wrong is named",
+    ],
+  },
+  {
     version: "2.31",
     date: "2026-08-08",
     changes: [
