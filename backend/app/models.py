@@ -55,7 +55,15 @@ class Purchase(SQLModel, table=True):
 class BotSettings(SQLModel, table=True):
     id: int = Field(default=1, primary_key=True)
     base_amount_eur: float = 50.0
-    schedule_weekday: int = 0  # 0 = Monday ... 6 = Sunday
+    # How often the drip drips: daily | weekly | biweekly | monthly. Weekly is
+    # the default and is what every install had before this column existed, so
+    # `_migrate_columns` writing that default in is the whole of the upgrade.
+    # The two below still mean what they meant — a cadence only changes how
+    # often that weekday comes round, and monthly is the *first* one in the
+    # month. `cadence.py` owns what a period and a slot are; nothing else may
+    # decide it. An unrecognised word here reads as weekly rather than raising.
+    cadence: str = "weekly"
+    schedule_weekday: int = 0  # 0 = Monday ... 6 = Sunday (ignored when daily)
     schedule_time: str = "09:00"
     dry_run: bool = True
     paused_until: Optional[date] = None

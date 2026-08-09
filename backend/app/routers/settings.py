@@ -1,9 +1,9 @@
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from .. import pauses, scheduler
+from .. import cadence, pauses, scheduler
 from ..database import get_session, load_settings
 from ..models import BotSettings
 from ..schemas import PauseRequest, SettingsUpdate
@@ -27,6 +27,15 @@ def get_settings(session: Session = Depends(get_session)):
 def update_settings(update: SettingsUpdate, session: Session = Depends(get_session)):
     settings = load_settings(session)
     data = update.model_dump(exclude_unset=True)
+    # The one field with a closed vocabulary. Refused here rather than coerced,
+    # because `cadence.get` falls back to weekly by design — that fallback is for
+    # reading a column somebody else wrote, not for accepting a typo as a change
+    # of schedule and silently buying on a different rhythm than the one asked for.
+    if data.get("cadence") is not None and data["cadence"] not in cadence.KEYS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown cadence - one of {', '.join(cadence.KEYS)}",
+        )
     for key, value in data.items():
         setattr(settings, key, value)
     # Pausing is pausing however it was asked for: the dashboard uses the two
@@ -36,8 +45,10 @@ def update_settings(update: SettingsUpdate, session: Session = Depends(get_sessi
         pauses.record(session, settings.paused_until)
     settings = _persist(session, settings)
 
-    # Schedule changes only take effect once the cron job is rebuilt
-    if "schedule_weekday" in data or "schedule_time" in data:
+    # Schedule changes only take effect once the job is rebuilt — and the
+    # cadence is a schedule change in the strongest sense: it decides which
+    # *kind* of trigger the scheduler is holding, not only when it fires.
+    if {"schedule_weekday", "schedule_time", "cadence"} & data.keys():
         scheduler.reschedule(settings)
     # The missed-buy check is a job that exists or does not, so switching it on
     # has to create it — and switching it on is also when it should look, which

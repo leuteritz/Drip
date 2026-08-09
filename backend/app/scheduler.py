@@ -1,7 +1,12 @@
-"""APScheduler: runs the buy at the configured weekday + time, the weekly digest
-at its own, and — when it is switched on — a daily check for a slot that went by
-while nothing was running. All three are rescheduled whenever their settings
-change."""
+"""APScheduler: runs the buy at the configured cadence, the weekly digest at its
+own weekday + time, and — when it is switched on — a daily check for a slot that
+went by while nothing was running. All three are rescheduled whenever their
+settings change.
+
+The buy's trigger is the only one that is not a plain weekly cron: what "every
+so often" means lives in `cadence.py`, and `_buy_trigger` is the translation of
+it into something APScheduler holds. The digest stays weekly on purpose — it is
+a report about the drip, not a drip."""
 import logging
 from datetime import datetime, timedelta
 
@@ -9,7 +14,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
-from . import bot
+from . import bot, cadence
 from .models import BotSettings, DigestSettings
 
 logger = logging.getLogger(__name__)
@@ -117,22 +122,57 @@ def _run_catch_up() -> None:
         _report_failure(exc)
 
 
-def reschedule(settings: BotSettings) -> None:
+def _buy_trigger(settings: BotSettings):
+    """The trigger for one cadence. Three of the four are cron; one cannot be.
+
+    - **Daily** ignores the weekday, because every day is the period.
+    - **Weekly** is the original: that weekday, every week.
+    - **Monthly** is `day="1-7"` *and* the weekday, which is exactly "the first
+      such weekday of the month" — no new column, and it never lands on a 31st
+      half the months do not have.
+    - **Fortnightly is not expressible as cron at all**, which is the whole
+      reason this function exists. It is an interval anchored on the next slot
+      `cadence` computes, so which fortnight is "on" is decided by the same
+      fixed epoch the history is bucketed against rather than by whenever the
+      setting happened to be saved. Save it twice in one afternoon and the buy
+      does not move.
+    """
     hour, minute = (int(x) for x in settings.schedule_time.split(":"))
-    trigger = CronTrigger(
-        day_of_week=_WEEKDAYS[settings.schedule_weekday],
-        hour=hour,
-        minute=minute,
-    )
+    key = cadence.get(settings.cadence).key
+    weekday = _WEEKDAYS[settings.schedule_weekday]
+
+    if key == cadence.DAILY:
+        return CronTrigger(hour=hour, minute=minute)
+    if key == cadence.WEEKLY:
+        return CronTrigger(day_of_week=weekday, hour=hour, minute=minute)
+    if key == cadence.MONTHLY:
+        return CronTrigger(day="1-7", day_of_week=weekday, hour=hour, minute=minute)
+
+    now = datetime.now()
+    start = cadence.last_slot(key, settings.schedule_weekday, settings.schedule_time, now)
+    # `last_slot` is at or before now by definition; step forward to the one that
+    # has not happened yet, so APScheduler is not handed a start in the past.
+    while start <= now:
+        start = cadence.slot_in(
+            cadence.advance(start.date(), key), key,
+            settings.schedule_weekday, settings.schedule_time,
+        )
+    return IntervalTrigger(weeks=2, start_date=start)
+
+
+def reschedule(settings: BotSettings) -> None:
     scheduler.add_job(
         _run_scheduled,
-        trigger=trigger,
+        trigger=_buy_trigger(settings),
         id=JOB_ID,
         replace_existing=True,
         misfire_grace_time=3600,
     )
     logger.info(
-        "Buy job scheduled: %s %s", _WEEKDAYS[settings.schedule_weekday], settings.schedule_time
+        "Buy job scheduled: %s, %s %s",
+        cadence.get(settings.cadence).key,
+        _WEEKDAYS[settings.schedule_weekday],
+        settings.schedule_time,
     )
 
 

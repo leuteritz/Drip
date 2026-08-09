@@ -21,7 +21,10 @@ from datetime import date, datetime, timedelta
 
 from sqlmodel import Session
 
-from . import analytics, holdings, outlook, preflight, pulse, scheduler, strategy, well
+from . import (
+    analytics, cadence, holdings, outlook, preflight, pulse, scheduler,
+    strategy, well,
+)
 from .database import load_digest_settings, load_settings
 from .market_data import ensure_candles
 from .models import DigestSettings, Purchase
@@ -64,8 +67,8 @@ BLOCKS: list[Block] = [
     Block("well", "Coinbase well", "Euros left on the exchange, and how many buys they cover"),
     Block("preflight", "Ready to buy", "Whether anything would stop the next drip from landing"),
     Block("milestone", "Next milestone", "The next round number of sats, and how far off it is"),
-    Block("streak", "Streak", "Weeks in a row with at least one buy"),
-    Block("pulse", "Weeks kept", "Whether a buy landed in each of the recent weeks"),
+    Block("streak", "Streak", "How long the drip has run without missing a slot"),
+    Block("pulse", "Drip kept", "Whether a buy landed each time one was due"),
     Block("tax", "One-year rule", "Which buys are past the German holding period (§23 EStG)"),
     Block("failed", "Failed buys", "Buys recorded as errors, which every other figure leaves out"),
 ]
@@ -165,6 +168,9 @@ def build(session: Session) -> dict:
     message every week.
     """
     settings = load_settings(session)
+    # The drip's own rhythm, resolved once: the pulse window, the streak and the
+    # rate are all measured in it, and they must not disagree inside one report.
+    drip = cadence.get(settings.cadence).key
     purchases = analytics.relevant_purchases(session, include_dry_run=True)
     performance = analytics.performance_summary(session, include_dry_run=True)
     stack = holdings.summary(session, include_dry_run=True)
@@ -200,13 +206,13 @@ def build(session: Session) -> dict:
         },
         "cost_basis": stack["cost_basis"],
         "milestone": outlook.next_milestone(
-            total_sats, outlook.rate_per_week(purchases)["sats"]
+            total_sats, outlook.rate_per_week(purchases, drip)["sats"]
         ),
-        "streak": outlook.streak(purchases),
+        "streak": outlook.streak(purchases, drip),
         # The one block that reports what did *not* happen. A short window on
         # purpose: the report answers "did the last few months hold up", while
         # the dashboard's card plots the whole year.
-        "pulse": pulse.summary(session, weeks=pulse.DIGEST_WEEKS),
+        "pulse": pulse.summary(session, periods=pulse.digest_periods(drip)),
         "holdings": {
             "free_sats": stack["free"]["btc"] * SATS_PER_BTC,
             "locked_sats": stack["locked"]["btc"] * SATS_PER_BTC,

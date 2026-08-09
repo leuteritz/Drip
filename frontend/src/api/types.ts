@@ -4,9 +4,15 @@
 // into the routers via `response_model=`. Nothing generates them - when you
 // change a schema on the backend, change it here too.
 
+/** How often the drip drips. `lib/cadence.ts` holds the words for each. */
+export type CadenceKey = "daily" | "weekly" | "biweekly" | "monthly";
+
 export interface BotSettings {
   id: number;
   base_amount_eur: number;
+  cadence: CadenceKey;
+  /** Which day inside the period — ignored when the cadence is daily, and the
+   *  *first* such weekday of the month when it is monthly. */
   schedule_weekday: number;
   schedule_time: string;
   dry_run: boolean;
@@ -217,14 +223,16 @@ export interface Outlook {
   /** A year of buys at *today's* price — an order of magnitude, not a forecast. */
   year_sats: number;
   milestone: MilestoneOutlook;
-  streak: { weeks: number; total_weeks: number };
+  /** Consecutive periods of the drip's own cadence with a buy in them — not
+   *  weeks, since a monthly saver who never missed one was reporting 1. */
+  streak: { periods: number; total_periods: number; cadence: CadenceKey };
 }
 
-/** One calendar week of the bot's own record. */
-export interface PulseWeek {
-  /** The Monday of that week. */
+/** One period of the bot's own record — a day, week, fortnight or month. */
+export interface PulsePeriod {
+  /** The first day of the period. */
   start: string;
-  /** The day the schedule would have bought on — only read for a missed week. */
+  /** The day the schedule would have bought on — only read for a missed one. */
   expected: string;
   /** `landed` — a buy went through · `failed` — it tried and the order errored ·
    *  `missed` — nothing happened at all · `paused` — nothing was meant to. */
@@ -234,10 +242,10 @@ export interface PulseWeek {
   sats: number;
 }
 
-/** A week nothing was bought, priced at one base-amount buy on its own day.
- *  `price_eur` is 0 when no close was cached near enough to price it. */
+/** A period nothing was bought in, priced at one base-amount buy on its own
+ *  day. `price_eur` is 0 when no close was cached near enough to price it. */
 export interface PulseGap {
-  week_start: string;
+  period_start: string;
   expected: string;
   price_eur: number;
   eur: number;
@@ -248,20 +256,22 @@ export interface PulseGap {
  *  whether the bot woke up, not whether it spent money, so no dry-run filter. */
 export interface Pulse {
   as_of: string;
-  window_weeks: number;
-  weeks_checked: number;
-  /** `weeks_checked` minus the paused ones — what `coverage_pct` is a share of.
-   *  A week nobody wanted is not a week the bot got wrong. */
-  weeks_judged: number;
+  /** What a period *is* here — the client puts the right word around a count. */
+  cadence: CadenceKey;
+  window_periods: number;
+  periods_checked: number;
+  /** `periods_checked` minus the paused ones — what `coverage_pct` is a share
+   *  of. A period nobody wanted is not one the bot got wrong. */
+  periods_judged: number;
   landed: number;
   failed: number;
   missed: number;
-  /** Weeks whose slot fell inside a pause you asked for. */
+  /** Periods whose slot fell inside a pause you asked for. */
   paused: number;
   coverage_pct: number;
   base_amount_eur: number;
   first_buy: string | null;
-  weeks: PulseWeek[];
+  periods: PulsePeriod[];
   /** Most recent first. */
   gaps: PulseGap[];
   gap_cost: { eur: number; sats: number };

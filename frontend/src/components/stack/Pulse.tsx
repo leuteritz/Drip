@@ -1,5 +1,6 @@
 import WarningIcon from "~icons/ph/warning";
-import type { BotSettings, Pulse, PulseWeek } from "../../api/client";
+import type { BotSettings, Pulse, PulsePeriod } from "../../api/client";
+import { cadenceOf, countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { Card, CardHeader, Loading, Note, Stat, Toggle } from "../ui";
@@ -8,11 +9,11 @@ import { Card, CardHeader, Loading, Note, Stat, Toggle } from "../ui";
 const GAPS_LISTED = 5;
 
 /**
- * A week is one of four things, and only two of them are faults.
+ * A period is one of four things, and only two of them are faults.
  *
- * `paused` is a muted `ink` rather than a colour of its own: a week you asked
+ * `paused` is a muted `ink` rather than a colour of its own: a period you asked
  * for nothing in is not a result, and the palette has no hue that means "not a
- * question" — rose is for the weeks Drip meant to buy and did not. Grey is the
+ * question" — rose is for the ones Drip meant to buy in and did not. Grey is the
  * one reading left, and it works in both themes because `ink` flips with them,
  * dark type on a light card and light type on a dark one, so the mark stays a
  * quiet notch against the strip either way.
@@ -21,7 +22,7 @@ const GAPS_LISTED = 5;
  * darker than the tray it sat in and read as a hole punched through the record
  * — which is precisely the thing this state exists to stop it saying.
  */
-const MARK: Record<PulseWeek["state"], string> = {
+const MARK: Record<PulsePeriod["state"], string> = {
   landed: "bg-water",
   failed: "bg-rose",
   missed: "bg-rose/45",
@@ -66,12 +67,12 @@ export default function PulseCard({
   if (!data) {
     return (
       <Card className="flex flex-col">
-        <CardHeader title="Weeks the drip landed" />
+        <CardHeader title="When the drip landed" />
         <div className="flex h-40 items-center justify-center">
           <Loading
             compact
-            what="Checking every week since your first buy"
-            why="Looking for the weeks a buy should have landed in and did not."
+            what="Checking every period since your first buy"
+            why="Looking for the slots a buy should have landed in and did not."
           />
         </div>
       </Card>
@@ -79,20 +80,25 @@ export default function PulseCard({
   }
 
   const { overdue, gaps } = data;
+  // What a mark on this card *is*. Every count and every sentence below is in
+  // this unit — the whole point of the card is that it judges the drip by its
+  // own rhythm rather than by the week it used to assume.
+  const unit = cadenceOf(data.cadence);
   const clean = data.missed === 0 && data.failed === 0;
   const gapSats = data.gap_cost.sats;
 
   return (
     <Card className="flex flex-col">
       <CardHeader
-        title="Weeks the drip landed"
+        title="When the drip landed"
         info={
           <>
             <p>
-              One mark per calendar week since your first buy, up to a year of them.
-              Blue means a buy landed that week; the two rose marks are weeks it did
-              not &mdash; the muted one is a week nothing happened at all, the solid
-              one a week the bot ran and the order failed.
+              One mark per {unit.unit} since your first buy, up to a year of them
+              &mdash; a mark is whatever your drip&apos;s rhythm makes it, so a monthly
+              drip is judged by the month and not by the week. Blue means a buy landed;
+              the two rose marks are the times it did not &mdash; the muted one is
+              nothing at all, the solid one the bot running and the order failing.
             </p>
             <p className="mt-2">
               Test runs count here, and only here: everywhere else on this dashboard
@@ -100,20 +106,20 @@ export default function PulseCard({
               not whether it spent anything.
             </p>
             <p className="mt-2">
-              A missed week is priced at one buy of your current base amount at that
-              day&apos;s closing price &mdash; what the week would have bought, not
+              A missed {unit.unit} is priced at one buy of your current base amount
+              at that day&apos;s closing price &mdash; what it would have bought, not
               what it cost you, since the money was never spent.
             </p>
             <p className="mt-2">
               <strong className="font-semibold text-ink">
-                A week you paused is not a week that went wrong.
+                A {unit.unit} you paused is not a {unit.unit} that went wrong.
               </strong>{" "}
-              Drip writes down every pause you ask for, so those weeks are marked in
-              grey and left out of the count entirely &mdash; a fortnight off does not
-              dent the percentage, and Drip will not buy that week later either.
-              Pauses from before this was recorded cannot be recovered, so weeks older
-              than your first paused one still read as gaps. Weeks before your first
-              buy are never counted.
+              Drip writes down every pause you ask for, so those are marked in grey and
+              left out of the count entirely &mdash; a fortnight off does not dent the
+              percentage, and Drip will not buy it later either. Pauses from before
+              this was recorded cannot be recovered, so anything older than your first
+              paused one still reads as a gap. Nothing before your first buy is ever
+              counted.
             </p>
             <p className="mt-2">
               Switch <strong className="font-semibold text-ink">catching up</strong> on
@@ -145,7 +151,7 @@ export default function PulseCard({
         </p>
       )}
 
-      {data.weeks_checked === 0 ? (
+      {data.periods_checked === 0 ? (
         <p className="py-6 text-center text-sm text-ink-soft">
           No buys yet, so there is nothing to have missed. The record starts with your
           first one.
@@ -153,22 +159,22 @@ export default function PulseCard({
       ) : (
         <>
           <div className="mb-4 flex flex-wrap gap-2">
-            {/* Of the weeks that were *asked* for: a fortnight you paused is
+            {/* Of the periods that were *asked* for: a fortnight you paused is
                 out of the denominator, not counted against you. */}
             <Stat
-              label="Weeks bought"
-              hint={`of the last ${data.weeks_judged} · ${data.coverage_pct.toFixed(0)}%${
+              label={`${unit.units} bought`}
+              hint={`of the last ${data.periods_judged} · ${data.coverage_pct.toFixed(0)}%${
                 data.paused ? ` · ${data.paused} paused` : ""
               }`}
             >
               {data.landed}
             </Stat>
             <Stat
-              label="Weeks nothing landed"
+              label="Nothing landed"
               tone={clean ? "plain" : "down"}
               hint={
                 data.failed
-                  ? `plus ${data.failed} ${data.failed === 1 ? "week" : "weeks"} the order failed`
+                  ? `plus ${countPeriods(data.failed, data.cadence)} the order failed`
                   : clean
                     ? "the drip has not skipped one"
                     : "no buy at all, for any reason"
@@ -188,13 +194,13 @@ export default function PulseCard({
             </Stat>
           </div>
 
-          <WeekStrip data={data} stackAmount={stackAmount} />
+          <PeriodStrip data={data} stackAmount={stackAmount} />
 
           {gaps.length > 0 && (
             <div className="mt-4 flex flex-col gap-1.5">
               {gaps.slice(0, GAPS_LISTED).map((gap) => (
                 <div
-                  key={gap.week_start}
+                  key={gap.period_start}
                   className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-xl bg-sand-soft/60 px-3 py-2"
                 >
                   <span className="text-sm font-medium text-ink">
@@ -216,8 +222,7 @@ export default function PulseCard({
               ))}
               {gaps.length > GAPS_LISTED && (
                 <p className="px-3 text-xs text-ink-soft">
-                  and {gaps.length - GAPS_LISTED} earlier{" "}
-                  {gaps.length - GAPS_LISTED === 1 ? "week" : "weeks"}.
+                  and {countPeriods(gaps.length - GAPS_LISTED, data.cadence)} earlier.
                 </p>
               )}
             </div>
@@ -225,12 +230,12 @@ export default function PulseCard({
 
           <Note>
             {clean
-              ? `Every one of the last ${data.weeks_judged} weeks got its buy.`
-              : "One mark per week — the rose ones are the weeks a buy never landed."}
+              ? `Every one of the last ${countPeriods(data.periods_judged, data.cadence)} got its buy.`
+              : `One mark per ${unit.unit} — the rose ones are when a buy never landed.`}
             {data.paused > 0 &&
               (data.paused === 1
-                ? " The grey mark is a week you paused, which counts neither way."
-                : ` The ${data.paused} grey marks are weeks you paused, which count neither way.`)}
+                ? ` The grey mark is a ${unit.unit} you paused, which counts neither way.`
+                : ` The ${data.paused} grey marks are ${unit.units} you paused, which count neither way.`)}
           </Note>
         </>
       )}
@@ -262,15 +267,20 @@ export default function PulseCard({
  * a touch screen has no hover, which is why the gaps are listed in words
  * underneath as well.
  */
-function WeekStrip({
+function PeriodStrip({
   data,
   stackAmount,
 }: {
   data: Pulse;
   stackAmount: (btc: number) => string;
 }) {
-  const describe = (week: PulseWeek) => {
-    const when = `Week of ${formatDayMonthYear(week.start)}`;
+  const unit = cadenceOf(data.cadence);
+  const describe = (week: PulsePeriod) => {
+    // Daily needs no "day of" in front of a date, and would read as a stutter.
+    const when =
+      unit.key === "daily"
+        ? formatDayMonthYear(week.start)
+        : `${unit.unit[0].toUpperCase()}${unit.unit.slice(1)} of ${formatDayMonthYear(week.start)}`;
     if (week.state === "missed") return `${when} — nothing bought`;
     if (week.state === "failed") return `${when} — the order failed`;
     if (week.state === "paused") return `${when} — paused, no buy was due`;
@@ -283,12 +293,12 @@ function WeekStrip({
     <>
       <div
         role="img"
-        aria-label={`${data.landed} of the last ${data.weeks_judged} weeks got a buy${
+        aria-label={`${data.landed} of the last ${countPeriods(data.periods_judged, data.cadence)} got a buy${
           data.paused ? `, ${data.paused} more paused` : ""
         }`}
         className="grid grid-flow-col auto-cols-fr gap-px overflow-hidden rounded-lg bg-sand-soft/60 p-1 sm:gap-0.5"
       >
-        {data.weeks.map((week) => (
+        {data.periods.map((week) => (
           <span
             key={week.start}
             title={describe(week)}
@@ -297,7 +307,7 @@ function WeekStrip({
         ))}
       </div>
       <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-2xs text-ink-soft">
-        <span>{formatDayMonthYear(data.weeks[0].start)}</span>
+        <span>{formatDayMonthYear(data.periods[0].start)}</span>
         <div className="flex items-center gap-3">
           <Key className="bg-water">bought</Key>
           <Key className="bg-rose/45">nothing</Key>
@@ -306,7 +316,7 @@ function WeekStrip({
               a phone, and a state nobody has is not worth the room. */}
           {data.paused > 0 && <Key className="bg-ink/30">paused</Key>}
         </div>
-        <span>this week</span>
+        <span>now</span>
       </div>
     </>
   );

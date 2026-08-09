@@ -14,6 +14,9 @@ from pydantic import BaseModel, Field
 
 class SettingsUpdate(BaseModel):
     base_amount_eur: Optional[float] = Field(default=None, gt=0, le=100_000)
+    # How often the drip drips. Validated against `cadence.KEYS` in the router
+    # rather than by a pattern here, so the registry stays the only list.
+    cadence: Optional[str] = None
     schedule_weekday: Optional[int] = Field(default=None, ge=0, le=6)
     schedule_time: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
     dry_run: Optional[bool] = None
@@ -363,8 +366,17 @@ class MilestoneOutlook(BaseModel):
 
 
 class StreakOutlook(BaseModel):
-    weeks: int
-    total_weeks: int
+    """Consecutive periods of the drip's own cadence with a buy in them.
+
+    Periods rather than weeks since cadences arrived: a monthly saver who has
+    never missed one was reporting a streak of 1, because three weeks in four
+    hold no buy and never were meant to. `cadence` is carried so the client can
+    put the right word around the number.
+    """
+
+    periods: int
+    total_periods: int
+    cadence: str
 
 
 class OutlookResponse(BaseModel):
@@ -386,11 +398,11 @@ class OutlookResponse(BaseModel):
     streak: StreakOutlook
 
 
-class PulseWeek(BaseModel):
-    """One calendar week of the record. `state` is one of landed / failed /
-    missed / paused — a failed order still means the machine woke up, which is
-    why it is not the same as silence, and a paused week means the silence was
-    asked for."""
+class PulsePeriod(BaseModel):
+    """One period of the record — a day, week, fortnight or month, whichever the
+    cadence makes it. `state` is one of landed / failed / missed / paused: a
+    failed order still means the machine woke up, which is why it is not the same
+    as silence, and a paused period means the silence was asked for."""
 
     start: str
     expected: str
@@ -401,11 +413,11 @@ class PulseWeek(BaseModel):
 
 
 class PulseGap(BaseModel):
-    """A week nothing was bought, priced at one base-amount buy on the day the
-    schedule would have bought. `price_eur` is 0 when no close was cached near
-    enough to that day to price it honestly."""
+    """A period nothing was bought in, priced at one base-amount buy on the day
+    the schedule would have bought. `price_eur` is 0 when no close was cached
+    near enough to that day to price it honestly."""
 
-    week_start: str
+    period_start: str
     expected: str
     price_eur: float
     eur: float
@@ -431,22 +443,25 @@ class PulseOverdue(BaseModel):
 
 
 class PulseResponse(BaseModel):
-    """Did the drip actually drip, week by week.
+    """Did the drip actually drip, period by period.
 
-    Counts every run, test or live: the question is whether the bot woke up,
-    not whether it spent money. `weeks_checked` starts at the first buy — Drip
-    cannot have missed a week it did not exist for.
+    A period is whatever `cadence` says — day, week, fortnight or month — and it
+    is on the payload so the client can name it. Counts every run, test or live:
+    the question is whether the bot woke up, not whether it spent money.
+    `periods_checked` starts at the first buy: Drip cannot have missed a period
+    it did not exist for.
 
-    `weeks_judged` is `weeks_checked` minus the weeks that were deliberately
-    paused, and it is what `coverage_pct` is a share of: a week nobody wanted is
-    not a week the bot got wrong, so it leaves the figure alone instead of
+    `periods_judged` is `periods_checked` minus the ones that were deliberately
+    paused, and it is what `coverage_pct` is a share of: a period nobody wanted
+    is not one the bot got wrong, so it leaves the figure alone instead of
     dragging it down.
     """
 
     as_of: str
-    window_weeks: int
-    weeks_checked: int
-    weeks_judged: int
+    cadence: str
+    window_periods: int
+    periods_checked: int
+    periods_judged: int
     landed: int
     failed: int
     missed: int
@@ -454,7 +469,7 @@ class PulseResponse(BaseModel):
     coverage_pct: float
     base_amount_eur: float
     first_buy: Optional[str]
-    weeks: list[PulseWeek]
+    periods: list[PulsePeriod]
     gaps: list[PulseGap]
     gap_cost: PulseCost
     overdue: PulseOverdue

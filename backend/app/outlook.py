@@ -20,7 +20,7 @@ from datetime import date, datetime, timedelta
 
 from sqlmodel import Session
 
-from . import analytics
+from . import analytics, cadence
 from .models import Purchase
 
 SATS_PER_BTC = 100_000_000
@@ -32,6 +32,12 @@ WEEKS_PER_YEAR = 52
 # over the multiplier swinging between 0.5x and 1.5x, and short enough to follow
 # a base amount the owner changed last month.
 RATE_WEEKS = 8
+# ...but never fewer than this many of the drip's own periods, whatever they
+# are. Eight weeks holds two monthly buys, and a rate averaged over two samples
+# follows the multiplier rather than the schedule — one 0.5x month would halve
+# the projection. Four periods is the floor; for anything up to fortnightly the
+# eight weeks above is already the longer of the two and nothing changes.
+RATE_PERIODS = 4
 
 # Round numbers a saver actually aims at, in sats. The middle rungs are the BTC
 # fractions people think in (0.05, 0.1, 0.5, 0.75, a whole coin) plus 21M, the
@@ -48,20 +54,33 @@ MILESTONES = [
 ]
 
 
-def rate_per_week(purchases: list[Purchase]) -> dict:
+def rate_days(key: str) -> float:
+    """How long a window the rate is averaged over, for one cadence."""
+    return max(WEEK_DAYS * RATE_WEEKS, cadence.get(key).days * RATE_PERIODS)
+
+
+def rate_per_week(purchases: list[Purchase], key: str = cadence.DEFAULT) -> dict:
     """What the drip has actually been putting in per week, lately.
 
-    Averaged over `RATE_WEEKS` whole weeks rather than read off the settings,
-    so a paused fortnight or a run of 0.5x weeks shows up instead of being
-    projected away.
+    Measured from the rows rather than read off the settings, so a paused
+    fortnight or a run of 0.5x buys shows up instead of being projected away.
+
+    **Per week whatever the cadence is**, and deliberately so: it is the unit the
+    card and the report both speak, and a figure that changed its meaning with a
+    setting would make two installs incomparable and one install incomparable
+    with its own past. What the cadence changes is the *window* — see
+    `RATE_PERIODS` — and the division is by however many weeks that came to.
     """
-    since = datetime.now() - timedelta(days=WEEK_DAYS * RATE_WEEKS)
+    days = rate_days(key)
+    since = datetime.now() - timedelta(days=days)
     recent = [p for p in purchases if p.timestamp >= since]
     if not recent:
         return {"eur": 0.0, "sats": 0.0, "buys": 0}
+
+    weeks = days / WEEK_DAYS
     return {
-        "eur": sum(p.amount_eur for p in recent) / RATE_WEEKS,
-        "sats": sum(p.btc_amount for p in recent) * SATS_PER_BTC / RATE_WEEKS,
+        "eur": sum(p.amount_eur for p in recent) / weeks,
+        "sats": sum(p.btc_amount for p in recent) * SATS_PER_BTC / weeks,
         "buys": len(recent),
     }
 
@@ -83,40 +102,43 @@ def next_milestone(sats: float, sats_per_week: float) -> dict:
     }
 
 
-def _week_key(day: date) -> tuple[int, int]:
-    year, week, _ = day.isocalendar()
-    return year, week
+def streak(purchases: list[Purchase], key: str = cadence.DEFAULT) -> dict:
+    """Consecutive periods of the drip's own cadence with at least one buy.
 
+    Counted in periods rather than in weeks, which was the same thing right up
+    until the cadence became a setting: a monthly saver who has never missed one
+    was reporting a streak of 1, because three weeks in four hold no buy and
+    never were meant to.
 
-def streak(purchases: list[Purchase]) -> dict:
-    """Consecutive calendar weeks with at least one buy.
-
-    Counting starts at last week when this week has no buy yet, so a dashboard
-    opened on a Sunday does not report a broken streak just because the next
-    drip is still a day or two out.
+    Counting starts at the previous period when the current one has no buy yet,
+    so a dashboard opened the day before the drip does not report a broken
+    streak just because the next one is still out.
     """
-    weeks = {_week_key(p.timestamp.date()) for p in purchases}
-    if not weeks:
-        return {"weeks": 0, "total_weeks": 0}
+    starts = {cadence.period_start(p.timestamp.date(), key) for p in purchases}
+    if not starts:
+        return {"periods": 0, "total_periods": 0, "cadence": key}
 
-    cursor = date.today()
-    if _week_key(cursor) not in weeks:
-        cursor -= timedelta(days=WEEK_DAYS)
+    cursor = cadence.period_start(date.today(), key)
+    if cursor not in starts:
+        cursor = cadence.advance(cursor, key, -1)
 
     count = 0
-    while _week_key(cursor) in weeks:
+    while cursor in starts:
         count += 1
-        cursor -= timedelta(days=WEEK_DAYS)
-    return {"weeks": count, "total_weeks": len(weeks)}
+        cursor = cadence.advance(cursor, key, -1)
+    return {"periods": count, "total_periods": len(starts), "cadence": key}
 
 
 def summary(session: Session, include_dry_run: bool = True) -> dict:
     """The whole forward-looking card in one call."""
+    from .database import load_settings
+
     purchases = analytics.relevant_purchases(session, include_dry_run)
     performance = analytics.performance_summary(session, include_dry_run)
+    key = cadence.get(load_settings(session).cadence).key
 
     sats = performance["btc_total"] * SATS_PER_BTC
-    rate = rate_per_week(purchases)
+    rate = rate_per_week(purchases, key)
     milestone = next_milestone(sats, rate["sats"])
 
     if milestone["available"] and milestone["weeks_away"] is not None:
@@ -130,7 +152,10 @@ def summary(session: Session, include_dry_run: bool = True) -> dict:
         "sats": sats,
         "invested_eur": performance["invested_eur"],
         "current_price": price,
-        "rate_weeks": RATE_WEEKS,
+        "cadence": key,
+        # Reported rather than the constant, because the window follows the
+        # cadence now — the card says "over the last N weeks" and has to mean it.
+        "rate_weeks": round(rate_days(key) / WEEK_DAYS),
         "per_week_eur": rate["eur"],
         "per_week_sats": rate["sats"],
         # A year of the same schedule: euros are arithmetic, sats are today's
@@ -138,5 +163,5 @@ def summary(session: Session, include_dry_run: bool = True) -> dict:
         "year_eur": year_eur,
         "year_sats": (year_eur / price * SATS_PER_BTC) if price > 0 else 0.0,
         "milestone": {**milestone, "eta": eta},
-        "streak": streak(purchases),
+        "streak": streak(purchases, key),
     }

@@ -3,9 +3,10 @@
 Stack sats on a slow drip. A self-hosted bitcoin savings bot with a web dashboard,
 built to run on a Raspberry Pi.
 
-It buys BTC-EUR every week through the Coinbase Advanced Trade API and sizes each buy
-to the market. It **always buys** - the score only sets the amount. Dry run is the
-default; live trading is a confirmed opt-in.
+It buys BTC-EUR through the Coinbase Advanced Trade API on the rhythm you pick - daily,
+weekly, fortnightly or monthly - and sizes each buy to the market. It **always buys** -
+the score only sets the amount. Dry run is the default; live trading is a confirmed
+opt-in.
 
 ![Drip dashboard](docs/screenshot-dashboard.png)
 
@@ -22,8 +23,8 @@ default; live trading is a confirmed opt-in.
   is bought when it wakes, a week you paused is not.
 - **Every buy opens.** What those euros are worth today, what the multiplier had to do
   with it, and the three readings that set its size.
-- **The drip is set where it is read** - click the amount, or the chip with the day and
-  time. Everything else is in the top bar.
+- **The drip is set where it is read** - click the amount, or the chip with the rhythm,
+  the day and the time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -
   `august`, `30d`, `price>60000` - answered with how much you put in and what it bought.
 

@@ -163,7 +163,7 @@ export function buildCommands(ctx: CommandContext): Command[] {
     {
       id: "edit-schedule",
       label: "Change the schedule",
-      hint: "Which day and time the drip lands — and pausing it",
+      hint: "How often the drip lands, which day and time — and pausing it",
       group: "Open",
       Icon: CalendarIcon,
       run: ctx.editSchedule,

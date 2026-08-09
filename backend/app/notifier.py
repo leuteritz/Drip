@@ -145,34 +145,43 @@ def _day_month(iso: str) -> str:
 
 
 def _pulse_line(beat: dict) -> str:
-    """The rhythm block: how many of the recent weeks a buy actually landed in.
+    """The rhythm block: how many of the recent periods a buy actually landed in.
 
     Two lines at most, and the second one only exists when something is wrong —
     an overdue buy is the one thing in this whole report worth reading first,
     and it is the reason the block is in the message rather than only on a
     dashboard nobody is standing in front of.
 
-    The count is of the weeks that were *asked* for: a paused week is named at
+    The count is of the periods that were *asked* for: a paused one is named at
     the end rather than counted at the front, so a fortnight off never reads as
     a fortnight the bot slept through.
+
+    The word around the number comes from the cadence rather than being "week"
+    in every sentence — a monthly saver reading "47 of the last 50 weeks bought"
+    would be reading about a bot nobody is running.
     """
-    judged = beat["weeks_judged"]
+    from . import cadence
+
+    unit = cadence.get(beat.get("cadence"))
+    judged = beat["periods_judged"]
     paused = beat["paused"]
+
+    def word(count: int) -> str:
+        return unit.unit if count == 1 else unit.units
+
     if not judged:
-        weeks = "week" if paused == 1 else "weeks"
-        return f"**Paused** - none of the last {paused} {weeks} was due"
+        return f"**Paused** - none of the last {paused} {word(paused)} was due"
 
     if beat["missed"] or beat["failed"]:
-        line = f"**{beat['landed']} of the last {judged} weeks** bought"
+        line = f"**{beat['landed']} of the last {judged} {word(judged)}** bought"
         if beat["missed"]:
             line += f" · {beat['missed']} missed"
             if beat["gap_cost"]["sats"]:
                 line += f" (about {beat['gap_cost']['sats']:,.0f} sats)"
         if beat["failed"]:
-            weeks = "week" if beat["failed"] == 1 else "weeks"
-            line += f" · {beat['failed']} {weeks} the order failed"
+            line += f" · {beat['failed']} {word(beat['failed'])} the order failed"
     else:
-        line = f"**Every one of the last {judged} weeks** bought"
+        line = f"**Every one of the last {judged} {word(judged)}** bought"
 
     if paused:
         line += f" · {paused} paused on purpose"
@@ -329,20 +338,27 @@ def _digest_fields(digest: dict) -> list[dict]:
             "inline": True,
         })
 
-    if streak["weeks"]:
+    if streak["periods"]:
+        # Named in the drip's own unit: "22 months in a row" for a monthly saver,
+        # not 22 weeks, which is what the same number used to be printed as.
+        from . import cadence
+
+        unit = cadence.get(streak.get("cadence"))
+        run, total = streak["periods"], streak["total_periods"]
         fields.append({
             "key": "streak",
             "name": "Streak",
-            "value": (f"{streak['weeks']} weeks in a row · "
-                      f"{streak['total_weeks']} weeks stacked in total"),
+            "value": (f"{run} {unit.unit if run == 1 else unit.units} in a row · "
+                      f"{total} {unit.unit if total == 1 else unit.units} stacked "
+                      "in total"),
             "inline": True,
         })
 
     beat = digest["pulse"]
-    if beat["weeks_checked"]:
+    if beat["periods_checked"]:
         fields.append({
             "key": "pulse",
-            "name": "Weeks kept",
+            "name": "Drip kept",
             "value": _pulse_line(beat),
             "inline": False,
         })

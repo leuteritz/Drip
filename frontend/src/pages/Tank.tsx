@@ -13,6 +13,7 @@ import type {
 import TankBackdrop from "../components/header/TankBackdrop";
 import { ScoreDrops } from "../components/drops";
 import { Loading } from "../components/ui";
+import { scheduleChip } from "../lib/cadence";
 import { fmtEur, fmtPct, formatWeekdayTime, WEEKDAYS } from "../lib/format";
 import { leaveTank } from "../lib/route";
 import { useStackAmount } from "../lib/units";
@@ -73,7 +74,11 @@ export default function Tank({
   const nextWhen = status?.next_run
     ? formatWeekdayTime(status.next_run)
     : settings
-      ? `${WEEKDAYS[settings.schedule_weekday].slice(0, 3)} ${settings.schedule_time}`
+      ? scheduleChip(
+          settings.cadence,
+          WEEKDAYS[settings.schedule_weekday].slice(0, 3),
+          settings.schedule_time,
+        )
       : "—";
 
   return (

@@ -1,5 +1,6 @@
 import FlagIcon from "~icons/ph/flag-checkered";
 import type { Outlook } from "../../api/client";
+import { countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { Card, CardHeader, Loading, Note, Stat } from "../ui";
@@ -148,11 +149,13 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
           >
             {stalled ? "—" : fmtEur(data.per_week_eur)}
           </Stat>
+          {/* Counted in the drip's own rhythm, not in weeks: a monthly saver
+              who has never missed one used to read "1 week". */}
           <Stat
             label="Streak"
-            hint={`${streak.total_weeks} weeks with a buy in total`}
+            hint={`${countPeriods(streak.total_periods, streak.cadence)} with a buy in total`}
           >
-            {streak.weeks} {streak.weeks === 1 ? "week" : "weeks"}
+            {countPeriods(streak.periods, streak.cadence)}
           </Stat>
           <Stat label="In a year" hint="at the same rate">
             {stalled ? "—" : fmtEur(data.year_eur, 0)}

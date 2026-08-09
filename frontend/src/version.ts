@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.34",
+    date: "2026-08-09",
+    changes: [
+      "The drip no longer has to be weekly: daily, fortnightly and monthly are now yours to pick, on the same chip that already set the day and the time",
+      "Everything that judged the bot by the week judges it by your own rhythm instead — the record of what landed counts months for a monthly drip, the streak does too, and catching a missed buy up no longer thinks a monthly saver skipped three weeks out of four",
+      "Your existing schedule is untouched: an install that was buying weekly goes on buying weekly, on the same day, at the same time",
+    ],
+  },
+  {
     version: "2.33",
     date: "2026-08-09",
     changes: [

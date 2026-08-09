@@ -8,10 +8,11 @@ import PencilIcon from "~icons/ph/pencil-simple";
 import PlayIcon from "~icons/ph/play-fill";
 import QuestionIcon from "~icons/ph/question";
 import type { BotSettings, BotStatus, Indicators } from "../../api/client";
+import { CADENCES, cadenceOf, periodMs, scheduleChip } from "../../lib/cadence";
 import { fmtEur, formatDayMonth, formatWeekdayTime, WEEKDAYS } from "../../lib/format";
 import { ScoreDrops } from "../drops";
 import { Loading } from "../ui";
-import { useNow, WEEK_MS } from "./hooks";
+import { useNow } from "./hooks";
 
 /** Which value on the card is being edited. Owned by SiteHeader, so the command
  *  palette can open one from anywhere in the scroll. */
@@ -154,7 +155,11 @@ export default function NextBuyActions({
   const nextWhen = status?.next_run
     ? formatWeekdayTime(status.next_run)
     : settings
-      ? `${WEEKDAYS[settings.schedule_weekday].slice(0, 3)} ${settings.schedule_time}`
+      ? scheduleChip(
+          settings.cadence,
+          WEEKDAYS[settings.schedule_weekday].slice(0, 3),
+          settings.schedule_time,
+        )
       : "—";
   const remaining = status?.next_run
     ? new Date(status.next_run).getTime() - now
@@ -162,10 +167,16 @@ export default function NextBuyActions({
   // The countdown rides in the schedule chip while the drip runs; paused, the
   // chip gives that half over to the pill that resumes.
   const counting = !paused && remaining != null;
-  // The pipe fills as the week drains toward the next buy.
+  // The pipe fills as the wait drains toward the next buy — over the drip's own
+  // period, not over a week: on a monthly cadence a week-long pipe would sit
+  // empty for three weeks and then fill in the last one.
   const filled =
-    remaining == null ? 0 : Math.max(0, Math.min(1, 1 - remaining / WEEK_MS));
+    remaining == null
+      ? 0
+      : Math.max(0, Math.min(1, 1 - remaining / periodMs(settings?.cadence)));
 
+  // The drip's rhythm, and what it makes of the weekday beside it.
+  const drip = cadenceOf(settings?.cadence);
   const editingAmount = editing === "amount" && settings != null;
   const editingWhen = editing === "when" && settings != null;
 
@@ -288,28 +299,55 @@ export default function NextBuyActions({
                 lands on and how long it is switched off for */}
             {editingWhen ? (
               <div className={`flex flex-wrap items-center gap-x-2 gap-y-2 ${CAPTION}`}>
-                <span>Every</span>
-                {/* Seven across on a phone rather than six and an orphan: a
-                    week reads as a week, and each pill takes the width it is
-                    given instead of a fixed one. */}
-                <div className="grid w-full grid-cols-7 gap-1 sm:flex sm:w-auto sm:flex-wrap">
-                  {WEEKDAYS.map((day, idx) => (
+                {/* How often, before which day: the rhythm decides whether a
+                    weekday means anything at all, so it is asked first and the
+                    day pills below simply stop existing when it is daily. */}
+                <div className="grid w-full grid-cols-4 gap-1 sm:flex sm:w-auto sm:flex-wrap">
+                  {CADENCES.map((option) => (
                     <button
-                      key={day}
+                      key={option.key}
                       type="button"
-                      title={day}
-                      aria-pressed={settings.schedule_weekday === idx}
-                      onClick={() => void save({ schedule_weekday: idx })}
-                      className={`h-10 w-full rounded-full text-sm font-bold transition sm:h-8 sm:w-10 sm:text-xs ${
-                        settings.schedule_weekday === idx
+                      title={option.note}
+                      aria-pressed={drip.key === option.key}
+                      onClick={() => void save({ cadence: option.key })}
+                      className={`h-10 w-full rounded-full px-2 text-xs font-bold transition sm:h-8 sm:w-auto sm:px-3 ${
+                        drip.key === option.key
                           ? "bg-teal-deep text-cream"
                           : "bg-teal/10 text-teal/70 hover:bg-teal/25 hover:text-teal"
                       }`}
                     >
-                      {day.slice(0, 2)}
+                      {option.label}
                     </button>
                   ))}
                 </div>
+                {drip.hasWeekday && (
+                  <span className="max-sm:hidden">
+                    {drip.key === "monthly" ? "on the first" : "on"}
+                  </span>
+                )}
+                {/* Seven across on a phone rather than six and an orphan: a
+                    week reads as a week, and each pill takes the width it is
+                    given instead of a fixed one. */}
+                {drip.hasWeekday && (
+                  <div className="grid w-full grid-cols-7 gap-1 sm:flex sm:w-auto sm:flex-wrap">
+                    {WEEKDAYS.map((day, idx) => (
+                      <button
+                        key={day}
+                        type="button"
+                        title={day}
+                        aria-pressed={settings.schedule_weekday === idx}
+                        onClick={() => void save({ schedule_weekday: idx })}
+                        className={`h-10 w-full rounded-full text-sm font-bold transition sm:h-8 sm:w-10 sm:text-xs ${
+                          settings.schedule_weekday === idx
+                            ? "bg-teal-deep text-cream"
+                            : "bg-teal/10 text-teal/70 hover:bg-teal/25 hover:text-teal"
+                        }`}
+                      >
+                        {day.slice(0, 2)}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {/* "at" and the clock stay one token: split across a wrap they
                     leave a stranded preposition at the end of the line. */}
                 <span className="inline-flex items-center gap-2 whitespace-nowrap">
@@ -348,7 +386,7 @@ export default function NextBuyActions({
                   type="button"
                   disabled={!settings}
                   onClick={() => startEdit("when")}
-                  title="Change the day, the time or pause the drip"
+                  title="Change how often it buys, the day, the time — or pause it"
                   className={VALUE_CHIP}
                 >
                   <ClockIcon className={`${CHIP_ICON} opacity-50`} />
