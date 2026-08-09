@@ -1,6 +1,7 @@
 import WarningIcon from "~icons/ph/warning-fill";
 import type { BotSettings } from "../api/client";
-import { fmtEur, WEEKDAYS } from "../lib/format";
+import { scheduleSentence } from "../lib/cadence";
+import { fmtEur } from "../lib/format";
 import { Modal } from "./ui";
 
 /**
@@ -23,9 +24,9 @@ export default function LiveModeDialog({
         <WarningIcon /> Turn on live trading?
       </h3>
       <p className="text-sm text-ink">
-        Drip will buy <b>with real money</b> through your Coinbase API - every{" "}
-        {WEEKDAYS[settings.schedule_weekday]} at {settings.schedule_time}, base amount{" "}
-        {fmtEur(settings.base_amount_eur)} (times the market multiplier).
+        Drip will buy <b>with real money</b> through your Coinbase API -{" "}
+        {scheduleSentence(settings)}, base amount {fmtEur(settings.base_amount_eur)}{" "}
+        (times the market multiplier).
       </p>
       <div className="mt-4 flex justify-end gap-2">
         <button

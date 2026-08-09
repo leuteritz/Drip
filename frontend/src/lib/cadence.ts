@@ -13,6 +13,7 @@
 // and `every` is how a schedule reads out loud ("every second Thursday").
 
 import type { CadenceKey } from "../api/types";
+import { WEEKDAYS } from "./format";
 
 export interface Cadence {
   key: CadenceKey;
@@ -89,6 +90,31 @@ export function periodMs(key: string | null | undefined): number {
 export function countPeriods(n: number, key: string | null | undefined): string {
   const cadence = cadenceOf(key);
   return `${n} ${n === 1 ? cadence.unit : cadence.units}`;
+}
+
+/** The schedule as a sentence, for the one place that has room for one.
+ *
+ *  `LiveModeDialog` is that place, and it is why this exists: it is the last
+ *  thing read before real money starts moving, so "every Monday at 09:00" on an
+ *  install that buys daily would be the single worst sentence in the app to get
+ *  wrong. Weekdays come from `WEEKDAYS` rather than being repeated here. */
+export function scheduleSentence(settings: {
+  cadence: string;
+  schedule_weekday: number;
+  schedule_time: string;
+}): string {
+  const day = WEEKDAYS[settings.schedule_weekday];
+  const at = `at ${settings.schedule_time}`;
+  switch (cadenceOf(settings.cadence).key) {
+    case "daily":
+      return `every day ${at}`;
+    case "biweekly":
+      return `every second ${day} ${at}`;
+    case "monthly":
+      return `the first ${day} of each month, ${at}`;
+    default:
+      return `every ${day} ${at}`;
+  }
 }
 
 /** How the schedule reads on the spout's chip: short, and true at a glance.

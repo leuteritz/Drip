@@ -57,11 +57,12 @@ export default function SimulationModal({
           <div>
             <h2 className="font-display text-2xl font-semibold">Backtest simulation</h2>
             <p className="mt-1 text-sm text-ink-soft">
-              Replays your current settings -{" "}
+              Replays the scoring -{" "}
               <b className="text-ink">
                 every {WEEKDAYS[settings.schedule_weekday]}, {fmtEur(settings.base_amount_eur)} base
               </b>{" "}
-              - against real historical prices.
+              - against real historical prices. Weekly whatever your own cadence
+              is: this measures the strategy, not the schedule.
             </p>
           </div>
           <button

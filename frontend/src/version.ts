@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.35",
+    date: "2026-08-09",
+    changes: [
+      "The confirmation before live trading now says your actual rhythm — \"every day at 09:00\", \"the first Monday of each month\" — instead of naming a weekday a daily drip does not have",
+      "The backtest says out loud that it replays a weekly schedule whatever yours is: it measures the scoring, not the calendar",
+    ],
+  },
+  {
     version: "2.34",
     date: "2026-08-09",
     changes: [
