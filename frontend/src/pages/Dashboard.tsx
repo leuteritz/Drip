@@ -148,7 +148,7 @@ export default function Overview({
     <section id="overview" className="scroll-mt-20">
       <div className="pad-safe-x mx-auto flex w-full max-w-shell flex-col gap-3 px-3 py-5 sm:gap-4 sm:px-4 md:px-6 md:py-6">
         {error && (
-          <Card className="border-rose/50">
+          <Card tone="alert">
             <div className="font-bold text-rose">{error}</div>
             <div className="mt-2 text-sm text-ink-soft">
               Is the backend running? <code className="text-ink">uvicorn app.main:app</code>
@@ -156,8 +156,11 @@ export default function Overview({
           </Card>
         )}
 
-        {/* Chart */}
-        <Card className="flex flex-col">
+        {/* The section's one `lead`: the comparison is the thesis of the whole
+            app, and it used to sit in the same box as the five cards that
+            answer smaller questions. On the page ground it reads as the page
+            talking. There must not be a second one here. */}
+        <Card tone="lead" className="flex flex-col">
           <CardHeader
             title="My strategy vs. plain DCA"
             info={
@@ -207,18 +210,16 @@ export default function Overview({
               </p>
             )}
           </div>
-          {hasStrategy ? (
+          {/* No `Note` on the strategy view any more: the shaded band between
+              the two lines *is* the sentence that used to sit here, and a
+              caption restating a graphic is the caption to delete. The
+              fallback keeps one, because a price chart standing in for the
+              comparison does need saying. */}
+          {!hasStrategy && compLoaded && (
             <Note>
-              The gap between the two lines is what buying more on dips has been worth
-              so far.
+              Showing the BTC price for now &mdash; the comparison starts once there
+              are a couple of buys.
             </Note>
-          ) : (
-            compLoaded && (
-              <Note>
-                Showing the BTC price for now &mdash; the comparison starts once there
-                are a couple of buys.
-              </Note>
-            )
           )}
         </Card>
 
@@ -230,14 +231,23 @@ export default function Overview({
           onSaveSettings={onSaveSettings}
         />
 
-        {/* The stack itself, rather than the strategy behind it. */}
-        <div className="grid gap-3 sm:gap-4 xl:grid-cols-2">
-          <CostBasisCard
-            holdings={holdings}
-            purchases={purchases}
-            includeDryRun={includeDryRun}
-          />
-          <HoldingPeriods data={holdings} />
+        {/* The stack itself, rather than the strategy behind it. Two pairs on
+            a wide window, and the columns are deliberately unequal — these
+            cards are not equally important, so they should not be equally
+            wide. `xl` rather than `lg` because the breakpoints are rem-based:
+            at the 13px floor `lg` is only 832px, which is too early to put two
+            of these side by side. Below it everything is one column. */}
+        <div className="grid gap-3 sm:gap-4 xl:grid-cols-12">
+          <div className="*:h-full xl:col-span-7">
+            <CostBasisCard
+              holdings={holdings}
+              purchases={purchases}
+              includeDryRun={includeDryRun}
+            />
+          </div>
+          <div className="*:h-full xl:col-span-5">
+            <HoldingPeriods data={holdings} />
+          </div>
         </div>
 
         {/* What holding it has actually felt like. Every card above is an
@@ -245,16 +255,21 @@ export default function Overview({
             hides the stretches that make people stop. */}
         <WaterlineCard data={waterline} />
 
-        {/* Where the result of all that is actually sitting — the one card
-            about custody rather than about how the saving went. */}
-        <CustodyCard
-          data={custody}
-          settings={settings}
-          onSaveSettings={onSaveSettings}
-        />
-
-        {/* ...and the only one that faces the other way. */}
-        <OutlookCard data={outlook} />
+        {/* Where the result of all that is sitting, and where it is going if
+            nothing changes — the one that looks back at custody beside the one
+            that faces forwards. */}
+        <div className="grid gap-3 sm:gap-4 xl:grid-cols-12">
+          <div className="*:h-full xl:col-span-6">
+            <CustodyCard
+              data={custody}
+              settings={settings}
+              onSaveSettings={onSaveSettings}
+            />
+          </div>
+          <div className="*:h-full xl:col-span-6">
+            <OutlookCard data={outlook} />
+          </div>
+        </div>
       </div>
     </section>
   );

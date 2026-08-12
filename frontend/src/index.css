@@ -74,9 +74,27 @@
   --container-hero: 68rem; /* the hero's column */
   --container-spout: 62rem; /* the next-buy bar under it */
 
-  --radius-card: 1.25rem;
+  /* 1.5rem, which is the hero glass's own radius (`Readouts`' 1.5/1.75rem, the
+     spout's 1.75/2rem). The body used to sit at 1.25 and read as a different
+     material from the tank above it. */
+  --radius-card: 1.5rem;
 
   --shadow-puff: 0 2px 0 0 rgba(69, 69, 69, 0.06), 0 12px 32px -12px rgba(120, 89, 100, 0.18);
+
+  /* A card is drawn by light, not by a drawn line — the same idea as the glass
+     on the water, at the page's weight. The `border-2 border-sand` this
+     replaces was a 2px line in #26383d on a #14252a fill at night, which is a
+     rule you cannot quite see doing the work of an edge. Four layers: the
+     specular line inset along the top, a 1px rim stating the shape, and the
+     puff's two shadows underneath. */
+  --shadow-card: inset 0 1px 0 0 rgba(255, 255, 255, 0.7),
+    0 0 0 1px rgba(69, 69, 69, 0.09), 0 2px 0 0 rgba(69, 69, 69, 0.06),
+    0 12px 32px -12px rgba(120, 89, 100, 0.18);
+
+  /* The same card with its feet on the ground: status rather than analysis, so
+     it keeps the rim and the sheen and gives up the lift. */
+  --shadow-card-flat: inset 0 1px 0 0 rgba(255, 255, 255, 0.55),
+    0 0 0 1px rgba(69, 69, 69, 0.07);
 
   /* The tank itself, so day and night can deepen the water together */
   --tank-sky: linear-gradient(180deg, #f4fffb 0%, #e4f1f0 46%);
@@ -115,6 +133,13 @@
   --color-scrim: rgba(3, 10, 12, 0.7);
 
   --shadow-puff: 0 2px 0 0 rgba(0, 0, 0, 0.22), 0 14px 34px -12px rgba(0, 0, 0, 0.55);
+
+  /* Cream at low alpha for the sheen, since a dark card is lit from above too. */
+  --shadow-card: inset 0 1px 0 0 rgba(241, 255, 250, 0.08),
+    0 0 0 1px rgba(241, 255, 250, 0.07), 0 2px 0 0 rgba(0, 0, 0, 0.22),
+    0 14px 34px -12px rgba(0, 0, 0, 0.55);
+  --shadow-card-flat: inset 0 1px 0 0 rgba(241, 255, 250, 0.06),
+    0 0 0 1px rgba(241, 255, 250, 0.05);
 
   /* The water dims with the room, or the tank would be the only lit thing left */
   --tank-sky: linear-gradient(180deg, #0b1518 0%, #10242a 46%);

@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.39",
+    date: "2026-08-12",
+    changes: [
+      "The chart now shades the gap between your drip and plain DCA — green where the multiplier is ahead, rose where it is behind. That gap is what the card has always been about, and until now it was a sentence underneath rather than something you could see",
+      "The cards below the tank come in three weights instead of one: the comparison sits on the page itself, the two cards about the machine sit quietly, and the ones you read figures off keep their box",
+      "Cards are drawn with light rather than a hard outline, and they are as round as the instruments floating on the water",
+    ],
+  },
+  {
     version: "2.38",
     date: "2026-08-12",
     changes: [

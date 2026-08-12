@@ -24,6 +24,7 @@ import {
   formatMonthYear,
 } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
+import { ChartTooltipCard } from "../charts/PurchaseDrop";
 import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
 
 /**
@@ -272,14 +273,14 @@ function DepthChart({ data }: { data: Waterline }) {
             if (!active || !payload?.length) return null;
             const point = payload[0].payload as { date: string; depth_pct: number };
             return (
-              <div className="rounded-xl border-2 border-sand bg-paper px-3 py-2 shadow-puff">
+              <ChartTooltipCard>
                 <div className="text-xs font-bold text-ink-soft">
                   {formatDayMonthYear(point.date)}
                 </div>
                 <div className="font-display text-lg font-semibold text-ink">
                   {point.depth_pct < 0 ? pct(point.depth_pct) : "above water"}
                 </div>
-              </div>
+              </ChartTooltipCard>
             );
           }}
         />

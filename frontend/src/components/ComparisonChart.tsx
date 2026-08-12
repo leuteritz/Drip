@@ -30,8 +30,8 @@ import PriceStrip from "./charts/PriceStrip";
 type EnrichedPoint = ComparisonPoint & {
   bot_profit: number;
   dca_profit: number;
-  gainBand: [number, number];
-  lossBand: [number, number];
+  aheadBand: [number, number];
+  behindBand: [number, number];
   purchase?: Purchase;
   purchaseY?: number;
 };
@@ -57,22 +57,33 @@ export default function ComparisonChart({
   data: ComparisonPoint[];
   purchases?: Purchase[];
 }) {
-  // Range bands between Drip's profit and break-even: kelp above the zero
-  // line, rose below it. Each band collapses onto zero when it doesn't apply,
-  // so crossovers stay smooth. Buys are pinned onto the BTC price line (last
-  // buy per day wins).
+  // The band **between the two lines** — which is the one thing this card is
+  // about, and the one thing it used to leave undrawn. What was here before
+  // shaded Drip against break-even, so the card's own caption ("the gap
+  // between the two lines is what buying more on dips has been worth") had to
+  // say in words what the graphic never showed.
+  //
+  // Two bands rather than one, because an <Area> takes a single fill and the
+  // answer changes sign wherever the lines cross. Each collapses to zero
+  // height where it does not apply — the same trick the break-even bands used
+  // — so the two meet exactly at a crossing with no seam and no `null` gap.
+  // Buys are pinned onto the BTC price line (last buy per day wins).
   const enriched = useMemo<EnrichedPoint[]>(() => {
     const byDay = new Map<string, Purchase>();
     for (const p of purchases) byDay.set(p.timestamp.slice(0, 10), p);
     return data.map((p) => {
       const purchase = byDay.get(p.date);
       const botProfit = p.bot_value - p.bot_invested;
+      const dcaProfit = p.dca_value - p.dca_invested;
+      const lo = Math.min(botProfit, dcaProfit);
+      const hi = Math.max(botProfit, dcaProfit);
+      const ahead = botProfit >= dcaProfit;
       return {
         ...p,
         bot_profit: botProfit,
-        dca_profit: p.dca_value - p.dca_invested,
-        gainBand: [0, Math.max(botProfit, 0)],
-        lossBand: [Math.min(botProfit, 0), 0],
+        dca_profit: dcaProfit,
+        aheadBand: ahead ? [lo, hi] : [lo, lo],
+        behindBand: ahead ? [lo, lo] : [lo, hi],
         purchase,
         purchaseY: purchase ? p.price : undefined,
       };
@@ -91,28 +102,30 @@ export default function ComparisonChart({
             <YAxis
               domain={["auto", "auto"]}
               tick={AXIS_TICK}
-              tickFormatter={(v: number) => fmtEurSigned(v, 0)}
+              /* No `+` on every tick: the break-even line already says which
+                 side of zero you are on, and a column of plus signs is noise. */
+              tickFormatter={(v: number) => fmtEur(v, 0)}
               axisLine={false}
               tickLine={false}
               width={Y_AXIS_WIDTH}
             />
             <Tooltip content={<ComparisonTooltip />} cursor={CURSOR_PROPS} />
             <Area
-              dataKey="gainBand"
-              name="Profit"
+              dataKey="aheadBand"
+              name="Ahead"
               stroke="none"
               fill={CHART_COLORS.kelp}
-              fillOpacity={0.18}
+              fillOpacity={0.3}
               tooltipType="none"
               isAnimationActive={false}
               activeDot={false}
             />
             <Area
-              dataKey="lossBand"
-              name="Loss"
+              dataKey="behindBand"
+              name="Behind"
               stroke="none"
               fill={CHART_COLORS.rose}
-              fillOpacity={0.14}
+              fillOpacity={0.3}
               tooltipType="none"
               isAnimationActive={false}
               activeDot={false}
@@ -156,8 +169,12 @@ const lineProps = (s: Series) => ({
 
 /**
  * Hand-rolled rather than Recharts' <Legend>: the swatches are the real line
- * styles, and the break-even line and the two shaded areas get an entry too —
- * they carry as much meaning as the lines and Recharts won't list them.
+ * styles, and the break-even line and the shaded band get an entry too — they
+ * carry as much meaning as the lines and Recharts won't list them.
+ *
+ * The two band entries name the **gap**, not each line's own profit: it is the
+ * distance between them, so it is read once and signed. That is also why the
+ * caption that used to sit under this card is gone — the band says it.
  */
 function ChartLegend() {
   return (
@@ -180,12 +197,12 @@ function ChartLegend() {
         </li>
       ))}
       <li className="flex items-center gap-1.5 text-ink-soft">
-        <span className="h-3 w-3 shrink-0 rounded-[3px] bg-kelp/20 ring-1 ring-kelp/40" />
-        Drip in profit
+        <span className="h-3 w-3 shrink-0 rounded-[3px] bg-kelp/30 ring-1 ring-kelp/50" />
+        Drip ahead
       </li>
       <li className="flex items-center gap-1.5 text-ink-soft">
-        <span className="h-3 w-3 shrink-0 rounded-[3px] bg-rose/15 ring-1 ring-rose/40" />
-        at a loss
+        <span className="h-3 w-3 shrink-0 rounded-[3px] bg-rose/30 ring-1 ring-rose/50" />
+        behind
       </li>
     </ul>
   );

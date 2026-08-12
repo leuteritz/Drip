@@ -52,7 +52,7 @@ export function PurchaseTooltipRow({ purchase }: { purchase: Purchase }) {
 /** The frame both chart tooltips sit in. */
 export function ChartTooltipCard({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-xl border-2 border-sand bg-paper px-3 py-2 text-xs shadow-puff">
+    <div className="rounded-xl bg-paper px-3 py-2 text-xs shadow-card">
       {children}
     </div>
   );

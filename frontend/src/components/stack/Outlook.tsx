@@ -73,9 +73,9 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
         }
       />
 
-      <div className="flex flex-col items-center gap-6 md:flex-row md:items-stretch md:gap-8">
+      <div className="flex flex-col items-center gap-6 @3xl:flex-row @3xl:items-stretch @3xl:gap-8">
         {/* The next round number, as a filling ring */}
-        <div className="flex shrink-0 flex-col items-center text-center md:w-[13rem]">
+        <div className="flex shrink-0 flex-col items-center text-center @3xl:w-[13rem]">
           {milestone.available ? (
             <>
               <div className="relative">

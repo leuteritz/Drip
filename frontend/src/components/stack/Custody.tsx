@@ -38,7 +38,7 @@ export default function CustodyCard({
 
   if (!data) {
     return (
-      <Card className="flex flex-col">
+      <Card tone="strip" className="flex flex-col">
         <CardHeader title="Where your bitcoin is kept" />
         <Loading
           what="Asking Coinbase what it is still holding"
@@ -56,7 +56,7 @@ export default function CustodyCard({
   const movedOff = Math.max(0, bought - onExchange);
 
   return (
-    <Card className="flex flex-col">
+    <Card tone="strip" className="flex flex-col">
       <CardHeader
         title="Where your bitcoin is kept"
         info={

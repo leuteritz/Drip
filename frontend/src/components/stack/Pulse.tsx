@@ -66,7 +66,7 @@ export default function PulseCard({
 
   if (!data) {
     return (
-      <Card className="flex flex-col">
+      <Card tone="strip" className="flex flex-col">
         <CardHeader title="When the drip landed" />
         <div className="flex h-40 items-center justify-center">
           <Loading
@@ -88,7 +88,7 @@ export default function PulseCard({
   const gapSats = data.gap_cost.sats;
 
   return (
-    <Card className="flex flex-col">
+    <Card tone="strip" className="flex flex-col">
       <CardHeader
         title="When the drip landed"
         info={

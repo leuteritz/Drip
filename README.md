@@ -14,15 +14,17 @@ opt-in.
 
 - **Your stack is a tank of water** that fizzes at the strength of the week's signal,
   with four instruments floating on it.
+- **The shaded band is the answer**: the distance between what your drip made and what
+  buying a flat amount would have. Green while the multiplier is ahead, rose while it
+  is not.
 - **It checks itself before Monday** - the key, the money, the price feed, the schedule.
   A buy that would not land is said in the top bar, days before the week it would cost.
-- **It remembers what you sat through** - how far under water the stack went, how long
-  it took to come back, and the buys you made down there. Those are the cheap ones.
+- **It remembers what you sat through** - how far under water the stack went, and the
+  buys you made down there. Those are the cheap ones.
 - **It says where the stack is kept**, and how much has moved somewhere only you reach.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
   and the weeks the drip landed in - one the Pi slept through is bought when it wakes.
-- **Every buy opens** - what those euros are worth today, and the readings that set its
-  size.
+- **Every buy opens** - what those euros are worth today, and the readings behind it.
 - **The drip is set where it is read** - click the amount, or the chip with the rhythm,
   the day and the time. Everything else is in the top bar.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -

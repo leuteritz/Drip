@@ -10,29 +10,59 @@ import ArrowSquareOutIcon from "~icons/ph/arrow-square-out";
 import InfoIcon from "~icons/ph/info";
 
 /**
+ * How much of the page a card is asking for. Four weights, because six cards
+ * all shouting in the same voice is a list, not a composition.
+ *
+ * - `panel` — the default, and what every card used to be: a surface floating
+ *   on the page.
+ * - `lead` — the section's one thesis, on the page ground itself. No fill and
+ *   no rim, so it reads as the page talking rather than as one card among six.
+ *   **At most one per section**; the moment there are two, neither leads.
+ * - `strip` — status rather than analysis (`Pulse`, `Custody`). It keeps the
+ *   rim and gives up the lift, so it is present without competing.
+ * - `alert` — something went wrong. It is a weight rather than a `className`
+ *   because the rim is drawn by `--shadow-card` now, and a passed-in
+ *   `border-rose/50` has no border width left to colour.
+ */
+export type CardTone = "panel" | "lead" | "strip" | "alert";
+
+const CARD_TONE: Record<CardTone, string> = {
+  panel: "bg-paper shadow-card",
+  lead: "",
+  strip: "bg-paper/70 shadow-card-flat",
+  alert: "bg-paper shadow-card ring-2 ring-rose/50",
+};
+
+/**
  * The one surface in the app.
  *
  * It is a **container**, and everything laid out inside it says `@`: since the
  * page body took a fixed measure (`max-w-shell`), a card's width no longer
  * follows the window — a half-width card on a 2560px monitor is the same
- * ~35rem it is on a 1400px one. A KPI row keyed to the *viewport* therefore
+ * ~33rem it is on a 1400px one. A KPI row keyed to the *viewport* therefore
  * asked for three columns in a card with room for two, and broke its own
- * figures across lines. Reach for `@sm:`/`@3xl:` inside a card, never `sm:`,
+ * figures across lines. Reach for `@lg:`/`@4xl:` inside a card, never `sm:`,
  * for anything whose room comes from the card rather than from the screen.
+ *
+ * A `lead` keeps the same padding as the others on purpose: with no box of its
+ * own it would otherwise sit flush to the measure while every card below it
+ * held an inset, and the column would read as ragged.
  */
 export function Card({
   children,
   className = "",
+  tone = "panel",
   onClick,
 }: {
   children: ReactNode;
   className?: string;
+  tone?: CardTone;
   onClick?: (e: MouseEvent) => void;
 }) {
   return (
     <div
       onClick={onClick}
-      className={`relative @container rounded-card border-2 border-sand bg-paper p-4 shadow-puff sm:p-6 md:p-7 ${className}`}
+      className={`relative @container rounded-card p-4 sm:p-6 md:p-7 ${CARD_TONE[tone]} ${className}`}
     >
       {children}
     </div>
@@ -159,7 +189,7 @@ export function InfoButton({
         <div
           role="dialog"
           aria-label={label}
-          className="absolute right-0 top-[calc(100%+0.6rem)] z-20 max-h-[60vh] w-[34rem] max-w-[min(34rem,88vw)] overflow-y-auto rounded-card border-2 border-sand bg-paper p-4 text-sm leading-relaxed text-ink-soft shadow-puff sm:p-5"
+          className="absolute right-0 top-[calc(100%+0.6rem)] z-20 max-h-[60vh] w-[34rem] max-w-[min(34rem,88vw)] overflow-y-auto rounded-card bg-paper p-4 text-sm leading-relaxed text-ink-soft shadow-card sm:p-5"
         >
           {children}
         </div>

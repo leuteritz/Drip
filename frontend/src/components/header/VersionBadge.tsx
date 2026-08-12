@@ -49,7 +49,7 @@ export default function VersionBadge() {
         <div
           role="dialog"
           aria-label="What's new"
-          className="absolute left-0 top-full z-40 mt-2 max-h-[20rem] w-[18rem] overflow-y-auto rounded-2xl border-2 border-sand bg-paper p-3 text-left shadow-puff"
+          className="absolute left-0 top-full z-40 mt-2 max-h-[20rem] w-[18rem] overflow-y-auto rounded-2xl bg-paper p-3 text-left shadow-puff"
         >
           {CHANGELOG.slice(0, VISIBLE_RELEASES).map((release, i) => (
             <div key={release.version} className={i > 0 ? "mt-3 border-t border-sand pt-3" : ""}>

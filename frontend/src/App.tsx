@@ -352,7 +352,7 @@ function ErrorToast({
       role="status"
       /* Above the phone's tab bar rather than under it, and the full width of
          the glass there — a 24rem toast in a 390px window is a corner. */
-      className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 flex items-start gap-3 rounded-card border-2 border-rose/50 bg-paper px-4 py-3 shadow-puff md:bottom-4 md:left-auto md:max-w-md"
+      className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 flex items-start gap-3 rounded-card bg-paper px-4 py-3 shadow-card ring-2 ring-rose/50 md:bottom-4 md:left-auto md:max-w-md"
     >
       <WarningIcon className="mt-0.5 shrink-0 text-rose" aria-hidden="true" />
       <div className="min-w-0">
