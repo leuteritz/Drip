@@ -1,6 +1,6 @@
 import type { Attribution } from "../../api/client";
 import { fmtEur, fmtEurSigned, fmtPp, WEEKDAYS } from "../../lib/format";
-import { Card, CardHeader, Loading, Note, RangePills, Stat, toneText } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills, Stat, StatRow, toneText } from "../ui";
 
 /**
  * Where the edge over plain DCA comes from, as a waterfall.
@@ -87,7 +87,7 @@ export default function AttributionWaterfall({
         <Skeleton rows={4} />
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap gap-2">
+          <StatRow className="mb-4">
             <Stat
               label="vs. plain DCA, per euro"
               tone={total >= 0 ? "up" : "down"}
@@ -111,7 +111,7 @@ export default function AttributionWaterfall({
                 ? `${Math.round(data.days / 365)} years`
                 : "1 year"}
             </Stat>
-          </div>
+          </StatRow>
 
           <div className="flex flex-col gap-1.5">
             {steps.map((step) => (

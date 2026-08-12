@@ -29,6 +29,7 @@ import {
   Note,
   RangePills,
   Stat,
+  StatRow,
   Toggle,
 } from "../components/ui";
 
@@ -145,7 +146,7 @@ export default function Overview({
 
   return (
     <section id="overview" className="scroll-mt-20">
-      <div className="pad-safe-x flex flex-col gap-3 px-3 py-5 sm:gap-4 sm:px-4 md:px-6 md:py-6">
+      <div className="pad-safe-x mx-auto flex w-full max-w-shell flex-col gap-3 px-3 py-5 sm:gap-4 sm:px-4 md:px-6 md:py-6">
         {error && (
           <Card className="border-rose/50">
             <div className="font-bold text-rose">{error}</div>
@@ -270,7 +271,7 @@ function StrategyKpis({ latest }: { latest: ComparisonPoint }) {
   const up = botProfit >= 0;
   const ahead = edge >= 0;
   return (
-    <div className="mb-3 flex flex-wrap gap-2">
+    <StatRow className="mb-3">
       <Stat label="Your profit" tone={up ? "up" : "down"} hint="what you hold, minus what you paid in">
         <span className="inline-flex items-center gap-1.5">
           {up ? <TrendUpIcon aria-hidden="true" /> : <TrendDownIcon aria-hidden="true" />}
@@ -293,6 +294,6 @@ function StrategyKpis({ latest }: { latest: ComparisonPoint }) {
       <Stat label="Paid in" hint="every buy added up">
         {fmtEur(latest.bot_invested)}
       </Stat>
-    </div>
+    </StatRow>
   );
 }

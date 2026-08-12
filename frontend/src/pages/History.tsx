@@ -154,7 +154,7 @@ export default function HistorySection({
   return (
     <section
       id="history"
-      className="pad-safe-x pad-tabbar scroll-mt-20 flex flex-col gap-3 px-3 pb-8 pt-5 sm:gap-4 sm:px-4 md:px-6 md:pb-10 md:pt-6"
+      className="pad-safe-x pad-tabbar mx-auto flex w-full max-w-shell scroll-mt-20 flex-col gap-3 px-3 pb-8 pt-5 sm:gap-4 sm:px-4 md:px-6 md:pb-10 md:pt-6"
     >
       <SectionHeading
         icon={<ListDashesIcon />}

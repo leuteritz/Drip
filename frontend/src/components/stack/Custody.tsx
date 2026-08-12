@@ -3,7 +3,7 @@ import VaultIcon from "~icons/ph/vault";
 import type { BotSettings, Custody } from "../../api/client";
 import { fmtEur, formatDayMonthYear } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
 
 /**
  * Where the stack is kept, which is the one thing the rest of this page cannot
@@ -97,7 +97,7 @@ export default function CustodyCard({
         <>
           <SplitBar share={share} over={data.over} moved={data.standing === "moved"} />
 
-          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <StatRow className="mt-4">
             <Stat
               label="On the exchange"
               tone={data.over ? "down" : "plain"}
@@ -127,7 +127,7 @@ export default function CustodyCard({
             >
               {data.since ? formatDayMonthYear(data.since) : "—"}
             </Stat>
-          </div>
+          </StatRow>
 
           {(data.difference_btc ?? 0) > 0 && (
             <p className="mt-3 rounded-xl bg-water-soft/50 px-3.5 py-2.5 text-xs text-ink-soft">

@@ -7,7 +7,7 @@ import {
   formatDayMonth,
   formatWeekdayTime,
 } from "../../lib/format";
-import { Note, Stat } from "../ui";
+import { Note, Stat, StatRow } from "../ui";
 
 /**
  * The machine, not the money: what the backend is doing right now.
@@ -89,7 +89,7 @@ export default function SystemPanel({
       <h4 className="mb-2 mt-5 text-xs font-bold uppercase tracking-[0.18em] text-ink-soft">
         This install
       </h4>
-      <div className="flex flex-wrap gap-2">
+      <StatRow>
         <Stat label="Backend up" hint={`Python ${system.python_version}`}>
           {fmtDuration(system.uptime_seconds)}
         </Stat>
@@ -125,7 +125,7 @@ export default function SystemPanel({
         >
           {cache == null ? "Cold" : "Warm"}
         </Stat>
-      </div>
+      </StatRow>
 
       <Note>
         The scheduler runs in the container's own timezone, set by <code>TZ</code>{" "}

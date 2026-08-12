@@ -24,7 +24,7 @@ import {
   formatMonthYear,
 } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
 
 /**
  * How far under water the stack went, and what the drip bought down there.
@@ -114,7 +114,7 @@ export default function WaterlineCard({ data }: { data: Waterline | null }) {
             <DepthChart data={data} />
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <StatRow className="mt-4">
             <Stat
               label={under ? "Down right now" : "Deepest it went"}
               tone="down"
@@ -148,7 +148,7 @@ export default function WaterlineCard({ data }: { data: Waterline | null }) {
             >
               {data.episodes.toLocaleString()}
             </Stat>
-          </div>
+          </StatRow>
 
           {data.bought_under && data.bought_under.buys > 0 && (
             <KeptBuying data={data} stackAmount={stackAmount} />

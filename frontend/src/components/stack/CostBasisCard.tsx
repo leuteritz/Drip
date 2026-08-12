@@ -23,7 +23,7 @@ import {
 import { fmtEur, fmtPct, fmtSats, formatDayMonth } from "../../lib/format";
 import { buildSatsSeries, type SatsPoint } from "../../lib/stack";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Loading, Note, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
 
 /**
  * How well the drip actually bought, which is not the same question as whether
@@ -108,11 +108,11 @@ export default function CostBasisCard({
         </p>
       ) : (
         <>
-          {/* A grid rather than a wrapping row: the fifth tile arrived and a
-              flex row stretched it across the whole card, which made the fee
-              the loudest figure on a card about what a coin cost. Equal
-              columns keep the five the same size, whichever of them wrap. */}
-          <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Five tiles, which `StatRow` reads as 3+2. The fee is the reason
+              that matters: a wrapping row used to stretch the last tile across
+              the whole card, which made it the loudest figure on a card about
+              what a coin cost. */}
+          <StatRow className="mb-3">
             <Stat
               label="You paid on average"
               hint={`${basis.purchase_count} buys over ${basis.days} days`}
@@ -152,7 +152,7 @@ export default function CostBasisCard({
                 {fmtEur(basis.fees_eur)}
               </Stat>
             )}
-          </div>
+          </StatRow>
 
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">

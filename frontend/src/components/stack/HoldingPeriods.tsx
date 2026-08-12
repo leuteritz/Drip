@@ -2,7 +2,7 @@ import WarningIcon from "~icons/ph/warning";
 import type { Holdings, RipeningMonth } from "../../api/client";
 import { fmtEur, fmtEurSigned, formatDayMonthYear } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
 
 /**
  * How old each lot is, against the German one-year rule (§23 EStG): bitcoin
@@ -66,7 +66,7 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
             </p>
           ) : (
             <>
-              <div className="mb-4 flex flex-wrap gap-2">
+              <StatRow className="mb-4">
                 <Stat
                   label="Past the one-year mark"
                   // An empty bucket has a gain of exactly zero, which is not
@@ -109,7 +109,7 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                     ? formatDayMonthYear(data.next_free_date)
                     : "—"}
                 </Stat>
-              </div>
+              </StatRow>
 
               {data.timeline.length > 0 && (
                 <div className="flex flex-col gap-1.5">

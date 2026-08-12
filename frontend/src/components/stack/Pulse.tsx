@@ -3,7 +3,7 @@ import type { BotSettings, Pulse, PulsePeriod } from "../../api/client";
 import { cadenceOf, countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat, Toggle } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatRow, Toggle } from "../ui";
 
 /** How many gaps are named in words before the rest are counted in one line. */
 const GAPS_LISTED = 5;
@@ -158,7 +158,7 @@ export default function PulseCard({
         </p>
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap gap-2">
+          <StatRow className="mb-4">
             {/* Of the periods that were *asked* for: a fortnight you paused is
                 out of the denominator, not counted against you. */}
             <Stat
@@ -192,7 +192,7 @@ export default function PulseCard({
             >
               {gapSats ? stackAmount(gapSats / SATS_PER_BTC) : "—"}
             </Stat>
-          </div>
+          </StatRow>
 
           <PeriodStrip data={data} stackAmount={stackAmount} />
 

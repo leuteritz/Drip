@@ -112,7 +112,7 @@ export default function Research({
     <section
       ref={sectionRef}
       id="research"
-      className="pad-safe-x scroll-mt-20 flex flex-col gap-3 px-3 pb-8 pt-5 sm:gap-4 sm:px-4 md:px-6 md:pb-10 md:pt-6"
+      className="pad-safe-x mx-auto flex w-full max-w-shell scroll-mt-20 flex-col gap-3 px-3 pb-8 pt-5 sm:gap-4 sm:px-4 md:px-6 md:pb-10 md:pt-6"
     >
       <SectionHeading
         icon={<FlaskIcon />}

@@ -13,8 +13,7 @@ opt-in.
 *Example history, not a real account. Night theme; there is a day one too.*
 
 - **Your stack is a tank of water** that fizzes at the strength of the week's signal,
-  with four instruments floating on it - the signal, the market's mood, the price and
-  your Coinbase well.
+  with four instruments floating on it.
 - **It checks itself before Monday** - the key, the money, the price feed, the schedule.
   A buy that would not land is said in the top bar, days before the week it would cost.
 - **It remembers what you sat through** - how far under water the stack went, how long
@@ -38,7 +37,8 @@ opt-in.
 </p>
 
 *One build, both hands: the sections move to a tab bar, figures are set larger rather
-than smaller, the history becomes one card per buy, and dialogs rise as sheets.*
+than smaller, every card fits them to its own width, the history becomes one card per
+buy, and dialogs rise as sheets.*
 
 ## Install
 

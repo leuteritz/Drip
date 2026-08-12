@@ -11,7 +11,7 @@ import {
 import { originName } from "../../lib/origin";
 import { useStackAmount } from "../../lib/units";
 import { ScoreTable } from "../scoring";
-import { Badge, Loading, Modal, Note, Stat, toneText } from "../ui";
+import { Badge, Loading, Modal, Note, Stat, StatRow, toneText } from "../ui";
 
 /**
  * One buy, and what became of it.
@@ -237,7 +237,7 @@ function Footnotes({ data }: { data: Receipt }) {
 
   return (
     <>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <StatRow className="mt-4">
         <Stat
           label="Against the month around it"
           tone={below ? "up" : "down"}
@@ -258,7 +258,7 @@ function Footnotes({ data }: { data: Receipt }) {
         >
           {formatDayMonthYear(data.free_at)}
         </Stat>
-      </div>
+      </StatRow>
 
       <Note>
         The comparison is this buy against the days around it, which is the same

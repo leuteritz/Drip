@@ -3,7 +3,7 @@ import type { Outlook } from "../../api/client";
 import { countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
 
 const RING_RADIUS = 54;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
@@ -138,7 +138,7 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
         {/* The rate, and a year of it */}
         {/* Four across once there is room: on a full-width card a 2x2 block of
             tiles reads as a form rather than as the KPI row it is. */}
-        <div className="grid flex-1 grid-cols-1 gap-2 self-center sm:grid-cols-2 lg:grid-cols-4">
+        <StatRow className="flex-1 self-center">
           <Stat
             label="Stacking per week"
             hint={
@@ -163,7 +163,7 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
           <Stat label="That buys about" hint="if the price never moved">
             {stalled ? "—" : stackAmount(data.year_sats / SATS_PER_BTC)}
           </Stat>
-        </div>
+        </StatRow>
       </div>
 
       <Note>

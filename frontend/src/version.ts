@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.38",
+    date: "2026-08-12",
+    changes: [
+      "The page now holds one column width from top to bottom — the cards below the tank used to run wider than the tank itself, so the page got broader the further you read",
+      "At night the water settles into the page instead of stopping at a line across it",
+      "The figures on every card now share a line evenly and stop breaking across two — each card lays them out by its own width rather than by the size of the window",
+    ],
+  },
+  {
     version: "2.37",
     date: "2026-08-09",
     changes: [

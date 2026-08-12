@@ -21,7 +21,7 @@ import {
 } from "../../lib/chart";
 import { formatDayMonth, fmtPct, fmtPp, WEEKDAYS } from "../../lib/format";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Loading, Note, RangePills, Stat } from "../ui";
+import { Card, CardHeader, Loading, Note, RangePills, Stat, StatRow } from "../ui";
 
 /**
  * One backtest is one path and proves nothing. This runs the same backtest from
@@ -92,7 +92,7 @@ export default function EdgeDistribution({
         </p>
       ) : (
         <>
-          <div className="mb-3 flex flex-wrap gap-2">
+          <StatRow className="mb-3">
             <Stat
               label="Runs Drip won"
               tone={data.win_rate >= 50 ? "up" : "down"}
@@ -113,7 +113,7 @@ export default function EdgeDistribution({
             <Stat label="Best run" tone={data.best_pp >= 0 ? "up" : "down"}>
               {fmtPp(data.best_pp)}
             </Stat>
-          </div>
+          </StatRow>
 
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">

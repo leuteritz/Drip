@@ -118,7 +118,12 @@
 
   /* The water dims with the room, or the tank would be the only lit thing left */
   --tank-sky: linear-gradient(180deg, #0b1518 0%, #10242a 46%);
-  --tank-body: linear-gradient(180deg, #2c545e 0%, #1e3d46 45%, #142a31 100%);
+  /* The last stop is `shell`, so the water settles into the page instead of
+     being cut off at it. Only at night: by day the page ground is near-white
+     cream and the hard edge under the tank is the tank's *rim* — water fading
+     into a white page would read as a banner gradient rather than as a
+     container. Here both grounds are dark, so the same edge reads as a seam. */
+  --tank-body: linear-gradient(180deg, #2c545e 0%, #1e3d46 45%, #142a31 82%, #0c171a 100%);
   --wave-back: #28505a;
   --wave-front: #2c545e;
   --wave-foam: rgba(241, 255, 250, 0.26);

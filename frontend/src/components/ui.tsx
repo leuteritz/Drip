@@ -1,4 +1,5 @@
 import {
+  Children,
   useEffect,
   useRef,
   useState,
@@ -8,6 +9,17 @@ import {
 import ArrowSquareOutIcon from "~icons/ph/arrow-square-out";
 import InfoIcon from "~icons/ph/info";
 
+/**
+ * The one surface in the app.
+ *
+ * It is a **container**, and everything laid out inside it says `@`: since the
+ * page body took a fixed measure (`max-w-shell`), a card's width no longer
+ * follows the window — a half-width card on a 2560px monitor is the same
+ * ~35rem it is on a 1400px one. A KPI row keyed to the *viewport* therefore
+ * asked for three columns in a card with room for two, and broke its own
+ * figures across lines. Reach for `@sm:`/`@3xl:` inside a card, never `sm:`,
+ * for anything whose room comes from the card rather than from the screen.
+ */
 export function Card({
   children,
   className = "",
@@ -20,7 +32,7 @@ export function Card({
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-card border-2 border-sand bg-paper p-4 shadow-puff sm:p-6 md:p-7 ${className}`}
+      className={`relative @container rounded-card border-2 border-sand bg-paper p-4 shadow-puff sm:p-6 md:p-7 ${className}`}
     >
       {children}
     </div>
@@ -200,11 +212,10 @@ export function Stat({
   children: ReactNode;
 }) {
   return (
-    /* One tile per row on a phone. Two of these side by side leaves each about
-       eleven characters wide, and the figures they carry — a six-figure euro
-       amount with its percentage beside it — break across three lines to fit.
-       A KPI that has to be reassembled by the reader is not one. */
-    <dl className="min-w-full flex-1 rounded-xl bg-sand-soft/60 px-5 py-3.5 sm:min-w-[11rem]">
+    /* No width of its own: `StatRow` owns how many share a line. A tile that
+       set its own minimum used to win that argument and push a six-figure euro
+       amount out of its own box. */
+    <dl className="rounded-xl bg-sand-soft/60 px-5 py-3.5">
       <dt className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-soft">
         {label}
       </dt>
@@ -215,6 +226,45 @@ export function Stat({
       </dd>
       {hint && <dd className="mt-1.5 text-xs text-ink-soft">{hint}</dd>}
     </dl>
+  );
+}
+
+/**
+ * The row a card's KPI tiles sit in — the only way to lay `Stat`s out.
+ *
+ * It exists because there used to be two ways and neither knew how wide the
+ * card was: seven rows were a `flex-wrap` (which let `flex-1` stretch the last
+ * tile of a wrapped row across the whole card) and four were a grid keyed to
+ * the *viewport* (which asked for three columns in a half-width card and broke
+ * its own figures across lines). Both are one thing now, and it measures the
+ * **card** rather than the window — see `Card`.
+ *
+ * How many share a line follows from how many there are: five tiles read best
+ * as 3+2, four as one line of four, three as a line of three. Below `@4xl` it
+ * is two, and in a card narrower than `@lg` it is one.
+ *
+ * `@lg` (32rem) rather than `@md` is measured, not chosen: a phone card holds
+ * about 28rem and a half-width card on a desk about 33rem, so that is the only
+ * step that separates them. Two tiles at phone width leaves each about eleven
+ * characters — `3.27640569 BTC` breaks across two lines — and a KPI that has to
+ * be reassembled by the reader is not one.
+ */
+export function StatRow({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  // `toArray` rather than `Children.count`: a tile rendered conditionally comes
+  // through as `false`, and a row of "four" that is really three would pick the
+  // wrong column count.
+  const n = Children.toArray(children).length;
+  const wide = n >= 5 ? "@4xl:grid-cols-3" : n === 4 ? "@4xl:grid-cols-4" : n === 3 ? "@4xl:grid-cols-3" : "";
+  return (
+    <div className={`grid grid-cols-1 gap-2 @lg:grid-cols-2 ${wide} ${className}`}>
+      {children}
+    </div>
   );
 }
 
