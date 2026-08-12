@@ -3,7 +3,7 @@ import type { Outlook } from "../../api/client";
 import { countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 const RING_RADIUS = 54;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
@@ -135,35 +135,39 @@ export default function OutlookCard({ data }: { data: Outlook | null }) {
           )}
         </div>
 
-        {/* The rate, and a year of it */}
-        {/* Four across once there is room: on a full-width card a 2x2 block of
-            tiles reads as a form rather than as the KPI row it is. */}
-        <StatRow className="flex-1 self-center">
-          <Stat
-            label="Stacking per week"
-            hint={
-              stalled
-                ? `nothing in the last ${data.rate_weeks} weeks`
-                : `${stackAmount(data.per_week_sats / SATS_PER_BTC)} at the prices paid`
-            }
-          >
-            {stalled ? "—" : fmtEur(data.per_week_eur)}
-          </Stat>
-          {/* Counted in the drip's own rhythm, not in weeks: a monthly saver
-              who has never missed one used to read "1 week". */}
-          <Stat
-            label="Streak"
-            hint={`${countPeriods(streak.total_periods, streak.cadence)} with a buy in total`}
-          >
-            {countPeriods(streak.periods, streak.cadence)}
-          </Stat>
-          <Stat label="In a year" hint="at the same rate">
-            {stalled ? "—" : fmtEur(data.year_eur, 0)}
-          </Stat>
-          <Stat label="That buys about" hint="if the price never moved">
-            {stalled ? "—" : stackAmount(data.year_sats / SATS_PER_BTC)}
-          </Stat>
-        </StatRow>
+        {/* The ring beside this *is* the card's lead, so the rate is the one
+            tile and everything a year of it produces goes in the line under. */}
+        <div className="flex flex-1 flex-col justify-center gap-3">
+          <StatRow>
+            <Stat
+              label="Stacking per week"
+              hint={
+                stalled
+                  ? `nothing in the last ${data.rate_weeks} weeks`
+                  : `${stackAmount(data.per_week_sats / SATS_PER_BTC)} at the prices paid`
+              }
+            >
+              {stalled ? "—" : fmtEur(data.per_week_eur)}
+            </Stat>
+          </StatRow>
+          <StatFacts
+            items={[
+              // Counted in the drip's own rhythm, not in weeks: a monthly saver
+              // who has never missed one used to read "1 week".
+              {
+                label: "streak",
+                value: countPeriods(streak.periods, streak.cadence),
+              },
+              { label: "in a year", value: stalled ? "—" : fmtEur(data.year_eur, 0) },
+              {
+                label: "that buys about",
+                value: stalled
+                  ? "—"
+                  : stackAmount(data.year_sats / SATS_PER_BTC),
+              },
+            ]}
+          />
+        </div>
       </div>
 
       <Note>

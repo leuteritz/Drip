@@ -12,6 +12,7 @@ export const CHART_COLORS = {
   kelp: "var(--color-kelp)",
   rose: "var(--color-rose)",
   sand: "var(--color-sand)",
+  benchmark: "var(--color-benchmark)",
   ink: "var(--color-ink)",
   inkSoft: "var(--color-ink-soft)",
   paper: "var(--color-paper)",
@@ -104,10 +105,14 @@ export const SERIES = {
     width: 3,
     dash: undefined as string | undefined,
   },
+  // `benchmark`, not `inkSoft`: this is the yardstick, and the yardstick is one
+  // colour everywhere it is drawn — here, the market's own average in the
+  // cost-basis chart, and the half of the custody bar that is not yours to act
+  // on. Learn it once, read it everywhere.
   dca: {
     key: "dca_profit",
     label: "Plain DCA",
-    color: CHART_COLORS.inkSoft,
+    color: CHART_COLORS.benchmark,
     width: 2,
     dash: "7 5" as string | undefined,
   },

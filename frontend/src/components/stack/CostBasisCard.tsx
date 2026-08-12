@@ -23,7 +23,7 @@ import {
 import { fmtEur, fmtPct, fmtSats, formatDayMonth } from "../../lib/format";
 import { buildSatsSeries, type SatsPoint } from "../../lib/stack";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 /**
  * How well the drip actually bought, which is not the same question as whether
@@ -108,10 +108,9 @@ export default function CostBasisCard({
         </p>
       ) : (
         <>
-          {/* Five tiles, which `StatRow` reads as 3+2. The fee is the reason
-              that matters: a wrapping row used to stretch the last tile across
-              the whole card, which made it the loudest figure on a card about
-              what a coin cost. */}
+          {/* One lead — what a coin actually cost — and the rest as a line.
+              The fee is why that matters: as one of five equal tiles it was as
+              loud as the average it is already inside of. */}
           <StatRow className="mb-3">
             <Stat
               label="You paid on average"
@@ -119,40 +118,29 @@ export default function CostBasisCard({
             >
               {fmtEur(basis.avg_price_eur, 0)}
             </Stat>
-            <Stat
-              label="The market averaged"
-              hint="over the same days, buying evenly"
-            >
-              {fmtEur(basis.market_twap_eur, 0)}
-            </Stat>
-            <Stat
-              label={ahead ? "You bought below it" : "You bought above it"}
-              tone={ahead ? "up" : "down"}
-            >
-              {fmtPct(basis.advantage_pct)}
-            </Stat>
-            <Stat
-              label="Sats per euro"
-              hint={`best ${fmtSats(sats.best?.satsPerEur ?? 0)} · worst ${fmtSats(
-                sats.worst?.satsPerEur ?? 0,
-              )}`}
-            >
-              {fmtSats(sats.averageSatsPerEur)}
-            </Stat>
-            {/* Only the buys that reported a fill know what they cost in fees,
-                so this stays away entirely until one of them has — a zero here
-                would read as "nothing was charged" rather than "not recorded". */}
-            {basis.fees_from > 0 && (
-              <Stat
-                label="Coinbase took"
-                hint={`${basis.fees_pct.toFixed(2)}% of ${basis.fees_from} ${
-                  basis.fees_from === 1 ? "buy" : "buys"
-                }`}
-              >
-                {fmtEur(basis.fees_eur)}
-              </Stat>
-            )}
           </StatRow>
+          <StatFacts
+            className="mb-3"
+            items={[
+              {
+                label: "the market averaged",
+                value: fmtEur(basis.market_twap_eur, 0),
+              },
+              {
+                label: ahead ? "you bought below it" : "you bought above it",
+                value: fmtPct(basis.advantage_pct),
+                tone: ahead ? "up" : "down",
+              },
+              { label: "sats per euro", value: fmtSats(sats.averageSatsPerEur) },
+              // Only the buys that reported a fill know what they cost in fees,
+              // so this stays away entirely until one of them has — a zero here
+              // would read as "nothing was charged" rather than "not recorded".
+              basis.fees_from > 0 && {
+                label: "Coinbase took",
+                value: fmtEur(basis.fees_eur),
+              },
+            ]}
+          />
 
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -166,11 +154,12 @@ export default function CostBasisCard({
                   tickLine={false}
                   tickFormatter={(v: number) => Math.round(v).toLocaleString("en-IE")}
                 />
+                {/* The yardstick colour, the same one plain DCA's line wears. */}
                 <ReferenceLine
                   y={sats.averageSatsPerEur}
-                  stroke={CHART_COLORS.ink}
+                  stroke={CHART_COLORS.benchmark}
                   strokeDasharray="6 4"
-                  strokeWidth={1}
+                  strokeWidth={1.5}
                 />
                 <Tooltip
                   cursor={CURSOR_PROPS}

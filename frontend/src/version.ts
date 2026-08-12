@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.40",
+    date: "2026-08-12",
+    changes: [
+      "Every card now leads with the one figure it is about and says the rest on a single line under it — the overview used to be two dozen numbers all shouting equally, with nothing telling you where to look first",
+      "Plain DCA and the market's own average are drawn in the same colour wherever they appear, so the thing your drip is measured against is learned once and recognised everywhere",
+    ],
+  },
+  {
     version: "2.39",
     date: "2026-08-12",
     changes: [

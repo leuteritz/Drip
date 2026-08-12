@@ -3,7 +3,7 @@ import type { BotSettings, Pulse, PulsePeriod } from "../../api/client";
 import { cadenceOf, countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat, StatRow, Toggle } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow, Toggle } from "../ui";
 
 /** How many gaps are named in words before the rest are counted in one line. */
 const GAPS_LISTED = 5;
@@ -169,30 +169,32 @@ export default function PulseCard({
             >
               {data.landed}
             </Stat>
-            <Stat
-              label="Nothing landed"
-              tone={clean ? "plain" : "down"}
-              hint={
-                data.failed
-                  ? `plus ${countPeriods(data.failed, data.cadence)} the order failed`
-                  : clean
-                    ? "the drip has not skipped one"
-                    : "no buy at all, for any reason"
-              }
-            >
-              {data.missed}
-            </Stat>
-            <Stat
-              label="What they would have bought"
-              hint={
-                data.missed
-                  ? `${fmtEur(data.gap_cost.eur)} at those days' prices`
-                  : "nothing to make up"
-              }
-            >
-              {gapSats ? stackAmount(gapSats / SATS_PER_BTC) : "—"}
-            </Stat>
           </StatRow>
+          <StatFacts
+            className="mb-4"
+            items={[
+              {
+                label: "nothing landed",
+                value: clean ? "not one skipped" : `${data.missed}`,
+                tone: clean ? "plain" : "down",
+              },
+              data.failed
+                ? {
+                    label: "the order failed",
+                    value: countPeriods(data.failed, data.cadence),
+                    tone: "down",
+                  }
+                : null,
+              data.missed
+                ? {
+                    label: "they would have bought",
+                    value: `${
+                      gapSats ? stackAmount(gapSats / SATS_PER_BTC) : "—"
+                    } · ${fmtEur(data.gap_cost.eur)}`,
+                  }
+                : null,
+            ]}
+          />
 
           <PeriodStrip data={data} stackAmount={stackAmount} />
 

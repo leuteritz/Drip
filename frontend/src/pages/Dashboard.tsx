@@ -29,6 +29,7 @@ import {
   Note,
   RangePills,
   Stat,
+  StatFacts,
   StatRow,
   Toggle,
 } from "../components/ui";
@@ -286,29 +287,39 @@ function StrategyKpis({ latest }: { latest: ComparisonPoint }) {
   const up = botProfit >= 0;
   const ahead = edge >= 0;
   return (
-    <StatRow className="mb-3">
-      <Stat label="Your profit" tone={up ? "up" : "down"} hint="what you hold, minus what you paid in">
-        <span className="inline-flex items-center gap-1.5">
-          {up ? <TrendUpIcon aria-hidden="true" /> : <TrendDownIcon aria-hidden="true" />}
-          {up ? "+" : ""}
-          {fmtEur(botProfit)}
-          <span className="text-sm font-normal opacity-80">({fmtPct(botPct)})</span>
-        </span>
-      </Stat>
-      <Stat
-        label="vs. plain DCA"
-        tone={ahead ? "up" : "down"}
-        hint="the multiplier's share of that"
-      >
-        {ahead ? "+" : ""}
-        {fmtEur(edge)}
-        <span className="ml-1.5 text-sm font-normal opacity-80">
-          {ahead ? "ahead" : "behind"}
-        </span>
-      </Stat>
-      <Stat label="Paid in" hint="every buy added up">
-        {fmtEur(latest.bot_invested)}
-      </Stat>
-    </StatRow>
+    <>
+      {/* The one card allowed two leads, and the reason that exception exists:
+          this card *is* a comparison, so the profit and the edge are the same
+          question asked twice. What was paid in is context and goes below. */}
+      <StatRow>
+        <Stat
+          label="Your profit"
+          tone={up ? "up" : "down"}
+          hint="what you hold, minus what you paid in"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            {up ? <TrendUpIcon aria-hidden="true" /> : <TrendDownIcon aria-hidden="true" />}
+            {up ? "+" : ""}
+            {fmtEur(botProfit)}
+            <span className="text-sm font-normal opacity-80">({fmtPct(botPct)})</span>
+          </span>
+        </Stat>
+        <Stat
+          label="vs. plain DCA"
+          tone={ahead ? "up" : "down"}
+          hint="the multiplier's share of that"
+        >
+          {ahead ? "+" : ""}
+          {fmtEur(edge)}
+          <span className="ml-1.5 text-sm font-normal opacity-80">
+            {ahead ? "ahead" : "behind"}
+          </span>
+        </Stat>
+      </StatRow>
+      <StatFacts
+        className="mb-3 mt-3"
+        items={[{ label: "paid in", value: fmtEur(latest.bot_invested) }]}
+      />
+    </>
   );
 }

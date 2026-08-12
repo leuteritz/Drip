@@ -56,6 +56,19 @@
      to #3a2b31 - cannot be the colour of a red number on it. */
   --color-rose-pale: #f0c9d3;
   --color-kelp-pale: #bceccd; /* and the same for a gain up there */
+  /* "The yardstick", wherever one is *drawn as a line*: plain DCA in the
+     comparison chart, and the market's own average in the cost-basis chart.
+     They were the same idea in two different greys — a dash in `ink-soft` and a
+     rule in `ink` — so nothing said they meant one thing. A role token rather
+     than `sand` itself because `sand` is a *surface* at night (#26383d) and
+     vanishes as a line; this is the one that has to stay legible on `paper` in
+     both themes. Not a new hue: it is sand, held.
+
+     Deliberately **not** `Custody`'s split bar. `sand` there means "a balance
+     nobody needs to act on", which is a state and not a yardstick — reaching
+     for this token because both happened to be sand-coloured would empty it of
+     the meaning it was made to carry. */
+  --color-benchmark: #b3a396;
   --color-chrome: #454545; /* Discord's own panel in the report preview */
   --color-scrim: rgba(69, 69, 69, 0.5); /* behind every dialog */
 
@@ -127,6 +140,9 @@
 
   --color-shell: #0c171a;
   --color-spout: #173036;
+  /* Lifted far enough off `paper` (#14252a) to read as a line rather than as
+     another surface — the day value would be invisible here. */
+  --color-benchmark: #6f8890;
   /* A dark page cannot carry a dark button, so the accent becomes the fill —
      still one of the five, and still cream type on top of it. */
   --color-ink-solid: #45818c;

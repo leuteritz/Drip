@@ -2,7 +2,7 @@ import WarningIcon from "~icons/ph/warning";
 import type { Holdings, RipeningMonth } from "../../api/client";
 import { fmtEur, fmtEurSigned, formatDayMonthYear } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 /**
  * How old each lot is, against the German one-year rule (§23 EStG): bitcoin
@@ -82,34 +82,29 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
                 >
                   {fmtEur(free?.value_eur ?? 0)}
                 </Stat>
-                <Stat
-                  label="Still inside the year"
-                  tone={!locked?.lots ? "plain" : locked.gain_eur >= 0 ? "up" : "down"}
-                  hint={
-                    locked
-                      ? `${locked.lots} buys · ${stackAmount(locked.btc)} · ${fmtEurSigned(
-                          locked.gain_eur,
-                        )} gain`
-                      : undefined
-                  }
-                >
-                  {fmtEur(locked?.value_eur ?? 0)}
-                </Stat>
-                <Stat
-                  label="Next buy turns a year"
-                  hint={
-                    data.next_free_date
-                      ? `in ${data.next_free_in_days} ${
-                          data.next_free_in_days === 1 ? "day" : "days"
-                        }`
-                      : "everything is past it"
-                  }
-                >
-                  {data.next_free_date
-                    ? formatDayMonthYear(data.next_free_date)
-                    : "—"}
-                </Stat>
               </StatRow>
+              <StatFacts
+                className="mb-4"
+                items={[
+                  {
+                    label: "still inside the year",
+                    value: `${fmtEur(locked?.value_eur ?? 0)}${
+                      locked?.lots ? ` across ${locked.lots} buys` : ""
+                    }`,
+                    tone: !locked?.lots
+                      ? "plain"
+                      : locked.gain_eur >= 0
+                        ? "up"
+                        : "down",
+                  },
+                  {
+                    label: "next buy turns a year",
+                    value: data.next_free_date
+                      ? formatDayMonthYear(data.next_free_date)
+                      : "everything is past it",
+                  },
+                ]}
+              />
 
               {data.timeline.length > 0 && (
                 <div className="flex flex-col gap-1.5">

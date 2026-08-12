@@ -260,6 +260,63 @@ export function Stat({
 }
 
 /**
+ * The supporting figures under a card's one lead — a **line**, not four more
+ * tiles.
+ *
+ * The overview used to carry about two dozen `Stat`s of identical weight, which
+ * is a wall rather than a hierarchy: nothing on a card answered "what should I
+ * look at first?", and five tiles in a three-column grid left a ragged orphan
+ * row as well. So each overview card now promotes the one figure it is *about*
+ * and says the rest here, where they are still read but no longer shout.
+ *
+ * The pair is a rule with one exception, stated in `Card`'s `lead`: **one lead
+ * per card — two only where the card itself is a comparison** (the strategy
+ * chart's profit and its edge are the same question asked twice).
+ *
+ * Sans face on purpose. `font-display` has no tabular figures, and these sit in
+ * a row where the eye runs across them; the lead above stands alone and can
+ * afford Fraunces.
+ *
+ * Falsy items are dropped, so a caller can inline a condition the way
+ * `CostBasisCard` does with its fee.
+ */
+export type StatFact = { label: string; value: ReactNode; tone?: Tone };
+
+export function StatFacts({
+  items,
+  className = "",
+}: {
+  items: (StatFact | false | null | undefined)[];
+  className?: string;
+}) {
+  const shown = items.filter(Boolean) as StatFact[];
+  if (!shown.length) return null;
+  return (
+    <dl
+      className={`flex flex-wrap items-baseline gap-x-2 gap-y-1.5 text-sm ${className}`}
+    >
+      {shown.map((fact, i) => (
+        /* The separator **trails** its own item rather than sitting between
+           two, so it can never be the first thing on a wrapped line — three
+           facts on a phone wrap, and a line opening with a dangling "·" reads
+           as a typo. */
+        <div key={fact.label} className="flex items-baseline gap-1.5">
+          <dt className="text-ink-soft">{fact.label}</dt>
+          <dd className={`font-semibold ${toneText(fact.tone ?? "plain")}`}>
+            {fact.value}
+          </dd>
+          {i < shown.length - 1 && (
+            <span aria-hidden="true" className="ml-0.5 text-ink-soft/40">
+              ·
+            </span>
+          )}
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
  * The row a card's KPI tiles sit in — the only way to lay `Stat`s out.
  *
  * It exists because there used to be two ways and neither knew how wide the
@@ -290,7 +347,14 @@ export function StatRow({
   // through as `false`, and a row of "four" that is really three would pick the
   // wrong column count.
   const n = Children.toArray(children).length;
-  const wide = n >= 5 ? "@4xl:grid-cols-3" : n === 4 ? "@4xl:grid-cols-4" : n === 3 ? "@4xl:grid-cols-3" : "";
+  // A lone tile is a card's **lead** and gets a size of its own rather than a
+  // share of the grid: stretched across a wide card it is mostly empty space,
+  // and left in a two-column track it looks like a row that lost its partner.
+  if (n === 1) {
+    return <div className={`@lg:max-w-sm ${className}`}>{children}</div>;
+  }
+  const wide =
+    n >= 5 ? "@4xl:grid-cols-3" : n === 4 ? "@4xl:grid-cols-4" : "@4xl:grid-cols-3";
   return (
     <div className={`grid grid-cols-1 gap-2 @lg:grid-cols-2 ${wide} ${className}`}>
       {children}

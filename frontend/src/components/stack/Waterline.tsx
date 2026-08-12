@@ -25,7 +25,7 @@ import {
 } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Loading, Note, Stat, StatRow } from "../ui";
+import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 /**
  * How far under water the stack went, and what the drip bought down there.
@@ -127,29 +127,28 @@ export default function WaterlineCard({ data }: { data: Waterline | null }) {
             >
               {pct(under ? data.depth_now_pct : worst.depth_pct)}
             </Stat>
-            <Stat
-              label="Longest stretch"
-              hint={
-                data.longest
-                  ? `${formatDayMonthYear(data.longest.start)} onwards`
-                  : undefined
-              }
-            >
-              {data.longest ? `${data.longest.days.toLocaleString()} days` : "—"}
-            </Stat>
-            <Stat
-              label="Days under water"
-              hint={`of ${data.days.toLocaleString()} since the first buy`}
-            >
-              {Math.round(data.under_pct)}%
-            </Stat>
-            <Stat
-              label="Stretches like that"
-              hint={`deeper than ${data.threshold_pct}%, which is where a fee stops and a drawdown starts`}
-            >
-              {data.episodes.toLocaleString()}
-            </Stat>
           </StatRow>
+          <StatFacts
+            className="mt-3"
+            items={[
+              {
+                label: "longest stretch",
+                value: data.longest
+                  ? `${data.longest.days.toLocaleString()} days from ${formatDayMonthYear(
+                      data.longest.start,
+                    )}`
+                  : "—",
+              },
+              {
+                label: "days under water",
+                value: `${Math.round(data.under_pct)}% of ${data.days.toLocaleString()}`,
+              },
+              {
+                label: "stretches like that",
+                value: data.episodes.toLocaleString(),
+              },
+            ]}
+          />
 
           {data.bought_under && data.bought_under.buys > 0 && (
             <KeptBuying data={data} stackAmount={stackAmount} />
