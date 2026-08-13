@@ -9,14 +9,28 @@ import { api } from "../../api/client";
 
 /**
  * The things that used to need a shell on the Pi: dropping a cache, clearing
- * the test runs out of the history, taking a copy of the database.
+ * the test runs out of the history, taking a copy of the database — and,
+ * since it has to live somewhere, throwing the history away.
  *
  * Anything that cannot be undone by waiting asks twice — the second click is
- * the confirmation, so a slip never costs the history. Nothing here can touch
- * a real buy: the caches refill themselves from Coinbase's public API, and the
- * only rows this deletes are dry runs.
+ * the confirmation, so a slip never costs the history.
+ *
+ * **"Delete the whole history" belongs here and nowhere else.** It used to be a
+ * full-width rose button at the top of the History section, which on a phone
+ * put the one irreversible action in the app above the first buy and made it
+ * the loudest thing on the screen — you met it before you met your own history.
+ * This is the drawer for things that cannot be undone, and the count is in the
+ * question rather than after it, for the reason `Restore` asks in two steps: a
+ * confirmation with the number in front of you is a real question, and one
+ * without it is a habit.
  */
-export default function Maintenance({ onChanged }: { onChanged: () => void }) {
+export default function Maintenance({
+  onChanged,
+  purchaseCount,
+}: {
+  onChanged: () => void;
+  purchaseCount: number;
+}) {
   return (
     <div>
       <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-ink-soft">
@@ -51,6 +65,23 @@ export default function Maintenance({ onChanged }: { onChanged: () => void }) {
             return `${deleted} test ${deleted === 1 ? "run" : "runs"} deleted.`;
           }}
         />
+        {purchaseCount > 0 && (
+          <Action
+            icon={<TrashIcon />}
+            title="Delete the whole history"
+            description={`Every one of the ${purchaseCount.toLocaleString()} entries Drip has recorded — real buys and test runs alike. Download a backup or the CSV below first; this cannot be undone.`}
+            label="Delete all"
+            tone="danger"
+            confirm={`Delete all ${purchaseCount.toLocaleString()} entries?`}
+            run={async () => {
+              const { deleted } = await api.deleteAllPurchases();
+              onChanged();
+              return `${deleted.toLocaleString()} ${
+                deleted === 1 ? "entry" : "entries"
+              } deleted.`;
+            }}
+          />
+        )}
         <Download
           icon={<DownloadIcon />}
           title="Download a backup"

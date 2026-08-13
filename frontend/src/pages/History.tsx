@@ -4,7 +4,6 @@ import ListDashesIcon from "~icons/ph/list-dashes";
 import ReceiptIcon from "~icons/ph/receipt";
 import TrashIcon from "~icons/ph/trash";
 import UploadSimpleIcon from "~icons/ph/upload-simple";
-import WarningIcon from "~icons/ph/warning-fill";
 import XIcon from "~icons/ph/x";
 import { api, ORDER_ID_ERROR, type Purchase } from "../api/client";
 import { fmtEur, formatTimestamp } from "../lib/format";
@@ -15,7 +14,7 @@ import { ScoreDrops } from "../components/drops";
 import BuyReceipt from "../components/history/BuyReceipt";
 import PurchaseSearch from "../components/history/PurchaseSearch";
 import ImportModal from "../components/ImportModal";
-import { Badge, Card, Loading, Modal, SectionHeading } from "../components/ui";
+import { Badge, Card, Loading, SectionHeading } from "../components/ui";
 
 type SortKey = "timestamp" | "price_eur" | "amount_eur" | "score";
 
@@ -53,7 +52,6 @@ export default function HistorySection({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
-  const [confirmWipe, setConfirmWipe] = useState(false);
   // Which row is open as a receipt. Both shapes of the table set it, and the
   // dialog fetches its own figures — nothing on the table itself needs them.
   const [receiptOf, setReceiptOf] = useState<Purchase | null>(null);
@@ -76,19 +74,6 @@ export default function HistorySection({
     setBusy(true);
     try {
       await api.clearTestRuns();
-      onChanged();
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const deleteAll = async () => {
-    setConfirmWipe(false);
-    setBusy(true);
-    try {
-      await api.deleteAllPurchases();
       onChanged();
     } catch (e) {
       setError(String(e));
@@ -188,21 +173,17 @@ export default function HistorySection({
                 <TrashIcon /> Clear test runs
               </button>
             )}
-            {purchases.length > 0 && (
-              <button
-                onClick={() => setConfirmWipe(true)}
-                disabled={busy}
-                className={`${HEAD_ACTION} bg-rose-soft text-rose hover:bg-rose-deep hover:text-cream disabled:opacity-40`}
-              >
-                <TrashIcon /> Delete all
-              </button>
-            )}
+            {/* "Delete all" used to be a third slab here, and on a phone that
+                put the one irreversible action in the app above the first buy,
+                in the loudest colour on the screen. It lives in Setup →
+                System → Maintenance now, which is the drawer for everything
+                that cannot be undone by waiting. */}
           </>
         }
       />
 
       {error ? (
-        <Card className="border-rose/50 font-bold text-rose">{error}</Card>
+        <Card tone="alert" className="font-bold text-rose">{error}</Card>
       ) : (
         <Card className="flex flex-col overflow-hidden p-0">
           {purchases.length > 0 && (
@@ -422,34 +403,6 @@ export default function HistorySection({
         />
       )}
 
-      {confirmWipe && (
-        <Modal
-          onClose={() => setConfirmWipe(false)}
-          className="w-full max-w-md border-rose/60"
-        >
-          <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
-            <WarningIcon /> Delete the entire history?
-          </h3>
-          <p className="text-sm text-ink">
-            This permanently removes <b>all {purchases.length} entries</b> — real buys and test
-            runs alike. Export a CSV first if you want a backup. This cannot be undone.
-          </p>
-          <div className="mt-4 flex justify-end gap-2">
-            <button
-              onClick={() => setConfirmWipe(false)}
-              className="rounded-full bg-sand-soft px-5 py-3 text-sm font-bold text-ink max-sm:flex-1 sm:py-2.5"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={deleteAll}
-              className="rounded-full bg-rose-deep px-5 py-3 text-sm font-bold text-cream transition hover:opacity-90 max-sm:flex-1 sm:py-2.5"
-            >
-              Delete everything
-            </button>
-          </div>
-        </Modal>
-      )}
     </section>
   );
 }

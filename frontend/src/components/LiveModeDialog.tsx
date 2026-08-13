@@ -19,7 +19,7 @@ export default function LiveModeDialog({
   onConfirm: () => void;
 }) {
   return (
-    <Modal onClose={onCancel} className="w-full max-w-md border-rose/60">
+    <Modal onClose={onCancel} className="w-full max-w-md ring-2 ring-rose/60">
       <h3 className="mb-2 flex items-center gap-2 font-display text-xl font-semibold text-rose">
         <WarningIcon /> Turn on live trading?
       </h3>

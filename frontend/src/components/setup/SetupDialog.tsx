@@ -112,7 +112,7 @@ export default function SetupDialog({
     <Modal
       onClose={onClose}
       closeOnBackdrop
-      className="max-h-[88vh] w-full max-w-3xl overflow-y-auto border-teal/40"
+      className="max-h-[88vh] w-full max-w-3xl overflow-y-auto ring-2 ring-teal/40"
     >
       <div className="mb-4 flex flex-wrap items-center gap-2.5">
         <h3 className="flex items-center gap-2 font-display text-xl font-semibold text-teal">
@@ -184,6 +184,7 @@ export default function SetupDialog({
             refreshing={refreshing}
           />
           <Maintenance
+            purchaseCount={setup.system.purchase_count}
             onChanged={() => {
               onHistoryChanged();
               load();

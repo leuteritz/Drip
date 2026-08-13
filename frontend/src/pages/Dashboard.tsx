@@ -233,11 +233,15 @@ export default function Overview({
         />
 
         {/* The stack itself, rather than the strategy behind it. Two pairs on
-            a wide window, and the columns are deliberately unequal — these
-            cards are not equally important, so they should not be equally
-            wide. `xl` rather than `lg` because the breakpoints are rem-based:
-            at the 13px floor `lg` is only 832px, which is too early to put two
-            of these side by side. Below it everything is one column. */}
+            a wide window, and the first is deliberately unequal — a chart and
+            five figures want more room than three figures do.
+
+            `xl` is where the pair already split before the bento, and it is a
+            flat 1280px: a media query's `rem` resolves against the browser's
+            initial 16px, *not* against the root size the page scales with, so
+            these steps do not move with the type. The card widths inside them
+            do — which is exactly why everything within a card is a container
+            query instead. Below `xl` it is all one column. */}
         <div className="grid gap-3 sm:gap-4 xl:grid-cols-12">
           <div className="*:h-full xl:col-span-7">
             <CostBasisCard

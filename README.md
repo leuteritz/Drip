@@ -13,7 +13,8 @@ opt-in.
 *Example history, not a real account. Night theme; there is a day one too.*
 
 - **Your stack is a tank of water** that fizzes at the strength of the week's signal,
-  with four instruments floating on it.
+  with four instruments floating on it. Scroll past it and the total follows you into
+  the top bar.
 - **The shaded band is the answer**: the distance between what your drip made and what
   buying a flat amount would have. Green while the multiplier is ahead, rose while it
   is not.
@@ -41,8 +42,8 @@ opt-in.
 </p>
 
 *One build, both hands: the sections move to a tab bar, figures are set larger rather
-than smaller, every card fits them to its own width, the history becomes one card per
-buy, and dialogs rise as sheets.*
+than smaller, every card fits them to its own width, and the history becomes one card
+per buy.*
 
 ## Install
 

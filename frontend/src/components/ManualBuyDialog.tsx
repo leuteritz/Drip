@@ -68,7 +68,7 @@ export default function ManualBuyDialog({
   return (
     <Modal
       onClose={onCancel}
-      className={`w-full max-w-md ${live ? "border-rose/60" : "border-teal/40"}`}
+      className={`w-full max-w-md ${live ? "ring-2 ring-rose/60" : "ring-2 ring-teal/40"}`}
     >
       <h3
         className={`mb-2 flex items-center gap-2 font-display text-xl font-semibold ${

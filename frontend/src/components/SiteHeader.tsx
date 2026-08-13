@@ -21,7 +21,7 @@ import type {
   RunResult,
 } from "../api/client";
 import { isPaletteShortcut } from "../lib/commands";
-import { fmtEur, formatDayMonth } from "../lib/format";
+import { fmtEur, fmtPct, formatDayMonth } from "../lib/format";
 import type { LoadKey } from "../lib/loading";
 import type { ThemeChoice } from "../lib/theme";
 import { useUnit } from "../lib/units";
@@ -280,6 +280,32 @@ export default function SiteHeader({
               <HeaderPill>
                 <DropSlashIcon /> Off until {formatDayMonth(status.paused_until)}
               </HeaderPill>
+            )}
+            {/* The one figure that follows you. Scroll past the hero and the
+                app's whole subject is gone, leaving a bar of nothing but
+                controls — so once the tank is off screen the stack comes down
+                here instead.
+
+                It sits at the *end* of the left group rather than in place of
+                the wordmark, which is what the swap first tried: "Drip" and a
+                six-figure sum are nowhere near the same width, so trading one
+                for the other shoved the build badge and the load pill sideways
+                at the exact scroll position somebody might be aiming at them.
+                Appended, nothing to its left can move. `xl` because that is
+                where the bar has the room — below it the three trays want it. */}
+            {scrolled && performance && (
+              <span className="flex shrink-0 items-baseline gap-2 whitespace-nowrap max-xl:hidden">
+                <span className="font-display text-lg font-bold leading-none">
+                  {fmtEur(performance.value_eur, 0)}
+                </span>
+                <span
+                  className={`text-xs font-bold leading-none ${
+                    performance.profit_eur >= 0 ? "text-kelp" : "text-rose"
+                  }`}
+                >
+                  {fmtPct(performance.profit_pct)}
+                </span>
+              </span>
             )}
           </div>
 

@@ -74,7 +74,11 @@ export default function PurchaseSearch({
             }
           }}
           aria-label="Search the buy history"
-          placeholder="Search buys — try 30d, august or price&gt;60000"
+          /* Short enough to survive a 390px phone, where the old hint was cut
+             off mid-word at "…or pri". The field has about 30 characters of
+             room there, and the chips underneath teach the rest of the grammar
+             anyway — which is how it was always meant to be discovered. */
+          placeholder="Search buys — try 30d or august"
           className={`h-11 w-full rounded-full border-2 bg-paper pl-11 pr-24 text-sm font-semibold text-ink outline-none transition placeholder:font-normal placeholder:text-ink-soft/70 focus:border-teal ${
             active ? "border-teal" : "border-sand"
           }`}

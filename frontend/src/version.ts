@@ -17,6 +17,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.41",
+    date: "2026-08-12",
+    changes: [
+      "Scroll past the tank and your stack's value follows you into the top bar — the number the whole page is about is never off screen any more",
+      "Deleting the whole history has moved out of the history's heading into Setup → System, next to the backup it tells you to take first. On a phone it used to sit above your first buy in the loudest colour on the screen",
+      "The dialogs that ask before something irreversible wear their warning colour again",
+      "The search box no longer cuts its own hint off on a phone",
+    ],
+  },
+  {
     version: "2.40",
     date: "2026-08-12",
     changes: [

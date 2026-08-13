@@ -142,7 +142,7 @@ export default function Research({
       )}
 
       {error && (
-        <Card className="border-rose/50">
+        <Card tone="alert">
           <div className="font-bold text-rose">{error}</div>
           <div className="mt-2 text-sm text-ink-soft">
             The research endpoints may need to fetch three years of candles on their
