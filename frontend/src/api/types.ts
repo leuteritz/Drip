@@ -630,6 +630,10 @@ export interface HoldingBucket {
   cost_eur: number;
   value_eur: number;
   gain_eur: number;
+  gain_pct: number;
+  avg_price_eur: number;
+  /** Share of the whole stack's value — "is most of it free yet?". */
+  share_pct: number;
 }
 
 export interface RipeningMonth extends HoldingBucket {
@@ -648,6 +652,42 @@ export interface Holdings {
   timeline: RipeningMonth[];
   /** Failed buys, which every other figure on the dashboard leaves out. */
   excluded: { count: number; btc: number; eur: number };
+}
+
+/**
+ * One calendar year's buys, priced at today.
+ *
+ * `complete` is false for the running year and for any year the candle cache
+ * does not fully cover, so a part-year is never set beside a whole one without
+ * saying so. `profit_eur` is what that year's buys are worth now — never an
+ * annual return, since an older cohort has had longer to work.
+ */
+export interface YearCohort {
+  year: number;
+  buys: number;
+  invested_eur: number;
+  btc_total: number;
+  value_eur: number;
+  profit_eur: number;
+  profit_pct: number;
+  avg_price_eur: number;
+  best_price_eur: number;
+  worst_price_eur: number;
+  market_twap_eur: number;
+  /** Positive means that year's euros went in below the market's own average. */
+  advantage_pct: number;
+  first_buy: string | null;
+  last_buy: string | null;
+  priced_days: number;
+  complete: boolean;
+}
+
+export interface Years {
+  as_of: string;
+  current_price: number;
+  include_dry_run: boolean;
+  /** Oldest first. */
+  years: YearCohort[];
 }
 
 /** Where a secret in effect actually came from. */

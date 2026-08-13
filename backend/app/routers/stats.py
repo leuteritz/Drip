@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
-from .. import analytics, custody, holdings, outlook, pulse, waterline
+from .. import analytics, custody, holdings, outlook, pulse, waterline, years
 from ..database import get_session, load_settings
 from ..schemas import (
     ComparisonPoint,
@@ -11,6 +11,7 @@ from ..schemas import (
     PerformanceResponse,
     PulseResponse,
     WaterlineResponse,
+    YearsResponse,
 )
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
@@ -33,6 +34,13 @@ def holdings_summary(include_dry_run: bool = Query(default=True),
                      session: Session = Depends(get_session)):
     """Cost basis against the market, plus how old each lot is."""
     return holdings.summary(session, include_dry_run)
+
+
+@router.get("/years", response_model=YearsResponse)
+def years_summary(include_dry_run: bool = Query(default=True),
+                  session: Session = Depends(get_session)):
+    """What each calendar year bought, and what it is worth now."""
+    return years.summary(session, include_dry_run)
 
 
 @router.get("/pulse", response_model=PulseResponse)

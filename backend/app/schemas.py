@@ -328,6 +328,11 @@ class HoldingBucket(BaseModel):
     cost_eur: float
     value_eur: float
     gain_eur: float
+    gain_pct: float
+    avg_price_eur: float
+    #: Share of the whole stack's *value*, so the card can answer the one
+    #: question the counts cannot: is most of what I hold free yet?
+    share_pct: float
 
 
 class RipeningMonth(HoldingBucket):
@@ -353,6 +358,47 @@ class HoldingsResponse(BaseModel):
     next_free_in_days: int
     timeline: list[RipeningMonth]
     excluded: ExcludedBuys
+
+
+class YearCohort(BaseModel):
+    """One calendar year's buys, priced at today.
+
+    `complete` is false for the running year *and* for any year the candle cache
+    does not fully cover — an install whose history starts in September has a
+    part-year 2021 however long ago it ended. A partial year's average held
+    against a partial market average is a comparison, not a verdict, so the flag
+    travels with every figure that depends on it.
+
+    `profit_eur` is what this year's buys are worth today minus what they cost.
+    It is never an annual return: an older cohort has had longer to work.
+    """
+
+    year: int
+    buys: int
+    invested_eur: float
+    btc_total: float
+    value_eur: float
+    profit_eur: float
+    profit_pct: float
+    avg_price_eur: float
+    best_price_eur: float
+    worst_price_eur: float
+    market_twap_eur: float
+    #: Positive means that year's euros went in below the market's own average
+    #: over the same days.
+    advantage_pct: float
+    first_buy: Optional[str]
+    last_buy: Optional[str]
+    priced_days: int
+    complete: bool
+
+
+class YearsResponse(BaseModel):
+    as_of: str
+    current_price: float
+    include_dry_run: bool
+    #: Oldest first.
+    years: list[YearCohort]
 
 
 class CustodyResponse(BaseModel):

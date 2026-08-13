@@ -120,6 +120,14 @@ export default function HoldingPeriods({
                       ? formatDayMonthYear(data.next_free_date)
                       : "everything is past it",
                   },
+                  // The one question the counts above cannot answer: is most of
+                  // what I am holding past the mark yet? It is a share of the
+                  // stack's *value*, since that is what the rule is about.
+                  free != null &&
+                    free.lots > 0 && {
+                      label: "of the stack is free",
+                      value: `${Math.round(free.share_pct)}%`,
+                    },
                 ]}
               />
 

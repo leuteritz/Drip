@@ -51,15 +51,48 @@ def plus_one_year(day: date) -> date:
         return day.replace(year=day.year + 1, month=3, day=1)
 
 
-def _bucket(lots: list[dict]) -> dict:
+def twap(closes: list[float]) -> float:
+    """The market's own average over a stretch of days.
+
+    Public because `years.py` holds each year's buys against the same yardstick
+    this module holds the whole stack against, and there may only be one of it.
+    """
+    return sum(closes) / len(closes) if closes else 0.0
+
+
+def advantage_pct(avg_price: float, market_twap: float) -> float:
+    """How far below the market's own average the money actually went in.
+
+    Positive means the average euro bought cheaper than a buyer who simply
+    spread the same money evenly across every day - the only sense in which a
+    drip can be said to have bought *well*, as opposed to having been lucky
+    about which way the price went.
+    """
+    if not market_twap or not avg_price:
+        return 0.0
+    return (market_twap - avg_price) / market_twap * 100
+
+
+def _bucket(lots: list[dict], stack_value: float = 0.0) -> dict:
+    """One side of the one-year rule, and what is actually sitting in it.
+
+    `share_pct` is the bucket's share of the whole stack's value rather than of
+    its cost, because the question it answers is "is most of what I hold free
+    yet?" - which is about the holding, not about what it was bought for.
+    """
     cost = sum(lot["cost_eur"] for lot in lots)
     value = sum(lot["value_eur"] for lot in lots)
+    btc = sum(lot["btc"] for lot in lots)
     return {
         "lots": len(lots),
-        "btc": sum(lot["btc"] for lot in lots),
+        "btc": btc,
         "cost_eur": cost,
         "value_eur": value,
         "gain_eur": value - cost,
+        # A gain of €4,200 says nothing without what it grew from.
+        "gain_pct": ((value - cost) / cost * 100) if cost else 0.0,
+        "avg_price_eur": (cost / btc) if btc else 0.0,
+        "share_pct": (value / stack_value * 100) if stack_value else 0.0,
     }
 
 
@@ -78,7 +111,7 @@ def _cost_basis(session: Session, purchases: list[Purchase], price: float) -> di
     fees = sum(p.fee_eur for p in charged)
     charged_eur = sum(p.amount_eur for p in charged)
 
-    twap = 0.0
+    market_twap = 0.0
     first_day = purchases[0].timestamp.date() if purchases else None
     if first_day:
         needed = (date.today() - first_day).days + 2
@@ -87,17 +120,15 @@ def _cost_basis(session: Session, purchases: list[Purchase], price: float) -> di
             for c in ensure_candles(session, days=max(needed, 7))
             if c.day >= first_day and c.close > 0
         ]
-        twap = sum(closes) / len(closes) if closes else 0.0
+        market_twap = twap(closes)
 
     return {
         "purchase_count": len(purchases),
         "btc_total": btc,
         "invested_eur": invested,
         "avg_price_eur": avg_price,
-        "market_twap_eur": twap,
-        # Positive means the average euro went in below the market's average -
-        # the only sense in which a drip can be said to have bought well.
-        "advantage_pct": ((twap - avg_price) / twap * 100) if twap and avg_price else 0.0,
+        "market_twap_eur": market_twap,
+        "advantage_pct": advantage_pct(avg_price, market_twap),
         "fees_eur": fees,
         "fees_pct": (fees / charged_eur * 100) if charged_eur else 0.0,
         "fees_from": len(charged),
@@ -151,12 +182,16 @@ def summary(session: Session, include_dry_run: bool = True) -> dict:
         }
         (free_lots if free_at <= today else locked_lots).append(lot)
 
+    # Both buckets' shares are of the same whole, so it is measured once here
+    # rather than inside `_bucket`, which only ever sees one side of it.
+    stack_value = sum(lot["value_eur"] for lot in free_lots + locked_lots)
+
     # Locked lots grouped by the month they come free, oldest first.
     months: "OrderedDict[str, list[dict]]" = OrderedDict()
     for lot in sorted(locked_lots, key=lambda l: l["free_at"]):
         months.setdefault(lot["free_at"][:7], []).append(lot)
     timeline = [
-        {"month": month, **_bucket(lots)}
+        {"month": month, **_bucket(lots, stack_value)}
         for month, lots in list(months.items())[:TIMELINE_MONTHS]
     ]
 
@@ -166,8 +201,8 @@ def summary(session: Session, include_dry_run: bool = True) -> dict:
         "current_price": price,
         "include_dry_run": include_dry_run,
         "cost_basis": _cost_basis(session, counted, price),
-        "free": _bucket(free_lots),
-        "locked": _bucket(locked_lots),
+        "free": _bucket(free_lots, stack_value),
+        "locked": _bucket(locked_lots, stack_value),
         "next_free_date": next_free,
         "next_free_in_days": (
             max((date.fromisoformat(next_free) - today).days, 0) if next_free else 0

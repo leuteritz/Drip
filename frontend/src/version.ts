@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.43",
+    date: "2026-08-13",
+    changes: [
+      "A new card reads your history a year at a time — what each year cost, what it stacked, what it paid on average and what it is worth now. Every other figure on the page is all-time, so the early years had quietly stopped existing",
+      "A year still running says so, rather than being set beside a finished one as though the two were comparable",
+      "The one-year-rule card now says what share of the stack is already past the mark",
+    ],
+  },
+  {
     version: "2.42",
     date: "2026-08-13",
     changes: [

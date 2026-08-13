@@ -12,6 +12,7 @@ import HoldingPeriods from "../components/stack/HoldingPeriods";
 import OutlookCard from "../components/stack/Outlook";
 import PulseCard from "../components/stack/Pulse";
 import WaterlineCard from "../components/stack/Waterline";
+import YearsCard from "../components/stack/Years";
 import FirstRun from "../components/stack/FirstRun";
 import {
   Card,
@@ -41,9 +42,10 @@ const RANGES = [
  * that landed, and it is the only thing on the page that can tell you a week
  * never did. Then the cards that describe the stack itself rather than the
  * strategy behind it: how well it was bought (`CostBasisCard`), how old it is
- * (`HoldingPeriods`), what holding it has actually felt like (`WaterlineCard`)
- * and where it is being kept (`CustodyCard`). Whether the strategy is any good
- * is a different question, and lives in the Research section.
+ * (`HoldingPeriods`), what holding it has actually felt like (`WaterlineCard`),
+ * the same history read a year at a time (`YearsCard`) and where it is being
+ * kept (`CustodyCard`). Whether the strategy is any good is a different
+ * question, and lives in the Research section.
  *
  * `OutlookCard` closes the section because it is the only part that faces
  * forwards: the page reads what happened, then what you hold, then where that
@@ -109,6 +111,10 @@ export default function Overview({
   const custody = useResource(
     () => api.getCustody(),
     [purchases, settings?.custody_threshold_eur],
+  );
+  const years = useResource(
+    () => api.getYears(includeDryRun),
+    [includeDryRun, purchases],
   );
   // Candles only back the price-only fallback shown before there are enough
   // buys to chart the strategy.
@@ -272,6 +278,12 @@ export default function Overview({
           error={waterline.error}
           onRetry={waterline.retry}
         />
+
+        {/* The same history read a year at a time. It sits here rather than at
+            the end because it looks *back*, and `Outlook` closes the section on
+            the one card that faces forwards. Full width like the waterline: a
+            row per year is a wide object, and it joins no measured pair. */}
+        <YearsCard data={years.data} error={years.error} onRetry={years.retry} />
 
         {/* Where the result of all that is sitting, and where it is going if
             nothing changes — the one that looks back at custody beside the one

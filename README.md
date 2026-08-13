@@ -22,6 +22,9 @@ opt-in.
   would not land is flagged days before the week it would cost.
 - **It remembers what you sat through** - how far under water the stack went, and the
   buys you made down there. Those are the cheap ones.
+- **It reads the history a year at a time** - what each year cost, what it stacked and
+  what it is worth now. Everything else here is all-time, which is how a first year
+  disappears.
 - **It says where the stack is kept**, and how much has moved out of reach.
 - **It admits what it cannot answer**: a card that fails to load says so and offers to
   try again, and a fresh install is told what to do first rather than shown six empty
@@ -29,8 +32,7 @@ opt-in.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
   and the weeks the drip landed in - one the Pi slept through is bought when it wakes.
 - **Every buy opens** - what those euros are worth today, and the readings behind it.
-- **The drip is set where it is read** - click the amount, or the chip with the rhythm,
-  the day and the time. Everything else is in the top bar.
+- **The drip is set where it is read** - click the amount, or the schedule chip.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -
   `august`, `30d`, `price>60000` - answered with how much you put in and what it bought.
 

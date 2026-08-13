@@ -35,6 +35,7 @@ import type {
   SimulationResult,
   StrategyGrid,
   Waterline,
+  Years,
 } from "./types";
 
 export type * from "./types";
@@ -143,6 +144,8 @@ export const api = {
     request<Holdings>(`/api/stats/holdings?include_dry_run=${includeDryRun}`),
   getOutlook: (includeDryRun: boolean) =>
     request<Outlook>(`/api/stats/outlook?include_dry_run=${includeDryRun}`),
+  getYears: (includeDryRun: boolean) =>
+    request<Years>(`/api/stats/years?include_dry_run=${includeDryRun}`),
   // Takes the filter: it is cut from the same series the comparison chart
   // plots, and the two have to show the same days.
   getWaterline: (includeDryRun: boolean) =>
