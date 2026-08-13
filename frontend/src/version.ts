@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.46",
+    date: "2026-08-13",
+    changes: [
+      "The dashboard now opens by saying what Drip actually does before a buy: the three things it reads, what each one is worth, and the five rungs they add up to",
+      "Those rules were only ever in the README — the page showed you how the strategy did without ever saying what it is",
+      "It always buys, and the lowest rung still buys half the base amount. That is now written where you read it, not in a dialog",
+    ],
+  },
+  {
     version: "2.45",
     date: "2026-08-13",
     changes: [

@@ -7,9 +7,16 @@
 //
 // The points themselves always come from the backend (`strategy.indicator_points`,
 // which scores one indicator at a time against neutral inputs), so no threshold
-// is restated here. What *is* restated is the wording beside each reading —
-// "slightly oversold", "below it" — and that is why it lives in one file.
+// is written down here. What *is* restated is the wording beside each reading —
+// "slightly oversold", "below it" — and that is why it lives in one file; the
+// three figures that wording needs come from `lib/scoringRules.ts`, which is
+// where the frontend's copy of `strategy.py`'s thresholds lives.
+//
+// `fmtPoints` and `toneFor` are exported for `Method.tsx`: a `+3` means the same
+// thing in the explainer at the top of the page as it does in this table, and it
+// may only be styled once.
 import { fmtPct } from "../lib/format";
+import { RSI_OVERBOUGHT, RSI_SLIGHT, RSI_STRONG } from "../lib/scoringRules";
 import { ScoreDrops } from "./drops";
 
 export interface ScoreReadings {
@@ -40,11 +47,11 @@ const ROWS: {
     label: "RSI, 14 days",
     reading: (r) =>
       `${r.rsi.toFixed(1)} · ${
-        r.rsi < 30
+        r.rsi < RSI_STRONG
           ? "strongly oversold"
-          : r.rsi < 45
+          : r.rsi < RSI_SLIGHT
             ? "slightly oversold"
-            : r.rsi > 70
+            : r.rsi > RSI_OVERBOUGHT
               ? "overbought"
               : "neutral"
       }`,
@@ -58,9 +65,10 @@ const ROWS: {
 ];
 
 /** "+2" / "0" / "-2" — the sign is the whole message, so zero stays unsigned. */
-const fmtPoints = (points: number) => (points > 0 ? `+${points}` : String(points));
+export const fmtPoints = (points: number) =>
+  points > 0 ? `+${points}` : String(points);
 
-function toneFor(points: number): string {
+export function toneFor(points: number): string {
   if (points > 0) return "bg-water-soft text-teal";
   if (points < 0) return "bg-rose-soft text-rose";
   return "bg-sand-soft text-ink-soft";

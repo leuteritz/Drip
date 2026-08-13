@@ -5,6 +5,7 @@ import { api, type BotSettings, type ComparisonPoint, type Purchase } from "../a
 import { fmtEur, fmtPct } from "../lib/format";
 import { useResource } from "../lib/resource";
 import ComparisonChart from "../components/ComparisonChart";
+import Method from "../components/Method";
 import PriceChart from "../components/PriceChart";
 import CostBasisCard from "../components/stack/CostBasisCard";
 import CustodyCard from "../components/stack/Custody";
@@ -136,10 +137,14 @@ export default function Overview({
   // each saying a different version of "nothing yet". It replaces the *whole*
   // body, chart included — the chart is this section's `lead`, and the moment
   // there are two of those neither of them leads.
+  //
+  // `Method` stays, because a fresh install is exactly the reader it is for:
+  // it is not a card, so it is not a second `lead` beside `FirstRun` either.
   if (purchasesLoaded && purchases.length === 0) {
     return (
       <section id="overview" className="scroll-mt-20">
         <div className="pad-safe-x mx-auto flex w-full max-w-shell flex-col gap-3 px-3 py-5 sm:gap-4 sm:px-4 md:px-6 md:py-6">
+          <Method />
           <FirstRun running={running} onTestBuy={onTestBuy} />
         </div>
       </section>
@@ -149,6 +154,12 @@ export default function Overview({
   return (
     <section id="overview" className="scroll-mt-20">
       <div className="pad-safe-x mx-auto flex w-full max-w-shell flex-col gap-3 px-3 py-5 sm:gap-4 sm:px-4 md:px-6 md:py-6">
+        {/* What the page is about, before the answer to it: the comparison used
+            to open the section, which is the answer to a question the app never
+            asked out loud. `Method` is the question — and it is deliberately not
+            a card, so the chart below keeps being the one `lead`. */}
+        <Method />
+
         {/* The section's one `lead`: the comparison is the thesis of the whole
             app, and it used to sit in the same box as the five cards that
             answer smaller questions. On the page ground it reads as the page

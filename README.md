@@ -12,6 +12,9 @@ opt-in.
 
 *Example history, not a real account. Night theme; there is a day one too.*
 
+- **It opens by saying what it does** before a buy: the three things it reads, what each
+  one is worth, and the five rungs they add up to. Those rules used to be in this file
+  and nowhere else.
 - **Your stack is a tank of water** that fizzes at the strength of the week's signal,
   with four instruments floating on it. Scroll past it and the total follows you into
   the top bar.
@@ -24,12 +27,10 @@ opt-in.
 - **It remembers what you sat through** - how far under water the stack went, and the
   buys you made down there. Those are the cheap ones.
 - **It reads the history a year at a time** - what each year cost, what it stacked and
-  what it is worth now. Everything else here is all-time, which is how a first year
-  disappears.
+  what it is worth now. Everything else is all-time, which is how a first year disappears.
 - **It says where the stack is kept**, and how much has moved out of reach.
 - **It admits what it cannot answer**: a card that fails to load says so and offers to
-  try again, and a fresh install is told what to do first rather than shown six empty
-  cards.
+  try again.
 - **Underneath**: the strategy audited against itself - opening with how often it
   actually beat a flat weekly buy - what you paid against the market, and the weeks the
   drip landed in; one the Pi slept through is bought when it wakes.
@@ -77,8 +78,8 @@ forward the port to the internet.
 
 ## Strategy
 
-Three indicators are scored once a week, and the total picks the multiplier applied to
-your base amount.
+Three indicators are scored before every buy, and the total picks the multiplier applied
+to your base amount. The dashboard says all of it on the way in.
 
 - **Fear & Greed** - below 25: `+3` · below 45: `+2` · 55 or above: `-2`
 - **RSI (14, Wilder)** - below 30: `+3` · below 45: `+1` · above 70: `-2`
@@ -87,8 +88,6 @@ your base amount.
 | Score | 5 or more | 3 to 4 | 1 to 2 | -1 to 0 | below -1 |
 |---|---|---|---|---|---|
 | **Buy** | 1.5x | 1.25x | 1.0x | 0.75x | 0.5x |
-
-Tap the drops under the next buy to see the sum.
 
 ## Weekly report
 
