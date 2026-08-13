@@ -25,7 +25,7 @@ import {
 } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 /**
  * How far under water the stack went, and what the drip bought down there.
@@ -47,18 +47,36 @@ import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui
  * page can say so, because the history knows what each buy cost and nothing
  * about the weather it was made in.
  */
-export default function WaterlineCard({ data }: { data: Waterline | null }) {
+export default function WaterlineCard({
+  data,
+  error,
+  onRetry,
+}: {
+  data: Waterline | null;
+  error?: string | null;
+  onRetry?: () => void;
+}) {
   const stackAmount = useStackAmount();
 
   if (!data) {
     return (
       <Card className="flex flex-col">
         <CardHeader title="Under the waterline" />
+        {/* Same box either way, so the card keeps its height whichever answer
+            arrives and nothing below it moves. */}
         <div className="flex h-64 items-center justify-center">
-          <Loading
-            what="Working out how deep it went"
-            why="Holding what the stack was worth against what it cost, every day since the first buy."
-          />
+          {error ? (
+            <Failed
+              what="Could not work out how deep it went"
+              why={error}
+              onRetry={onRetry}
+            />
+          ) : (
+            <Loading
+              what="Working out how deep it went"
+              why="Holding what the stack was worth against what it cost, every day since the first buy."
+            />
+          )}
         </div>
       </Card>
     );

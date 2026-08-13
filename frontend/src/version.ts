@@ -17,6 +17,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.42",
+    date: "2026-08-13",
+    changes: [
+      "A card whose figures cannot be fetched now says so and offers to try again, instead of spinning for ever with only a page reload to fix it",
+      "One dead endpoint no longer takes the whole overview down with it — every card answers for itself",
+      "A brand new install is met by one card telling it what to do first, rather than six cards each saying there is nothing to show",
+      "Deleting a buy asks with the buy in front of you — its date and amount — in Drip's own dialog rather than the browser's grey box",
+      "The buy history no longer flashes \"no buys yet\" for a moment while it is still loading",
+    ],
+  },
+  {
     version: "2.41",
     date: "2026-08-12",
     changes: [

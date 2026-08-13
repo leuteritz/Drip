@@ -3,7 +3,7 @@ import VaultIcon from "~icons/ph/vault";
 import type { BotSettings, Custody } from "../../api/client";
 import { fmtEur, formatDayMonthYear } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 /**
  * Where the stack is kept, which is the one thing the rest of this page cannot
@@ -27,10 +27,14 @@ import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui
  */
 export default function CustodyCard({
   data,
+  error,
+  onRetry,
   settings,
   onSaveSettings,
 }: {
   data: Custody | null;
+  error?: string | null;
+  onRetry?: () => void;
   settings: BotSettings | null;
   onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
 }) {
@@ -40,10 +44,18 @@ export default function CustodyCard({
     return (
       <Card tone="strip" className="flex flex-col">
         <CardHeader title="Where your bitcoin is kept" />
-        <Loading
-          what="Asking Coinbase what it is still holding"
-          why="Reading the account balance and holding it against every buy Drip has made."
-        />
+        {error ? (
+          <Failed
+            what="Could not ask Coinbase what it is holding"
+            why={error}
+            onRetry={onRetry}
+          />
+        ) : (
+          <Loading
+            what="Asking Coinbase what it is still holding"
+            why="Reading the account balance and holding it against every buy Drip has made."
+          />
+        )}
       </Card>
     );
   }

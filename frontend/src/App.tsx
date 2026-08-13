@@ -37,6 +37,13 @@ export default function App() {
   const [digest, setDigest] = useState<DigestSettings | null>(null);
   const [indicators, setIndicators] = useState<Indicators | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  // Whether the first history fetch has come back at all. `inFlight` cannot
+  // answer this: it is empty on the very first paint too, because the effect
+  // that starts the request has not run yet — so an empty array read as "no
+  // buys yet" and both the history and the overview flashed their empty state
+  // before anything had been asked. An empty state may never be shown while the
+  // answer is still out.
+  const [purchasesLoaded, setPurchasesLoaded] = useState(false);
   const [performance, setPerformance] = useState<Performance | null>(null);
   const [includeDryRun, setIncludeDryRun] = useState(true);
   // The history's search, owned here because the command palette can set it:
@@ -72,7 +79,12 @@ export default function App() {
   }, []);
 
   const reloadPurchases = useCallback(() => {
-    track("purchases", api.getPurchases()).then(setPurchases).catch(report);
+    track("purchases", api.getPurchases())
+      .then((rows) => {
+        setPurchases(rows);
+        setPurchasesLoaded(true);
+      })
+      .catch(report);
   }, [report, track]);
   const reloadStatus = useCallback(() => {
     track("status", api.getStatus()).then(setStatus).catch(report);
@@ -239,7 +251,10 @@ export default function App() {
       ]);
       if (st) setStatus(st);
       if (set) setSettings(set);
-      if (purch) setPurchases(purch);
+      if (purch) {
+        setPurchases(purch);
+        setPurchasesLoaded(true);
+      }
       if (dig) setDigest(dig);
       loadPerformance(true);
       reloadBalance();
@@ -308,8 +323,11 @@ export default function App() {
           <main className="flex flex-col">
             <Overview
               purchases={purchases}
+              purchasesLoaded={purchasesLoaded}
               settings={settings}
               includeDryRun={includeDryRun}
+              running={running}
+              onTestBuy={testBuy}
               onToggleDryRun={onToggleDryRun}
               onSaveSettings={saveSettings}
             />
@@ -318,7 +336,7 @@ export default function App() {
               purchases={purchases}
               query={historyQuery}
               onQuery={setHistoryQuery}
-              loading={inFlight.includes("purchases")}
+              loading={!purchasesLoaded}
               onChanged={reloadPurchases}
             />
           </main>

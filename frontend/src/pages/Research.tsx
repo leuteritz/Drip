@@ -20,7 +20,7 @@ import ScoreHistory from "../components/research/ScoreHistory";
 import ScoringVariants from "../components/research/ScoringVariants";
 import SignalScreen from "../components/research/SignalScreen";
 import WeekdayGrid from "../components/research/WeekdayGrid";
-import { Card, Loading, SectionHeading } from "../components/ui";
+import { Card, Failed, Loading, SectionHeading } from "../components/ui";
 
 /**
  * The Research body: read-only analyses that audit the strategy instead of
@@ -61,6 +61,8 @@ export default function Research({
   const [candidates, setCandidates] = useState<CandidateSignals | null>(null);
   const [variants, setVariants] = useState<ScoringVariantsData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Bumped by the one retry, and a dependency of all seven effects.
+  const [attempt, setAttempt] = useState(0);
 
   const fail = (e: unknown) =>
     setError(e instanceof Error ? e.message : String(e));
@@ -75,38 +77,38 @@ export default function Research({
   useEffect(() => {
     if (!wanted) return;
     api.getAttribution(attributionDays).then(setAttribution).catch(fail);
-  }, [wanted, attributionDays]);
+  }, [wanted, attributionDays, attempt]);
 
   useEffect(() => {
     if (!wanted) return;
     api.getForwardReturns(forwardDays).then(setForward).catch(fail);
-  }, [wanted, forwardDays]);
+  }, [wanted, forwardDays, attempt]);
 
   useEffect(() => {
     if (!wanted) return;
     api.getRollingWindows(windowDays).then(setRolling).catch(fail);
-  }, [wanted, windowDays]);
+  }, [wanted, windowDays, attempt]);
 
   useEffect(() => {
     if (!wanted) return;
     api.getStrategyGrid(gridDays).then(setGrid).catch(fail);
-  }, [wanted, gridDays]);
+  }, [wanted, gridDays, attempt]);
 
   useEffect(() => {
     if (!wanted) return;
     api.getScoreHistory(scoreDays).then(setScores).catch(fail);
     api.getChartEvents(scoreDays).then(setEvents).catch(fail);
-  }, [wanted, scoreDays]);
+  }, [wanted, scoreDays, attempt]);
 
   useEffect(() => {
     if (!wanted) return;
     api.getCandidateSignals(candidateDays).then(setCandidates).catch(fail);
-  }, [wanted, candidateDays]);
+  }, [wanted, candidateDays, attempt]);
 
   useEffect(() => {
     if (!wanted) return;
     api.getScoringVariants(variantDays).then(setVariants).catch(fail);
-  }, [wanted, variantDays]);
+  }, [wanted, variantDays, attempt]);
 
   return (
     <section
@@ -143,11 +145,20 @@ export default function Research({
 
       {error && (
         <Card tone="alert">
-          <div className="font-bold text-rose">{error}</div>
-          <div className="mt-2 text-sm text-ink-soft">
-            The research endpoints may need to fetch three years of candles on their
-            first run.
-          </div>
+          <Failed
+            what="Could not build the strategy tests"
+            why={error}
+            /* One retry for the section rather than one per card: all seven are
+               cut from the same scoring table, so they fail and recover
+               together. `attempt` is in every effect's deps. */
+            onRetry={() => {
+              setError(null);
+              setAttempt((n) => n + 1);
+            }}
+          />
+          <p className="mt-2 text-center text-sm text-ink-soft">
+            These may need to fetch three years of prices on their first run.
+          </p>
         </Card>
       )}
 

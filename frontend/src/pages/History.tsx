@@ -14,7 +14,8 @@ import { ScoreDrops } from "../components/drops";
 import BuyReceipt from "../components/history/BuyReceipt";
 import PurchaseSearch from "../components/history/PurchaseSearch";
 import ImportModal from "../components/ImportModal";
-import { Badge, Card, Loading, SectionHeading } from "../components/ui";
+import ConfirmDialog from "../components/ConfirmDialog";
+import { Badge, Card, Failed, Loading, SectionHeading } from "../components/ui";
 
 type SortKey = "timestamp" | "price_eur" | "amount_eur" | "score";
 
@@ -55,34 +56,24 @@ export default function HistorySection({
   // Which row is open as a receipt. Both shapes of the table set it, and the
   // dialog fetches its own figures — nothing on the table itself needs them.
   const [receiptOf, setReceiptOf] = useState<Purchase | null>(null);
+  // Which deletion is waiting to be confirmed. A row, or every test run.
+  const [confirming, setConfirming] = useState<Purchase | "test-runs" | null>(null);
 
-  const deleteOne = async (p: Purchase) => {
-    if (!window.confirm("Delete this entry from the history?")) return;
+  const runDelete = async (task: () => Promise<unknown>) => {
     setBusy(true);
     try {
-      await api.deletePurchase(p.id);
+      await task();
       onChanged();
+      setConfirming(null);
     } catch (e) {
       setError(String(e));
+      setConfirming(null);
     } finally {
       setBusy(false);
     }
   };
 
-  const clearTestRuns = async () => {
-    if (!window.confirm("Delete all dry-run (test) entries from the history?")) return;
-    setBusy(true);
-    try {
-      await api.clearTestRuns();
-      onChanged();
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const hasTestRuns = useMemo(() => purchases.some((p) => p.dry_run), [purchases]);
+  const testRuns = useMemo(() => purchases.filter((p) => p.dry_run).length, [purchases]);
 
   // The search narrows the table, and with it the totals below the heading —
   // "12 of 48 buys" is the point of filtering, so the sums have to follow.
@@ -164,9 +155,9 @@ export default function HistorySection({
             >
               <DownloadSimpleIcon /> Export CSV
             </a>
-            {hasTestRuns && (
+            {testRuns > 0 && (
               <button
-                onClick={clearTestRuns}
+                onClick={() => setConfirming("test-runs")}
                 disabled={busy}
                 className={`${HEAD_ACTION} bg-sand-soft text-rose hover:bg-rose-soft disabled:opacity-40`}
               >
@@ -183,7 +174,17 @@ export default function HistorySection({
       />
 
       {error ? (
-        <Card tone="alert" className="font-bold text-rose">{error}</Card>
+        <Card tone="alert">
+          <Failed
+            compact
+            what="Could not change the history"
+            why={error}
+            onRetry={() => {
+              setError(null);
+              onChanged();
+            }}
+          />
+        </Card>
       ) : (
         <Card className="flex flex-col overflow-hidden p-0">
           {purchases.length > 0 && (
@@ -229,7 +230,7 @@ export default function HistorySection({
                     busy={busy}
                     amount={stackAmount(p.btc_amount)}
                     onOpen={() => setReceiptOf(p)}
-                    onDelete={() => deleteOne(p)}
+                    onDelete={() => setConfirming(p)}
                   />
                 ))}
               </ul>
@@ -331,7 +332,7 @@ export default function HistorySection({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteOne(p);
+                            setConfirming(p);
                           }}
                           disabled={busy}
                           aria-label="Delete entry"
@@ -403,6 +404,36 @@ export default function HistorySection({
         />
       )}
 
+      {/* Both deletions ask with the thing itself in the question — the buy's
+          own date and amount, or how many test runs are about to go. A
+          confirmation that names nothing is one people learn to click past. */}
+      {confirming === "test-runs" ? (
+        <ConfirmDialog
+          title="Delete every test run?"
+          confirmLabel={`Delete ${testRuns}`}
+          busy={busy}
+          onCancel={() => setConfirming(null)}
+          onConfirm={() => runDelete(() => api.clearTestRuns())}
+        >
+          <b>
+            {testRuns} test {testRuns === 1 ? "run" : "runs"}
+          </b>{" "}
+          will be removed. Real buys are never touched.
+        </ConfirmDialog>
+      ) : confirming ? (
+        <ConfirmDialog
+          title="Delete this buy?"
+          confirmLabel="Delete"
+          busy={busy}
+          onCancel={() => setConfirming(null)}
+          onConfirm={() => runDelete(() => api.deletePurchase(confirming.id))}
+        >
+          <b>{formatTimestamp(confirming.timestamp)}</b> &middot;{" "}
+          {fmtEur(confirming.amount_eur)}
+          {confirming.dry_run ? " (test run)" : ""} &mdash; removed from the history
+          for good.
+        </ConfirmDialog>
+      ) : null}
     </section>
   );
 }

@@ -18,13 +18,14 @@ opt-in.
 - **The shaded band is the answer**: the distance between what your drip made and what
   buying a flat amount would have. Green while the multiplier is ahead, rose while it
   is not.
-- **It checks itself before Monday** - the key, the money, the price feed, the schedule.
-  A buy that would not land is said in the top bar, days before the week it would cost.
+- **It checks itself before Monday** - key, money, price feed, schedule. A buy that
+  would not land is flagged days before the week it would cost.
 - **It remembers what you sat through** - how far under water the stack went, and the
   buys you made down there. Those are the cheap ones.
 - **It says where the stack is kept**, and how much has moved out of reach.
-- **Every card leads with one figure** and says the rest on a line under it, so the
-  page is scanned rather than read.
+- **It admits what it cannot answer**: a card that fails to load says so and offers to
+  try again, and a fresh install is told what to do first rather than shown six empty
+  cards.
 - **Underneath**: the strategy audited against itself, what you paid against the market,
   and the weeks the drip landed in - one the Pi slept through is bought when it wakes.
 - **Every buy opens** - what those euros are worth today, and the readings behind it.

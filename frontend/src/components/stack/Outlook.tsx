@@ -3,7 +3,7 @@ import type { Outlook } from "../../api/client";
 import { countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 const RING_RADIUS = 54;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
@@ -28,17 +28,33 @@ function awayLabel(weeks: number): string {
  * price, which is the one number nobody has; the footnote says so rather than
  * dressing an assumption up as a projection.
  */
-export default function OutlookCard({ data }: { data: Outlook | null }) {
+export default function OutlookCard({
+  data,
+  error,
+  onRetry,
+}: {
+  data: Outlook | null;
+  error?: string | null;
+  onRetry?: () => void;
+}) {
   const stackAmount = useStackAmount();
 
   if (!data) {
     return (
       <Card className="flex flex-col">
         <CardHeader title="If the drip keeps running" />
-        <Loading
-          what="Working out where the drip is headed"
-          why="Averaging what it has actually stacked over the last couple of months, then carrying that forward."
-        />
+        {error ? (
+          <Failed
+            what="Could not work out where the drip is headed"
+            why={error}
+            onRetry={onRetry}
+          />
+        ) : (
+          <Loading
+            what="Working out where the drip is headed"
+            why="Averaging what it has actually stacked over the last couple of months, then carrying that forward."
+          />
+        )}
       </Card>
     );
   }

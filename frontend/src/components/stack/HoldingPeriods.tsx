@@ -2,7 +2,7 @@ import WarningIcon from "~icons/ph/warning";
 import type { Holdings, RipeningMonth } from "../../api/client";
 import { fmtEur, fmtEurSigned, formatDayMonthYear } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 /**
  * How old each lot is, against the German one-year rule (§23 EStG): bitcoin
@@ -17,7 +17,15 @@ import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui
  * amounts on future months are at today's price, which is a placeholder for a
  * number nobody has yet.
  */
-export default function HoldingPeriods({ data }: { data: Holdings | null }) {
+export default function HoldingPeriods({
+  data,
+  error,
+  onRetry,
+}: {
+  data: Holdings | null;
+  error?: string | null;
+  onRetry?: () => void;
+}) {
   const stackAmount = useStackAmount();
   const free = data?.free;
   const locked = data?.locked;
@@ -56,7 +64,16 @@ export default function HoldingPeriods({ data }: { data: Holdings | null }) {
 
       {!data ? (
         <div className="flex h-40 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact what="Ageing every buy you have made" />
+          {error ? (
+            <Failed
+              compact
+              what="Could not age your buys"
+              why={error}
+              onRetry={onRetry}
+            />
+          ) : (
+            <Loading compact what="Ageing every buy you have made" />
+          )}
         </div>
       ) : (
         <>

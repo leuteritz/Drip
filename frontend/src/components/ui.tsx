@@ -6,8 +6,10 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
+import ArrowClockwiseIcon from "~icons/ph/arrow-clockwise";
 import ArrowSquareOutIcon from "~icons/ph/arrow-square-out";
 import InfoIcon from "~icons/ph/info";
+import WarningIcon from "~icons/ph/warning-fill";
 
 /**
  * How much of the page a card is asking for. Four weights, because six cards
@@ -514,6 +516,26 @@ const WAIT_TEXT: Record<Ground, { what: string; why: string; hint: string }> = {
 };
 
 /**
+ * The same two grounds for a wait that ended badly.
+ *
+ * `rose-pale` rather than `rose` on the water, and never a `-soft` tint: the tank
+ * is dark in both themes, so the background reds are near-black up there and only
+ * the pale one is legible as type.
+ */
+const FAIL_TEXT: Record<Ground, { what: string; why: string; action: string }> = {
+  paper: {
+    what: "text-rose",
+    why: "text-ink-soft",
+    action: "bg-sand-soft text-teal hover:bg-water-soft",
+  },
+  water: {
+    what: "text-rose-pale",
+    why: "text-cream/70",
+    action: "bg-cream/15 text-cream hover:bg-cream/25",
+  },
+};
+
+/**
  * The wait's own clock: a ring with the seconds in the middle of it.
  *
  * The arc creeps around as the wait goes on and the ring turns slowly under it,
@@ -681,6 +703,116 @@ export function Loading({
             {hint}
           </p>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The mark a failed wait leaves behind: `ClockRing`'s box, with a warning in it
+ * instead of a count.
+ *
+ * It keeps the ring's exact footprint (`h-11`/`h-7`) so swapping a `Loading` for
+ * a `Failed` costs the card no height and nothing below it moves. It does not
+ * spin and carries no seconds — a failure is not a wait, and a clock still
+ * ticking on it would say the app is still trying.
+ */
+function FailRing({ on, size = "md" }: { on: Ground; size?: "sm" | "md" }) {
+  const water = on === "water";
+  return (
+    <div
+      role="img"
+      aria-label="Failed"
+      className={`flex flex-none items-center justify-center rounded-full border-[3px] ${
+        water ? "border-rose-pale/35 text-rose-pale" : "border-rose/30 text-rose"
+      } ${size === "sm" ? "h-7 w-7" : "h-11 w-11"}`}
+    >
+      <WarningIcon
+        className={size === "sm" ? "text-[0.7rem]" : "text-base"}
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
+
+/**
+ * A wait that ended badly — the mirror of `Loading`, and the other half of the
+ * only two answers a card can give before its data arrives.
+ *
+ * Every wait in this app explains itself; a failure that did not would be the
+ * one place the page stopped talking, and it is the moment a reader most needs
+ * a sentence. So it takes the same `what` — named in the same voice, in the past
+ * tense — plus the backend's own sentence as `why`, and a way out.
+ *
+ * `onRetry` is what makes it more than a nicer error message: a card whose fetch
+ * fell over used to be reachable only by reloading the whole page, which throws
+ * away every other card that loaded fine. Give it one wherever the load can
+ * simply be asked again.
+ *
+ * Deliberately no `slow` and no elapsed clock: both belong to something that is
+ * still happening.
+ */
+export function Failed({
+  what,
+  why,
+  onRetry,
+  retryLabel = "Try again",
+  compact = false,
+  on = "paper",
+}: {
+  what: string;
+  /** The backend's own words, where there are any. */
+  why?: string;
+  onRetry?: () => void;
+  retryLabel?: string;
+  compact?: boolean;
+  on?: Ground;
+}) {
+  const text = FAIL_TEXT[on];
+  // `py-2.5` down to `sm:py-2` is the app's existing button size, and it clears
+  // the 2.75rem a fingertip needs on a phone.
+  const retry = onRetry ? (
+    <button
+      onClick={onRetry}
+      className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold transition sm:py-2 ${text.action}`}
+    >
+      <ArrowClockwiseIcon aria-hidden="true" /> {retryLabel}
+    </button>
+  ) : null;
+
+  if (compact) {
+    return (
+      /* `items-start`, unlike `Loading`'s compact row: the retry button makes
+         this block tall enough that centring hangs the ring beside the middle
+         of the text rather than beside the sentence it belongs to. */
+      <div className="flex items-start gap-3 py-1">
+        <FailRing on={on} size="sm" />
+        <div className="min-w-0">
+          <p className={`text-sm font-bold ${text.what}`}>{what}</p>
+          {why && (
+            <p className={`mt-1 break-words text-xs leading-relaxed ${text.why}`}>
+              {why}
+            </p>
+          )}
+          {retry && <div className="mt-2">{retry}</div>}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 py-12 text-center">
+      <FailRing on={on} />
+      <div>
+        <p className={`text-base font-bold ${text.what}`}>{what}</p>
+        {why && (
+          <p
+            className={`mx-auto mt-1.5 max-w-md break-words text-sm leading-relaxed ${text.why}`}
+          >
+            {why}
+          </p>
+        )}
+        {retry && <div className="mt-4">{retry}</div>}
       </div>
     </div>
   );

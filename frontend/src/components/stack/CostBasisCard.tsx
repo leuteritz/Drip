@@ -23,7 +23,7 @@ import {
 import { fmtEur, fmtPct, fmtSats, formatDayMonth } from "../../lib/format";
 import { buildSatsSeries, type SatsPoint } from "../../lib/stack";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
 
 /**
  * How well the drip actually bought, which is not the same question as whether
@@ -41,10 +41,14 @@ import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow } from "../ui
  */
 export default function CostBasisCard({
   holdings,
+  error,
+  onRetry,
   purchases,
   includeDryRun,
 }: {
   holdings: Holdings | null;
+  error?: string | null;
+  onRetry?: () => void;
   purchases: Purchase[];
   includeDryRun: boolean;
 }) {
@@ -96,11 +100,20 @@ export default function CostBasisCard({
           actually in — while it is out this is a wait, not an empty stack. */}
       {!holdings ? (
         <div className="flex h-40 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading
-            compact
-            what="Working out what you paid"
-            why="Every buy against the market's own average over the same days."
-          />
+          {error ? (
+            <Failed
+              compact
+              what="Could not work out what you paid"
+              why={error}
+              onRetry={onRetry}
+            />
+          ) : (
+            <Loading
+              compact
+              what="Working out what you paid"
+              why="Every buy against the market's own average over the same days."
+            />
+          )}
         </div>
       ) : !basis || basis.purchase_count === 0 ? (
         <p className="py-8 text-center text-sm text-ink-soft">

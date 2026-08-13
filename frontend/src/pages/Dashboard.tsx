@@ -1,19 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
-import {
-  api,
-  type BotSettings,
-  type Candle,
-  type ComparisonPoint,
-  type Custody,
-  type Holdings,
-  type Outlook,
-  type Pulse,
-  type Purchase,
-  type Waterline,
-} from "../api/client";
+import { api, type BotSettings, type ComparisonPoint, type Purchase } from "../api/client";
 import { fmtEur, fmtPct } from "../lib/format";
+import { useResource } from "../lib/resource";
 import ComparisonChart from "../components/ComparisonChart";
 import PriceChart from "../components/PriceChart";
 import CostBasisCard from "../components/stack/CostBasisCard";
@@ -22,9 +12,11 @@ import HoldingPeriods from "../components/stack/HoldingPeriods";
 import OutlookCard from "../components/stack/Outlook";
 import PulseCard from "../components/stack/Pulse";
 import WaterlineCard from "../components/stack/Waterline";
+import FirstRun from "../components/stack/FirstRun";
 import {
   Card,
   CardHeader,
+  Failed,
   Loading,
   Note,
   RangePills,
@@ -65,75 +57,64 @@ const RANGES = [
  */
 export default function Overview({
   purchases,
+  purchasesLoaded,
   settings,
   includeDryRun,
+  running,
+  onTestBuy,
   onToggleDryRun,
   onSaveSettings,
 }: {
   purchases: Purchase[];
+  /** The first fetch is still out — an empty history is not yet "no buys". */
+  purchasesLoaded: boolean;
   settings: BotSettings | null;
   includeDryRun: boolean;
+  running: boolean;
+  onTestBuy: () => void;
   onToggleDryRun: (v: boolean) => void;
   onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
 }) {
-  const [candles, setCandles] = useState<Candle[]>([]);
-  const [candlesLoaded, setCandlesLoaded] = useState(false);
-  const [comparison, setComparison] = useState<ComparisonPoint[]>([]);
-  const [compLoaded, setCompLoaded] = useState(false);
-  const [custody, setCustody] = useState<Custody | null>(null);
-  const [holdings, setHoldings] = useState<Holdings | null>(null);
-  const [outlook, setOutlook] = useState<Outlook | null>(null);
-  const [pulse, setPulse] = useState<Pulse | null>(null);
-  const [waterline, setWaterline] = useState<Waterline | null>(null);
   const [rangeDays, setRangeDays] = useState(90);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadComparison = useCallback((dry: boolean) => {
-    api
-      .getComparison(dry)
-      .then((c) => {
-        setComparison(c);
-        setCompLoaded(true);
-      })
-      .catch((e) => setError(String(e)));
-  }, []);
-
-  // Candles only back the price-only fallback shown before there are enough
-  // buys to chart the strategy.
-  useEffect(() => {
-    setCandlesLoaded(false);
-    api
-      .getCandles(rangeDays)
-      .then((c) => {
-        setCandles(c);
-        setCandlesLoaded(true);
-      })
-      .catch((e) => setError(String(e)));
-  }, [rangeDays]);
-
+  // Seven independent loads, each answered where it is read. They used to share
+  // one `error` string and one alert card at the top of the section, which meant
+  // a single dead endpoint left its card spinning for ever while taking the
+  // section's heading down with it.
+  //
   // Refreshed whenever the buy history changes (e.g. after a header test buy).
-  useEffect(() => {
-    loadComparison(includeDryRun);
-    api.getHoldings(includeDryRun).then(setHoldings).catch((e) => setError(String(e)));
-    api.getOutlook(includeDryRun).then(setOutlook).catch((e) => setError(String(e)));
-    // Cut from the same series the chart above plots, so it follows the same
-    // filter — a card showing days the chart does not would be worse than none.
-    api.getWaterline(includeDryRun).then(setWaterline).catch((e) => setError(String(e)));
-  }, [includeDryRun, purchases, loadComparison]);
-
-  // Neither the record of which weeks got a buy nor where the stack is kept
+  const comparison = useResource(
+    () => api.getComparison(includeDryRun),
+    [includeDryRun, purchases],
+  );
+  const holdings = useResource(
+    () => api.getHoldings(includeDryRun),
+    [includeDryRun, purchases],
+  );
+  const outlook = useResource(
+    () => api.getOutlook(includeDryRun),
+    [includeDryRun, purchases],
+  );
+  // Cut from the same series the chart above plots, so it follows the same
+  // filter — a card showing days the chart does not would be worse than none.
+  const waterline = useResource(
+    () => api.getWaterline(includeDryRun),
+    [includeDryRun, purchases],
+  );
+  // Neither the record of which periods got a buy nor where the stack is kept
   // takes a dry-run filter — one counts every run the bot made, the other only
   // ever counts real bitcoin — so both refresh on the history alone. Custody
   // also follows the threshold, since that is what decides whether it nudges.
-  useEffect(() => {
-    api.getPulse().then(setPulse).catch((e) => setError(String(e)));
-  }, [purchases]);
+  const pulse = useResource(() => api.getPulse(), [purchases]);
+  const custody = useResource(
+    () => api.getCustody(),
+    [purchases, settings?.custody_threshold_eur],
+  );
+  // Candles only back the price-only fallback shown before there are enough
+  // buys to chart the strategy.
+  const candles = useResource(() => api.getCandles(rangeDays), [rangeDays]);
 
-  useEffect(() => {
-    api.getCustody().then(setCustody).catch((e) => setError(String(e)));
-  }, [purchases, settings?.custody_threshold_eur]);
-
-  const strategySeries = comparison.slice(-rangeDays);
+  const strategySeries = (comparison.data ?? []).slice(-rangeDays);
   const latest = strategySeries.length
     ? strategySeries[strategySeries.length - 1]
     : null;
@@ -145,18 +126,23 @@ export default function Overview({
     [includeDryRun, purchases],
   );
 
+  // Nothing bought yet: one card that says what to do, instead of six cards
+  // each saying a different version of "nothing yet". It replaces the *whole*
+  // body, chart included — the chart is this section's `lead`, and the moment
+  // there are two of those neither of them leads.
+  if (purchasesLoaded && purchases.length === 0) {
+    return (
+      <section id="overview" className="scroll-mt-20">
+        <div className="pad-safe-x mx-auto flex w-full max-w-shell flex-col gap-3 px-3 py-5 sm:gap-4 sm:px-4 md:px-6 md:py-6">
+          <FirstRun running={running} onTestBuy={onTestBuy} />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="overview" className="scroll-mt-20">
       <div className="pad-safe-x mx-auto flex w-full max-w-shell flex-col gap-3 px-3 py-5 sm:gap-4 sm:px-4 md:px-6 md:py-6">
-        {error && (
-          <Card tone="alert">
-            <div className="font-bold text-rose">{error}</div>
-            <div className="mt-2 text-sm text-ink-soft">
-              Is the backend running? <code className="text-ink">uvicorn app.main:app</code>
-            </div>
-          </Card>
-        )}
-
         {/* The section's one `lead`: the comparison is the thesis of the whole
             app, and it used to sit in the same box as the five cards that
             answer smaller questions. On the page ground it reads as the page
@@ -194,7 +180,14 @@ export default function Overview({
           </CardHeader>
           {hasStrategy && latest && <StrategyKpis latest={latest} />}
           <div className="h-[22rem] sm:h-[26rem] md:h-[32rem]">
-            {!compLoaded || (!hasStrategy && !candlesLoaded) ? (
+            {comparison.error ? (
+              <Failed
+                what="Could not chart your strategy against plain DCA"
+                why={comparison.error}
+                onRetry={comparison.retry}
+              />
+            ) : !comparison.data ||
+              (!hasStrategy && !candles.data && !candles.error) ? (
               <Loading
                 what="Charting your strategy against plain DCA"
                 why="Replaying every buy at the price of its day, and the same weeks bought at a flat amount."
@@ -202,8 +195,16 @@ export default function Overview({
               />
             ) : hasStrategy ? (
               <ComparisonChart data={strategySeries} purchases={markerPurchases} />
-            ) : candles.length ? (
-              <PriceChart candles={candles} purchases={purchases} height="100%" />
+            ) : candles.data?.length ? (
+              <PriceChart candles={candles.data} purchases={purchases} height="100%" />
+            ) : candles.error ? (
+              /* The comparison answered and had too little to draw, so the price
+                 was the fallback — and that failed too. Say which one broke. */
+              <Failed
+                what="Could not fetch the price history"
+                why={candles.error}
+                onRetry={candles.retry}
+              />
             ) : (
               <p className="flex h-full items-center justify-center px-6 text-center text-sm text-ink-soft">
                 Not enough buys yet to chart your strategy. Run a test buy or import your
@@ -216,18 +217,20 @@ export default function Overview({
               caption restating a graphic is the caption to delete. The
               fallback keeps one, because a price chart standing in for the
               comparison does need saying. */}
-          {!hasStrategy && compLoaded && (
+          {!hasStrategy && comparison.data && candles.data?.length ? (
             <Note>
               Showing the BTC price for now &mdash; the comparison starts once there
               are a couple of buys.
             </Note>
-          )}
+          ) : null}
         </Card>
 
         {/* Whether the bot showed up at all — the one card about the machine
             rather than about the money, and the reason it sits this high. */}
         <PulseCard
-          data={pulse}
+          data={pulse.data}
+          error={pulse.error}
+          onRetry={pulse.retry}
           settings={settings}
           onSaveSettings={onSaveSettings}
         />
@@ -245,20 +248,30 @@ export default function Overview({
         <div className="grid gap-3 sm:gap-4 xl:grid-cols-12">
           <div className="*:h-full xl:col-span-7">
             <CostBasisCard
-              holdings={holdings}
+              holdings={holdings.data}
+              error={holdings.error}
+              onRetry={holdings.retry}
               purchases={purchases}
               includeDryRun={includeDryRun}
             />
           </div>
           <div className="*:h-full xl:col-span-5">
-            <HoldingPeriods data={holdings} />
+            <HoldingPeriods
+              data={holdings.data}
+              error={holdings.error}
+              onRetry={holdings.retry}
+            />
           </div>
         </div>
 
         {/* What holding it has actually felt like. Every card above is an
             average over the buys that landed, and an average is exactly what
             hides the stretches that make people stop. */}
-        <WaterlineCard data={waterline} />
+        <WaterlineCard
+          data={waterline.data}
+          error={waterline.error}
+          onRetry={waterline.retry}
+        />
 
         {/* Where the result of all that is sitting, and where it is going if
             nothing changes — the one that looks back at custody beside the one
@@ -266,13 +279,19 @@ export default function Overview({
         <div className="grid gap-3 sm:gap-4 xl:grid-cols-12">
           <div className="*:h-full xl:col-span-6">
             <CustodyCard
-              data={custody}
+              data={custody.data}
+              error={custody.error}
+              onRetry={custody.retry}
               settings={settings}
               onSaveSettings={onSaveSettings}
             />
           </div>
           <div className="*:h-full xl:col-span-6">
-            <OutlookCard data={outlook} />
+            <OutlookCard
+              data={outlook.data}
+              error={outlook.error}
+              onRetry={outlook.retry}
+            />
           </div>
         </div>
       </div>

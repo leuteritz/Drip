@@ -3,7 +3,17 @@ import type { BotSettings, Pulse, PulsePeriod } from "../../api/client";
 import { cadenceOf, countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
-import { Card, CardHeader, Loading, Note, Stat, StatFacts, StatRow, Toggle } from "../ui";
+import {
+  Card,
+  CardHeader,
+  Failed,
+  Loading,
+  Note,
+  Stat,
+  StatFacts,
+  StatRow,
+  Toggle,
+} from "../ui";
 
 /** How many gaps are named in words before the rest are counted in one line. */
 const GAPS_LISTED = 5;
@@ -55,10 +65,14 @@ const MARK: Record<PulsePeriod["state"], string> = {
  */
 export default function PulseCard({
   data,
+  error,
+  onRetry,
   settings,
   onSaveSettings,
 }: {
   data: Pulse | null;
+  error?: string | null;
+  onRetry?: () => void;
   settings: BotSettings | null;
   onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
 }) {
@@ -69,11 +83,20 @@ export default function PulseCard({
       <Card tone="strip" className="flex flex-col">
         <CardHeader title="When the drip landed" />
         <div className="flex h-40 items-center justify-center">
-          <Loading
-            compact
-            what="Checking every period since your first buy"
-            why="Looking for the slots a buy should have landed in and did not."
-          />
+          {error ? (
+            <Failed
+              compact
+              what="Could not check whether the drip landed"
+              why={error}
+              onRetry={onRetry}
+            />
+          ) : (
+            <Loading
+              compact
+              what="Checking every period since your first buy"
+              why="Looking for the slots a buy should have landed in and did not."
+            />
+          )}
         </div>
       </Card>
     );
