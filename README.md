@@ -18,8 +18,9 @@ opt-in.
 - **The shaded band is the answer**: the distance between what your drip made and what
   buying a flat amount would have. Green while the multiplier is ahead, rose while it
   is not.
-- **It checks itself before Monday** - key, money, price feed, schedule. A buy that
-  would not land is flagged days before the week it would cost.
+- **It checks itself before Monday** - key, money, price feed, schedule - and now
+  *tells* you: a buy that would not land, or a drip nothing will pick up, goes to
+  Discord once, days before the week it would cost.
 - **It remembers what you sat through** - how far under water the stack went, and the
   buys you made down there. Those are the cheap ones.
 - **It reads the history a year at a time** - what each year cost, what it stacked and
@@ -93,8 +94,7 @@ Tap the drops under the next buy to see the sum.
 
 Once a week Drip reports itself to Discord: what you stacked, how you stand against
 plain DCA, how far under water it has been, where it is kept, and what the signal says
-now. Anything that would stop next week's buy - an empty account, a key Coinbase no
-longer accepts - is named while there is still time to fix it.
+now. Between reports it stays quiet unless something would actually stop a buy.
 
 Seventeen sections, each switchable; the preview is built by the code that builds the
 real message.

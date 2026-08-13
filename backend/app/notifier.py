@@ -17,6 +17,8 @@ from .constants import (
     PREFLIGHT_FAIL,
     PREFLIGHT_UNKNOWN,
     PREFLIGHT_WARN,
+    WATCH_BLOCKED,
+    WATCH_OVERDUE,
 )
 from .models import Purchase
 
@@ -288,11 +290,11 @@ def _waterline_line(water: dict) -> str:
 
 
 # What each preflight status looks like in a message. `pass` has no mark
-# because a passing check never appears on its own line — see `_preflight_line`.
+# because a passing check never appears on its own line — see `preflight_line`.
 _PREFLIGHT_MARK = {PREFLIGHT_FAIL: "⛔", PREFLIGHT_WARN: "⚠", PREFLIGHT_UNKNOWN: "❔"}
 
 
-def _preflight_line(report: dict) -> str:
+def preflight_line(report: dict) -> str:
     """What would stop the next drip, or one line saying nothing would.
 
     Only the checks that have something to say are listed. A report that names
@@ -427,7 +429,7 @@ def _digest_fields(digest: dict) -> list[dict]:
     fields.append({
         "key": "preflight",
         "name": "Ready to buy" if digest["preflight"]["ready"] else "Before the next buy",
-        "value": _preflight_line(digest["preflight"]),
+        "value": preflight_line(digest["preflight"]),
         "inline": False,
     })
 
@@ -561,6 +563,50 @@ def send_run_failure_notification(error: str, enabled: bool) -> bool:
         color=COLOR_ERROR,
         enabled=enabled,
     )
+
+
+def send_watch_notification(kind: str, report: dict, enabled: bool) -> bool:
+    """Drip speaking between buys — the layout half of `watch.py`.
+
+    The split is the one `digest.build` / `build_digest_embed` uses: what is
+    worth saying is decided over there, how it reads is decided here.
+
+    The blocked message reuses `preflight_line` rather than writing a second
+    wording of the same six checks, so what the report says on a Sunday and what
+    this says on a Tuesday cannot drift apart.
+    """
+    if kind == WATCH_BLOCKED:
+        return send_notification(
+            title="Drip - the next buy would fail",
+            description=(
+                f"{preflight_line(report)}\n\n"
+                "_Nothing has been bought and nothing is being retried - this is "
+                "the check that runs between buys, so there is still time._"
+            ),
+            color=COLOR_ERROR,
+            enabled=enabled,
+        )
+
+    if kind == WATCH_OVERDUE:
+        slot = report["slot"]
+        late = _late_by(slot, datetime.now())
+        tail = (
+            "_Drip is in dry run, so nothing would have been bought anyway._"
+            if report.get("dry_run")
+            else "_Catching missed buys up is switched off, so this one will not "
+                 "be bought on its own._"
+        )
+        return send_notification(
+            title="Drip - the drip is overdue",
+            description=(
+                f"**{slot:%a %-d %b, %H:%M}** came and went without a buy, {late}.\n\n"
+                f"{tail}"
+            ),
+            color=COLOR_ERROR,
+            enabled=enabled,
+        )
+
+    return False
 
 
 def send_paused_notification(paused_until, enabled: bool) -> bool:

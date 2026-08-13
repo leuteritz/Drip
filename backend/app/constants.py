@@ -53,6 +53,13 @@ PREFLIGHT_UNKNOWN = "unknown"
 # bitcoin is today is not. There is deliberately no word for "more than was
 # bought": that is bitcoin from elsewhere sharing the account, and everything
 # Drip bought is still on it, which is `CUSTODY_HELD`.
+# What Drip says between buys, and the two things worth saying. They live here
+# rather than in `watch.py` because `notifier` speaks them and cannot import
+# that module without closing a circle back through `bot`.
+WATCH_BLOCKED = "blocked"    # preflight says the next buy would fail
+WATCH_OVERDUE = "overdue"    # a slot went by and nothing will pick it up
+WATCHES = (WATCH_BLOCKED, WATCH_OVERDUE)
+
 CUSTODY_HELD = "held"        # all of it is still on the exchange
 CUSTODY_PARTLY = "partly"    # some has been moved off
 CUSTODY_MOVED = "moved"      # what is left there is change, not a holding

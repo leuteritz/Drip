@@ -3,9 +3,9 @@ import CheckIcon from "~icons/ph/check-circle-fill";
 import QuestionIcon from "~icons/ph/question";
 import WarningIcon from "~icons/ph/warning-fill";
 import XCircleIcon from "~icons/ph/x-circle-fill";
-import type { Preflight, PreflightStatus } from "../../api/client";
+import type { BotSettings, Preflight, PreflightStatus } from "../../api/client";
 import { fmtEur, formatDayMonth, formatWeekdayTime } from "../../lib/format";
-import { Loading, Modal, Note } from "../ui";
+import { Loading, Modal, Note, Toggle } from "../ui";
 
 /**
  * Will the next drip actually land.
@@ -26,6 +26,11 @@ import { Loading, Modal, Note } from "../ui";
  * deliberate: a message is read once and must lead with the problem, while a
  * page opened on purpose is being asked "what did you check?", and a list that
  * hides its passes cannot answer that.
+ *
+ * The between-buy watch is switched on and off here for the reason `Pulse`
+ * carries the catch-up switch and `Custody` carries its threshold: a setting
+ * belongs where the figure it judges is read. What that watch reports is this
+ * list, so this is the screen it belongs to.
  */
 
 /** What each answer looks like. `unknown` is a muted `ink` rather than `sand`
@@ -62,11 +67,15 @@ function headline(report: Preflight): string {
 export default function PreflightDialog({
   report,
   refreshing,
+  settings,
+  onSaveSettings,
   onRefresh,
   onClose,
 }: {
   report: Preflight | null;
   refreshing: boolean;
+  settings: BotSettings | null;
+  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
   onRefresh: () => void;
   onClose: () => void;
 }) {
@@ -128,6 +137,24 @@ export default function PreflightDialog({
                 {fmtEur(report.next_amount_eur)}
               </span>
             </p>
+          )}
+
+          {settings && (
+            <label className="mt-4 flex items-start gap-3 rounded-xl bg-sand-soft/60 px-3.5 py-3">
+              <Toggle
+                checked={settings.watch}
+                onChange={(v) => void onSaveSettings({ watch: v })}
+              />
+              <span className="min-w-0 text-sm leading-relaxed text-ink">
+                <strong className="font-semibold">Tell me if this stops passing</strong>
+                <span className="block text-xs text-ink-soft">
+                  Drip checks this list once a day and sends one Discord message if
+                  the next buy would fail, or if a drip went by with nothing to pick
+                  it up. It says it once, not every day, and stays quiet when it
+                  clears. Warnings never trigger it.
+                </span>
+              </span>
+            </label>
           )}
 
           <Note>

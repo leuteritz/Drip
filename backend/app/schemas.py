@@ -23,6 +23,8 @@ class SettingsUpdate(BaseModel):
     paused_until: Optional[date] = None
     discord_enabled: Optional[bool] = None
     catch_up: Optional[bool] = None
+    # Whether Drip speaks between buys at all. See `watch.py`.
+    watch: Optional[bool] = None
     # 0 switches the custody nudge off; the figures stay either way.
     custody_threshold_eur: Optional[float] = Field(default=None, ge=0, le=10_000_000)
 

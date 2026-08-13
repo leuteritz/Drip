@@ -78,6 +78,11 @@ class BotSettings(SQLModel, table=True):
     # that is an amount. 0 keeps the figures and drops the nudge. See
     # `custody.py`; it reaches an existing install through `_migrate_columns`.
     custody_threshold_eur: float = 1000.0
+    # Whether Drip speaks between buys — a blocked next buy, or a drip that went
+    # overdue with nothing to pick it up. On by default, unlike `catch_up`: this
+    # only ever reports, it can never spend. See `watch.py`; it reaches an
+    # existing install through `_migrate_columns`.
+    watch: bool = True
 
 
 class PauseWindow(SQLModel, table=True):
@@ -106,6 +111,33 @@ class PauseWindow(SQLModel, table=True):
     started_at: datetime = Field(index=True)
     until: date
     ended_at: Optional[datetime] = None
+
+
+class WatchAlert(SQLModel, table=True):
+    """One thing Drip said between buys, and whether it is still true.
+
+    A record, the way `PauseWindow` is: it never decides anything. An open row
+    (no `cleared_at`) is a fault that has already been reported, which is the
+    whole of what stops the same sentence going out every day for the weeks it
+    stays true — and equally what lets it be said again if it clears and comes
+    back.
+
+    `detail` is the sentence itself rather than a code, so a fault that changes
+    what it says is news again: "no key" becoming "the balance no longer covers
+    the next buy" is a different problem with a different fix, even though both
+    are the same `kind`.
+
+    A row is written **only** when Discord actually accepted the message.
+    Nothing may be recorded as said that was not said. A new table is also the
+    one schema change SQLite makes for free, so this reaches an existing install
+    through `create_all` alone — the `PauseWindow` precedent.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    kind: str = Field(index=True)      # one of constants.WATCHES
+    detail: str = ""
+    sent_at: datetime = Field(index=True)
+    cleared_at: Optional[datetime] = None
 
 
 class DigestSettings(SQLModel, table=True):

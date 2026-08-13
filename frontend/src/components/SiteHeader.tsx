@@ -463,6 +463,8 @@ export default function SiteHeader({
         <PreflightDialog
           report={preflight}
           refreshing={preflight === null}
+          settings={settings}
+          onSaveSettings={onSaveSettings}
           onRefresh={onRecheck}
           onClose={() => setPreflightOpen(false)}
         />

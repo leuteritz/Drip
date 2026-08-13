@@ -20,6 +20,9 @@ export interface BotSettings {
   discord_enabled: boolean;
   /** Buy a slot that went by while Drip was not running. Off unless asked for. */
   catch_up: boolean;
+  /** Whether Drip speaks between buys — a blocked next buy, or an overdue drip
+   *  nothing will pick up. On by default: it only reports, it never spends. */
+  watch: boolean;
   /** What the stack on the exchange may be worth before Drip mentions that it
    *  is still there. 0 keeps the figures and drops the nudge. */
   custody_threshold_eur: number;

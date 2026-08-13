@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 JOB_ID = "weekly_purchase"
 DIGEST_JOB_ID = "weekly_digest"
 CATCH_UP_JOB_ID = "catch_up"
+WATCH_JOB_ID = "watch"
 
 # The first missed-buy check runs a moment after start-up, because a Pi coming
 # back on is the case it exists for; a short delay keeps it off the critical
@@ -31,6 +32,12 @@ CATCH_UP_DELAY_SECONDS = 45
 # found while it can still be bought. Anything finer would just re-ask a
 # question whose answer only changes once a week.
 CATCH_UP_HOURS = 24
+
+# The between-buy watch starts *after* the catch-up check, deliberately: a Pi
+# coming back on should buy the slot it missed before anything reports it as
+# overdue. Then daily, which is as often as any of its answers can change.
+WATCH_DELAY_SECONDS = 90
+WATCH_HOURS = 24
 
 scheduler = BackgroundScheduler()
 
@@ -200,6 +207,51 @@ def reschedule_digest(digest: DigestSettings) -> None:
     logger.info("Digest job scheduled: %s %s", _WEEKDAYS[digest.weekday], digest.send_time)
 
 
+def _run_watch() -> None:
+    """Say the one thing worth saying between buys, if there is one.
+
+    Everything about *what* is worth saying — and about not saying the same
+    thing every day for a month — is decided in `watch.py`. This only wakes it
+    up. Imported lazily for the same reason `digest` is.
+    """
+    from sqlmodel import Session
+
+    from . import watch
+    from .database import engine
+
+    try:
+        with Session(engine) as session:
+            watch.run(session)
+    except Exception:  # noqa: BLE001 - a watch that fell over may not take the
+        logger.exception("Watch job failed")  # scheduler down with it
+
+
+def reschedule_watch(settings: BotSettings) -> None:
+    """Adds or removes the between-buy watch.
+
+    Removed rather than left returning early when it is off, the rule the digest
+    and the catch-up check both follow: the setup dialog lists what the
+    scheduler is actually holding.
+    """
+    if not settings.watch:
+        if scheduler.get_job(WATCH_JOB_ID):
+            scheduler.remove_job(WATCH_JOB_ID)
+        logger.info("Watch job switched off")
+        return
+
+    scheduler.add_job(
+        _run_watch,
+        trigger=IntervalTrigger(
+            hours=WATCH_HOURS,
+            start_date=datetime.now() + timedelta(seconds=WATCH_DELAY_SECONDS),
+        ),
+        id=WATCH_JOB_ID,
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+    logger.info("Watch job scheduled: first run in %ss", WATCH_DELAY_SECONDS)
+
+
 def reschedule_catch_up(settings: BotSettings) -> None:
     """Adds or removes the missed-buy check.
 
@@ -234,6 +286,7 @@ def start(settings: BotSettings, digest: DigestSettings) -> None:
     reschedule(settings)
     reschedule_digest(digest)
     reschedule_catch_up(settings)
+    reschedule_watch(settings)
     if not scheduler.running:
         scheduler.start()
 
@@ -254,6 +307,7 @@ JOB_LABELS = {
     JOB_ID: "Weekly buy",
     DIGEST_JOB_ID: "Weekly report",
     CATCH_UP_JOB_ID: "Missed-buy check",
+    WATCH_JOB_ID: "Between-buy watch",
 }
 
 

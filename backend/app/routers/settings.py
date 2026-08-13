@@ -55,6 +55,11 @@ def update_settings(update: SettingsUpdate, session: Session = Depends(get_sessi
     # is what the job's own start-up delay gives for free.
     if "catch_up" in data:
         scheduler.reschedule_catch_up(settings)
+    # Same shape for the between-buy watch: switching it off removes the job
+    # rather than leaving one that returns early, so `job_overview` keeps
+    # listing what the scheduler actually holds.
+    if "watch" in data:
+        scheduler.reschedule_watch(settings)
     return settings
 
 

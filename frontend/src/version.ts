@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.45",
+    date: "2026-08-13",
+    changes: [
+      "Drip now speaks between buys: if the next one would fail, or if a drip went by with nothing to pick it up, Discord hears about it once — while there is still time to fix it",
+      "It says it once and then stays quiet, and it says nothing at all when the problem clears. Warnings never trigger it, so a bot running fine on a test install stays silent",
+      "The switch is on the 'Before the next buy' screen, next to the checks it watches",
+    ],
+  },
+  {
     version: "2.44",
     date: "2026-08-13",
     changes: [
