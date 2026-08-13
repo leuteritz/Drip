@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.44",
+    date: "2026-08-13",
+    changes: [
+      "Research now opens with its answer — how often the drip actually beat a flat weekly buy — instead of seven cards of equal weight where you had to know which one was the verdict",
+      "On a laptop or a tablet held sideways the overview cards sit two abreast, as they always have on a bigger screen. The page was never getting wider there; only the layout thought so",
+    ],
+  },
+  {
     version: "2.43",
     date: "2026-08-13",
     changes: [

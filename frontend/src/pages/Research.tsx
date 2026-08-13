@@ -35,6 +35,12 @@ import { Card, Failed, Loading, SectionHeading } from "../components/ui";
  * different scales: attribution and the grid want the same window you actually
  * ran, the forward-return test wants as many days as it can get, and the
  * distribution is parameterised by window *length*, not window start.
+ *
+ * `EdgeDistribution` leads and comes first. The section poses one question in
+ * its subtitle and used to answer it nowhere in particular — seven cards of
+ * identical weight, each with its own range control, so the verdict was
+ * something you had to already know how to find. There is exactly one `lead`
+ * here, as everywhere.
  */
 export default function Research({
   scrollRef,
@@ -162,15 +168,19 @@ export default function Research({
         </Card>
       )}
 
-      <AttributionWaterfall
-        data={attribution}
-        days={attributionDays}
-        onDays={setAttributionDays}
-      />
+      {/* The section's one `lead`, and it comes first because it is the answer
+          to the question the heading asks: how often the multiplier actually
+          beat a flat weekly buy. Everything under it is a narrower question
+          about *why*, and they all keep the plain tile row. */}
       <EdgeDistribution
         data={rolling}
         windowDays={windowDays}
         onWindowDays={setWindowDays}
+      />
+      <AttributionWaterfall
+        data={attribution}
+        days={attributionDays}
+        onDays={setAttributionDays}
       />
       <ScoreHistory
         data={scores}

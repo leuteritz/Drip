@@ -29,8 +29,9 @@ opt-in.
 - **It admits what it cannot answer**: a card that fails to load says so and offers to
   try again, and a fresh install is told what to do first rather than shown six empty
   cards.
-- **Underneath**: the strategy audited against itself, what you paid against the market,
-  and the weeks the drip landed in - one the Pi slept through is bought when it wakes.
+- **Underneath**: the strategy audited against itself - opening with how often it
+  actually beat a flat weekly buy - what you paid against the market, and the weeks the
+  drip landed in; one the Pi slept through is bought when it wakes.
 - **Every buy opens** - what those euros are worth today, and the readings behind it.
 - **The drip is set where it is read** - click the amount, or the schedule chip.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -
@@ -45,8 +46,7 @@ opt-in.
 </p>
 
 *One build, both hands: the sections move to a tab bar, figures are set larger rather
-than smaller, every card fits them to its own width, and the history becomes one card
-per buy.*
+than smaller, and the history becomes one card per buy.*
 
 ## Install
 

@@ -21,7 +21,16 @@ import {
 } from "../../lib/chart";
 import { formatDayMonth, fmtPct, fmtPp, WEEKDAYS } from "../../lib/format";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Loading, Note, RangePills, Stat, StatRow } from "../ui";
+import {
+  Card,
+  CardHeader,
+  Loading,
+  Note,
+  RangePills,
+  Stat,
+  StatFacts,
+  StatRow,
+} from "../ui";
 
 /**
  * One backtest is one path and proves nothing. This runs the same backtest from
@@ -31,6 +40,18 @@ import { Card, CardHeader, Loading, Note, RangePills, Stat, StatRow } from "../u
  *
  * Measured in percentage points of return for the same reason the attribution
  * card is — see the comment there.
+ *
+ * **This is the section's `lead`, and the only research card that is.** Research
+ * asks one question in its subtitle — is buying more on dips better than buying
+ * the same amount every week? — and used to answer it nowhere in particular:
+ * seven cards of identical weight, each with its own range control, so the
+ * reader had to know which one was the verdict. This card *is* the verdict, so
+ * it leads and it comes first.
+ *
+ * Leading also means it speaks the overview's grammar rather than the research
+ * tile row: one figure, then the rest on a line. The six panels under it keep
+ * the plain row — they ask narrower questions with a few equal figures, which is
+ * the shape `Stat` was always for.
  */
 export default function EdgeDistribution({
   data,
@@ -44,7 +65,7 @@ export default function EdgeDistribution({
   const windows = data?.windows ?? [];
 
   return (
-    <Card className="flex flex-col">
+    <Card tone="lead" className="flex flex-col">
       <CardHeader
         title="How often it worked"
         info={
@@ -92,28 +113,41 @@ export default function EdgeDistribution({
         </p>
       ) : (
         <>
-          <StatRow className="mb-3">
+          {/* One lead, then the rest on a line — the section's answer should be
+              readable without picking it out of four equal tiles. */}
+          <StatRow>
             <Stat
               label="Runs Drip won"
               tone={data.win_rate >= 50 ? "up" : "down"}
-              hint={`${data.wins} of ${data.count}`}
+              hint={`${data.wins} of ${data.count} runs of ${windowDays} days`}
             >
               {data.win_rate.toFixed(0)}%
             </Stat>
-            <Stat
-              label="Typical run"
-              tone={data.median_pp >= 0 ? "up" : "down"}
-              hint={`most land between ${fmtPp(data.p10_pp)} and ${fmtPp(data.p90_pp)}`}
-            >
-              {fmtPp(data.median_pp)}
-            </Stat>
-            <Stat label="Worst run" tone={data.worst_pp >= 0 ? "up" : "down"}>
-              {fmtPp(data.worst_pp)}
-            </Stat>
-            <Stat label="Best run" tone={data.best_pp >= 0 ? "up" : "down"}>
-              {fmtPp(data.best_pp)}
-            </Stat>
           </StatRow>
+          <StatFacts
+            className="mb-3 mt-3"
+            items={[
+              {
+                label: "typical run",
+                value: fmtPp(data.median_pp),
+                tone: data.median_pp >= 0 ? "up" : "down",
+              },
+              {
+                label: "worst",
+                value: fmtPp(data.worst_pp),
+                tone: data.worst_pp >= 0 ? "up" : "down",
+              },
+              {
+                label: "best",
+                value: fmtPp(data.best_pp),
+                tone: data.best_pp >= 0 ? "up" : "down",
+              },
+              {
+                label: "most land between",
+                value: `${fmtPp(data.p10_pp)} and ${fmtPp(data.p90_pp)}`,
+              },
+            ]}
+          />
 
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">

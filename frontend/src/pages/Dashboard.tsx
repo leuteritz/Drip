@@ -245,14 +245,23 @@ export default function Overview({
             a wide window, and the first is deliberately unequal — a chart and
             five figures want more room than three figures do.
 
-            `xl` is where the pair already split before the bento, and it is a
-            flat 1280px: a media query's `rem` resolves against the browser's
-            initial 16px, *not* against the root size the page scales with, so
-            these steps do not move with the type. The card widths inside them
-            do — which is exactly why everything within a card is a container
-            query instead. Below `xl` it is all one column. */}
-        <div className="grid gap-3 sm:gap-4 xl:grid-cols-12">
-          <div className="*:h-full xl:col-span-7">
+            The pairs split at `lg` (a flat 1024px), and that is measured rather
+            than picked. `max-w-shell` is 78rem and the root sits at its 13px
+            floor across this whole stretch, so the body is 1014px wide at 1024
+            *and* at 1279 — exactly what it is at 1280. The window grows; the
+            measure does not. Splitting only at `xl` therefore left a quarter of
+            the desktop range showing one column of full-width cards for no
+            reason the layout could give: at 1024 a 7/5 split gives ~45rem and
+            ~32.1rem, and the narrow one is *wider* there than the 31.9rem it
+            has always had at 1280.
+
+            A media query's `rem` is the browser's flat 16px, not the root the
+            page scales with, so these steps do not move with the type. The card
+            widths inside them do — which is why everything within a card is a
+            container query instead. Re-measure with `tools/pair.js` before
+            moving either span. */}
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-12">
+          <div className="*:h-full lg:col-span-7">
             <CostBasisCard
               holdings={holdings.data}
               error={holdings.error}
@@ -261,7 +270,7 @@ export default function Overview({
               includeDryRun={includeDryRun}
             />
           </div>
-          <div className="*:h-full xl:col-span-5">
+          <div className="*:h-full lg:col-span-5">
             <HoldingPeriods
               data={holdings.data}
               error={holdings.error}
@@ -288,8 +297,8 @@ export default function Overview({
         {/* Where the result of all that is sitting, and where it is going if
             nothing changes — the one that looks back at custody beside the one
             that faces forwards. */}
-        <div className="grid gap-3 sm:gap-4 xl:grid-cols-12">
-          <div className="*:h-full xl:col-span-6">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-12">
+          <div className="*:h-full lg:col-span-6">
             <CustodyCard
               data={custody.data}
               error={custody.error}
@@ -298,7 +307,7 @@ export default function Overview({
               onSaveSettings={onSaveSettings}
             />
           </div>
-          <div className="*:h-full xl:col-span-6">
+          <div className="*:h-full lg:col-span-6">
             <OutlookCard
               data={outlook.data}
               error={outlook.error}
