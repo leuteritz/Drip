@@ -16,8 +16,30 @@
 // thing in the explainer at the top of the page as it does in this table, and it
 // may only be styled once.
 import { fmtPct } from "../lib/format";
-import { RSI_OVERBOUGHT, RSI_SLIGHT, RSI_STRONG } from "../lib/scoringRules";
+import {
+  MA_ABOVE,
+  MA_BELOW,
+  MA_FAR_ABOVE,
+  MA_FAR_BELOW,
+  RSI_OVERBOUGHT,
+  RSI_SLIGHT,
+  RSI_STRONG,
+} from "../lib/scoringRules";
 import { ScoreDrops } from "./drops";
+
+/** The six steps `strategy.py` grades the distance on, in its own words. */
+const maWord = (distance: number) =>
+  distance < MA_FAR_BELOW
+    ? "far below it"
+    : distance < MA_BELOW
+      ? "well below it"
+      : distance < 0
+        ? "just below it"
+        : distance > MA_FAR_ABOVE
+          ? "far above it"
+          : distance > MA_ABOVE
+            ? "well above it"
+            : "above it";
 
 export interface ScoreReadings {
   points: { fng: number; rsi: number; ma: number };
@@ -25,9 +47,7 @@ export interface ScoreReadings {
   /** Absent on a stored buy: the row keeps the number, never the word. */
   fng_classification?: string;
   rsi: number;
-  ma_350: number;
   ma_distance_pct: number;
-  price_eur: number;
 }
 
 /** One row per indicator, in the order `score_indicators` adds them. */
@@ -59,8 +79,7 @@ const ROWS: {
   {
     key: "ma",
     label: "Price vs. 350-day average",
-    reading: (r) =>
-      `${fmtPct(r.ma_distance_pct)} · ${r.price_eur < r.ma_350 ? "below it" : "above it"}`,
+    reading: (r) => `${fmtPct(r.ma_distance_pct)} · ${maWord(r.ma_distance_pct)}`,
   },
 ];
 

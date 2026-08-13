@@ -14,6 +14,7 @@ import type {
 import { potencyFromMultiplier } from "../drops";
 import { COINBASE_DEPOSIT_URL, HOST } from "../../lib/coinbase";
 import { fmtEur, fmtPct } from "../../lib/format";
+import { MA_FAR_ABOVE, RSI_OVERBOUGHT, RSI_STRONG } from "../../lib/scoringRules";
 import { useStackAmount } from "../../lib/units";
 import { Loading, OutLink, Spinner } from "../ui";
 
@@ -233,14 +234,17 @@ function PinRail({ value }: { value: number }) {
   );
 }
 
-/** How far either side of the average the rail can show before it pegs. */
-const SPAN_PCT = 40;
+/**
+ * How far either side of the average the rail can show before it pegs — the
+ * distance at which `strategy.py` stops grading and pays the last step, so a
+ * pegged bar is a block that has run out of things to say rather than a chosen
+ * number.
+ */
+const SPAN_PCT = MA_FAR_ABOVE;
 
 /**
  * A distance from a middle: the notch is the 350-day average and the bar grows
  * out of it — left when bitcoin is under that average, right when it is over.
- * Pegged at ±40%, which is far enough that the bar is still moving in an
- * ordinary year.
  */
 function SpanRail({ pct }: { pct: number }) {
   const share = Math.min(1, Math.abs(pct) / SPAN_PCT);
@@ -311,7 +315,11 @@ export function MarketReadout({ indicators }: { indicators: Indicators | null })
   // the second opinion agreeing that there is nothing to add.
   const rsi = Math.round(indicators.rsi);
   const rsiLabel =
-    indicators.rsi < 30 ? " oversold" : indicators.rsi > 70 ? " overbought" : "";
+    indicators.rsi < RSI_STRONG
+      ? " oversold"
+      : indicators.rsi > RSI_OVERBOUGHT
+        ? " overbought"
+        : "";
 
   return (
     <Gauge label="Fear & greed" icon={PulseIcon}>

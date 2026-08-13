@@ -17,6 +17,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.47",
+    date: "2026-08-13",
+    changes: [
+      "How far the price sits from its own year now counts in steps instead of yes or no: 25% below is worth more than a hair below, and a market far above it costs points for the first time",
+      "The RSI is read over a full window now. The short one it used was still mostly its own starting guess, which put roughly one buy in eight on the wrong rung",
+      "Drip still always buys, and the five rungs are unchanged — a score now runs from -6 to +9 rather than -4 to +8",
+    ],
+  },
+  {
     version: "2.46",
     date: "2026-08-13",
     changes: [

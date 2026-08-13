@@ -47,7 +47,7 @@ def _simulate_events(days: list[date], day_list: list[date], closes: list[float]
         if not price:
             continue
 
-        rsi_window = closes[max(0, pos - (strategy.RSI_PERIOD + 7) + 1): pos + 1]
+        rsi_window = closes[max(0, pos - strategy.RSI_LOOKBACK + 1): pos + 1]
         analysis = strategy.score_indicators(
             fear_greed=fng_hist.get(day, NEUTRAL_FNG),
             fng_classification="",

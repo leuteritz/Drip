@@ -78,12 +78,12 @@ forward the port to the internet.
 
 ## Strategy
 
-Three indicators are scored before every buy, and the total picks the multiplier applied
-to your base amount. The dashboard says all of it on the way in.
+Three indicators are scored before every buy, each worth `+3` at most and `-2` at
+least, and the total picks the multiplier applied to your base amount.
 
 - **Fear & Greed** - below 25: `+3` · below 45: `+2` · 55 or above: `-2`
 - **RSI (14, Wilder)** - below 30: `+3` · below 45: `+1` · above 70: `-2`
-- **Price vs. 350-day MA** - below the average: `+2`
+- **Price vs. 350-day MA** - 25% below: `+3` · 10% below: `+2` · below: `+1` · 30% above: `-1` · 60% above: `-2`
 
 | Score | 5 or more | 3 to 4 | 1 to 2 | -1 to 0 | below -1 |
 |---|---|---|---|---|---|

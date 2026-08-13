@@ -59,10 +59,14 @@ export const INDICATOR_RULES: {
   {
     key: "ma",
     label: "Price vs. 350-day average",
-    what: "cheap or dear against its own year",
+    what: "how far it sits from its own year",
     rules: [
-      { when: "below it", points: 2 },
-      { when: "above it", points: 0 },
+      { when: "more than 25% below", points: 3 },
+      { when: "more than 10% below", points: 2 },
+      { when: "below it", points: 1 },
+      { when: "up to 30% above", points: 0 },
+      { when: "up to 60% above", points: -1 },
+      { when: "further above", points: -2 },
     ],
   },
 ];
@@ -71,6 +75,17 @@ export const INDICATOR_RULES: {
 export const RSI_STRONG = 30;
 export const RSI_SLIGHT = 45;
 export const RSI_OVERBOUGHT = 70;
+
+/**
+ * The moving average's steps, as a percentage distance — `strategy.MA_*_PCT`.
+ * `components/scoring.tsx` reads them to put a word beside the reading, the way
+ * the three RSI figures above are read: the *points* still arrive scored from
+ * the backend, only the wording is decided here.
+ */
+export const MA_FAR_BELOW = -25;
+export const MA_BELOW = -10;
+export const MA_ABOVE = 30;
+export const MA_FAR_ABOVE = 60;
 
 /**
  * Score to multiplier, strongest rung first — `determine_purchase_strategy`
@@ -84,7 +99,7 @@ export const LADDER: { band: string; multiplier: number }[] = [
   { band: "below -1", multiplier: 0.5 },
 ];
 
-/** Everything expensive at once: F&G -2, RSI -2, price above its average +0. */
-export const SCORE_MIN = -4;
+/** Everything dear at once: F&G -2, RSI -2, price far above its average -2. */
+export const SCORE_MIN = -6;
 /** Everything cheap at once — `strategy.SCORE_MAX`, and what the hero counts to. */
-export const SCORE_MAX = 8;
+export const SCORE_MAX = 9;

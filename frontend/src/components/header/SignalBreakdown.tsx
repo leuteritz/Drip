@@ -40,7 +40,7 @@ export default function SignalBreakdown({
 
       <div className="mt-5">
         <ScoreTable
-          readings={{ ...indicators, price_eur: indicators.current_price }}
+          readings={indicators}
           score={indicators.score}
           scoreMax={indicators.score_max}
           multiplier={indicators.multiplier}

@@ -118,7 +118,7 @@ def _build_table(session: Session) -> ScoreTable:
 
     fng_hist = indicators.get_fear_and_greed_history()
     window_start = date.today() - timedelta(days=RESEARCH_DAYS)
-    rsi_lookback = strategy.RSI_PERIOD + 7  # the same slice the live bot scores
+    rsi_lookback = strategy.RSI_LOOKBACK  # the same slice the live bot scores
 
     def mean(idx: int, length: int) -> float:
         low = max(0, idx - length + 1)
@@ -450,8 +450,8 @@ def _soft_score(readings: dict[str, float]) -> float:
 
     Every threshold in `score_indicators` is a step: RSI 44.9 scores +1 and RSI
     45.1 scores 0, on a reading that is noisy to well beyond that. These are the
-    same anchor points joined by straight lines, so the total keeps the original
-    -4..8 range and only the edges soften.
+    same anchor points joined by straight lines, so the total keeps the live
+    `SCORE_MIN`..`SCORE_MAX` range and only the edges soften.
     """
     fng = readings["fng"]
     if fng <= strategy.FNG_FEAR:
@@ -467,10 +467,12 @@ def _soft_score(readings: dict[str, float]) -> float:
     else:
         rsi_points = -2 * min((rsi - 50) / 25, 1.0)
 
-    # The live rule pays the full +2 for being a hair below the average; this
-    # pays it for being 20% below and scales down to nothing at the average.
-    below = max(-readings["ma_dist"], 0.0)
-    ma_points = 2 * min(below / 20.0, 1.0)
+    # The live rule steps this block six times; softened it is one straight line
+    # between its own ends - the full +3 at MA_FAR_BELOW_PCT, the full -2 at
+    # MA_FAR_ABOVE_PCT, and no step anywhere in between.
+    span = strategy.MA_FAR_ABOVE_PCT - strategy.MA_FAR_BELOW_PCT
+    travelled = (readings["ma_dist"] - strategy.MA_FAR_BELOW_PCT) / span
+    ma_points = 3 - 5 * min(max(travelled, 0.0), 1.0)
 
     return fng_points + rsi_points + ma_points
 
@@ -483,7 +485,9 @@ def _soft_multiplier(row: ScoredDay) -> float:
     also its honest weakness: it differs from the live rule in two ways, and the
     comparison cannot say which of the two did the work.
     """
-    return 0.5 + max(min((_soft_score(row.readings) + 4) / 12, 1.0), 0.0)
+    span = strategy.SCORE_MAX - strategy.SCORE_MIN
+    travelled = (_soft_score(row.readings) - strategy.SCORE_MIN) / span
+    return 0.5 + max(min(travelled, 1.0), 0.0)
 
 
 def _drawdown_points(readings: dict[str, float]) -> int:

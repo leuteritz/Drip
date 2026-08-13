@@ -59,8 +59,9 @@ export default function Method() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
         <Station n={1} title="Read the market" className="lg:col-span-5">
           <p className={LINE}>
-            Two say how the mood looks, one says whether bitcoin is cheap against its
-            own year. Cheap and fearful earns points; dear and greedy loses them.
+            Two say how the mood looks, one says how far bitcoin has drifted from its
+            own year. Each can add up to three points and take away two, so cheap and
+            fearful opens the spout and dear and greedy closes it.
           </p>
           <ul className="mt-3 flex flex-col gap-2.5">
             {INDICATOR_RULES.map((indicator) => (

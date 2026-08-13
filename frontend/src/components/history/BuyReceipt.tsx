@@ -95,7 +95,7 @@ export default function BuyReceipt({
             Why it was that size
           </h3>
           <ScoreTable
-            readings={{ ...data.scoring, price_eur: data.price_eur }}
+            readings={data.scoring}
             score={data.scoring.score}
             scoreMax={data.scoring.score_max}
             multiplier={data.scoring.multiplier}

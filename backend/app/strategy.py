@@ -14,7 +14,27 @@ RSI_SLIGHTLY_OVERSOLD = 45
 RSI_OVERBOUGHT = 70
 MA_DAYS = 350
 RSI_PERIOD = 14
-SCORE_MAX = 8
+
+# How far the price sits from its own year, in percent. The moving average is
+# the one indicator here that measures a *distance*, and it used to be read as a
+# yes/no: 1% below its year scored the same +2 as 40% below, and no amount of
+# dearness cost anything at all. These are the steps that distance is graded on.
+MA_FAR_BELOW_PCT = -25.0
+MA_BELOW_PCT = -10.0
+MA_ABOVE_PCT = 30.0
+MA_FAR_ABOVE_PCT = 60.0
+
+# The ends of the score: -2 -2 -2 and +3 +3 +3. Both are reachable - since the
+# moving average can subtract, "everything dear at once" is a real reading
+# rather than a floor nothing ever touches.
+SCORE_MAX = 9
+SCORE_MIN = -6
+
+# Wilder's smoothing has alpha = 1/14, so a short slice is mostly its own seed:
+# after the 6 steps a 21-close window allows, 64% of the value is still the
+# simple mean it started from, and the number that came out was not the RSI the
+# README names. 200 closes is fully converged, and `analyze` already fetches 355.
+RSI_LOOKBACK = 200
 
 # Inputs that score exactly zero points in their own block below. Isolating one
 # indicator means handing the other two these.
@@ -143,15 +163,24 @@ def score_indicators(
     else:
         factors.append(f"RSI {rsi:.1f} (neutral, +0)")
 
-    # 3. 350-day moving average
+    # 3. 350-day moving average - how far from its own year, not whether
     if ma_350 <= 0:
         ma_350 = current_price  # no data available -> neutral
     diff_pct = (current_price - ma_350) / ma_350 * 100 if ma_350 else 0.0
-    if current_price < ma_350:
-        score += 2
-        factors.append(f"Price below {MA_DAYS}d MA ({diff_pct:.1f}%, +2)")
+    if diff_pct < MA_FAR_BELOW_PCT:
+        step, word = 3, "far below"
+    elif diff_pct < MA_BELOW_PCT:
+        step, word = 2, "well below"
+    elif diff_pct < 0:
+        step, word = 1, "just below"
+    elif diff_pct > MA_FAR_ABOVE_PCT:
+        step, word = -2, "far above"
+    elif diff_pct > MA_ABOVE_PCT:
+        step, word = -1, "well above"
     else:
-        factors.append(f"Price above {MA_DAYS}d MA (+{diff_pct:.1f}%, +0)")
+        step, word = 0, "above"
+    score += step
+    factors.append(f"Price {word} {MA_DAYS}d MA ({diff_pct:+.1f}%, {step:+d})")
 
     strategy = determine_purchase_strategy(score)
     return Analysis(
@@ -175,7 +204,7 @@ def analyze(session: Session) -> Analysis:
 
     candles = market_data.ensure_candles(session, days=MA_DAYS + 5)
     closes = [c.close for c in candles]
-    rsi = indicators.calculate_rsi_wilder(closes[-(RSI_PERIOD + 7):], period=RSI_PERIOD)
+    rsi = indicators.calculate_rsi_wilder(closes[-RSI_LOOKBACK:], period=RSI_PERIOD)
     ma_350 = indicators.moving_average(closes[-MA_DAYS:])
 
     return score_indicators(
