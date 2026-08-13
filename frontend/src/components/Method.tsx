@@ -32,7 +32,7 @@ import {
   SCORE_MIN,
 } from "../lib/scoringRules";
 
-/** Where 0 falls on a scale running from -4 to +8. Not the middle. */
+/** Where 0 falls on a scale running from -6 to +9. Not the middle. */
 const ZERO_PCT = (100 * -SCORE_MIN) / (SCORE_MAX - SCORE_MIN);
 
 /** One line of plain words under a station's title. */
