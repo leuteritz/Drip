@@ -17,6 +17,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "2.48",
+    date: "2026-08-14",
+    changes: [
+      "The three steps at the top of the page are now equally wide, and the middle one shows the adding up rather than only naming it: three spans, one per reading, over the score they make",
+      "The five rungs are drawn as a spout opening — each one filled to what it buys, from a third of the row at half the amount to all of it at one and a half",
+    ],
+  },
+  {
     version: "2.47",
     date: "2026-08-13",
     changes: [

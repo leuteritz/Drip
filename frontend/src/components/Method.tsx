@@ -22,6 +22,18 @@
 // `backend/app/strategy.py`; the point pills and the drops are the same
 // vocabulary `components/scoring.tsx` and `components/drops.tsx` already speak,
 // so the ladder here and the ladder under the next buy are visibly one ladder.
+//
+// **The three stations are one width.** They used to be 5 / 3 / 4 of twelve,
+// which was the content's own shape rather than the band's: a wide field of
+// pills, a narrow column with a hairline in a lot of air, and a ladder. Equal
+// thirds is the harder and better constraint, because it makes the *content*
+// answer for itself — which is what gave station 2 the graphic it should always
+// have had and station 3 its staircase.
+//
+// All three now end in a rail, the way every read-out in the hero does
+// (`header/Readouts.tsx`'s `TRACK` / `NOTCH` / `LadderRail`). That is the whole
+// of the band's grammar: a distance, drawn, with the point where it turns from
+// dear to cheap marked on it.
 import type { ReactNode } from "react";
 import { ScoreDrops } from "./drops";
 import { fmtPoints, toneFor } from "./scoring";
@@ -35,8 +47,37 @@ import {
 /** Where 0 falls on a scale running from -6 to +9. Not the middle. */
 const ZERO_PCT = (100 * -SCORE_MIN) / (SCORE_MAX - SCORE_MIN);
 
+/**
+ * What one indicator can be worth, and where 0 falls on *its* scale.
+ *
+ * The two land on the same 40%, and that is not a coincidence worth leaving
+ * unsaid: three spans of -2..+3 add up to -6..+9, so a scale three times as
+ * long turns from dear to cheap at the same place. It is what lets station 2
+ * stack the three over the sum and have every notch fall on one line — the
+ * addition drawn rather than asserted. Both are computed rather than written
+ * down, so a threshold moving in `strategy.py` moves the picture with it.
+ */
+const PART_MIN = -2;
+const PART_MAX = 3;
+const PART_ZERO_PCT = (100 * -PART_MIN) / (PART_MAX - PART_MIN);
+
+/** The widest the spout opens — what the rungs' fills are measured against. */
+const TOP_RUNG = Math.max(...LADDER.map((rung) => rung.multiplier));
+
 /** One line of plain words under a station's title. */
 const LINE = "text-sm leading-relaxed text-ink-soft";
+
+/**
+ * The operator column, so all four of station 2's rails start on one edge —
+ * and `RAIL_INDENT`, the same edge said in padding, for the one row that has no
+ * operator to hold it there. `items-end` is what keeps a `+` beside its rail
+ * rather than beside the label above it, which is why the sum's figures sit
+ * outside the grid: left in it, they would drag the `=` down to their own foot.
+ */
+const SUM_ROW = "grid grid-cols-[0.9rem_1fr] items-end gap-2";
+const RAIL_INDENT = "pl-[1.4rem]";
+const OPERATOR =
+  "font-display text-sm font-semibold leading-none text-ink-soft";
 
 /** "1.5" / "1.0" / "0.5" — the ladder reads in one dialect, like the README. */
 const fmtRung = (multiplier: number) =>
@@ -56,12 +97,11 @@ export default function Method() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
-        <Station n={1} title="Read the market" className="lg:col-span-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
+        <Station n={1} title="Read the market">
           <p className={LINE}>
             Two say how the mood looks, one says how far bitcoin has drifted from its
-            own year. Each can add up to three points and take away two, so cheap and
-            fearful opens the spout and dear and greedy closes it.
+            own year. Cheap and fearful opens the spout; dear and greedy closes it.
           </p>
           <ul className="mt-3 flex flex-col gap-2.5">
             {INDICATOR_RULES.map((indicator) => (
@@ -88,62 +128,112 @@ export default function Method() {
           </ul>
         </Station>
 
-        <Station n={2} title="Add up the points" className="lg:col-span-3">
+        <Station n={2} title="Add up the points">
           <p className={LINE}>
-            The three are added up, and that sum is the score. Most drips land
-            between the ends of it.
+            Each of the three is worth three points at best and takes away two at
+            worst. Added up, that is the score.
           </p>
-          {/* Rose to teal, the score's own two colours — the `-soft` tints are
+          {/* The addition, drawn: three spans of the same length, then the one
+              they make. Every notch falls on the same vertical line (see
+              PART_ZERO_PCT), so the sum is read rather than claimed.
+
+              Rose to teal, the score's own two colours — the `-soft` tints are
               background fills and go near-black at night, so a scale drawn in
               them is a scale nobody can see. And the scale is lopsided and says
-              so: zero sits a third of the way along, because there are more
-              points to earn from a cheap market than to lose to a dear one. */}
+              so: zero sits short of the middle, because there are more points to
+              earn from a cheap market than to lose to a dear one. */}
           <div className="mt-4">
-            <div
-              aria-hidden="true"
-              className="relative h-2.5 rounded-full"
-              style={{
-                backgroundImage:
-                  "linear-gradient(to right, var(--color-rose), var(--color-sand) " +
-                  `${ZERO_PCT}%, var(--color-teal))`,
-              }}
-            >
+            <div className="relative">
+              {/* The line the whole graphic rests on: one hairline down the
+                  stack at the point every scale turns. It sits *behind* the
+                  rails, so it shows in the gaps between them and each rail's
+                  own notch reads as the same line passing through. */}
+              {/* Anchored on both edges, and by `left` rather than by padding:
+                  the mark inside reads its percentage off this box, so a padded
+                  one would measure the indent as part of the scale. */}
               <span
-                className="absolute top-1/2 h-4 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-shell"
-                style={{ left: `${ZERO_PCT}%` }}
-              />
+                aria-hidden="true"
+                className="absolute inset-y-1 left-[1.4rem] right-0"
+              >
+                <span
+                  className="absolute inset-y-0 w-px -translate-x-1/2 bg-sand"
+                  style={{ left: `${ZERO_PCT}%` }}
+                />
+              </span>
+              <ul className="flex flex-col gap-2">
+                {INDICATOR_RULES.map((indicator, i) => (
+                  <li key={indicator.key} className={SUM_ROW}>
+                    <span aria-hidden="true" className={OPERATOR}>
+                      {i > 0 ? "+" : ""}
+                    </span>
+                    <div>
+                      <span className="text-2xs text-ink-soft">{indicator.label}</span>
+                      <Rail zeroPct={PART_ZERO_PCT} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className={`${SUM_ROW} mt-2.5 border-t border-sand pt-2.5`}>
+                <span aria-hidden="true" className={OPERATOR}>
+                  =
+                </span>
+                <div>
+                  <span className="text-2xs font-bold text-ink">The score</span>
+                  <Rail zeroPct={ZERO_PCT} sum />
+                </div>
+              </div>
             </div>
-            <div className="relative mt-2 h-9">
-              <Tick at={0} figure={fmtPoints(SCORE_MIN)} word="all dear" align="left" />
-              <Tick at={ZERO_PCT} figure="0" />
-              <Tick
-                at={100}
-                figure={fmtPoints(SCORE_MAX)}
-                word="all cheap"
-                align="right"
-              />
+            <div className={RAIL_INDENT}>
+              <div className="relative mt-2 h-9">
+                <Tick
+                  at={0}
+                  figure={fmtPoints(SCORE_MIN)}
+                  word="all dear"
+                  align="left"
+                />
+                <Tick at={ZERO_PCT} figure="0" />
+                <Tick
+                  at={100}
+                  figure={fmtPoints(SCORE_MAX)}
+                  word="all cheap"
+                  align="right"
+                />
+              </div>
             </div>
           </div>
         </Station>
 
-        <Station n={3} title="Open the spout" className="lg:col-span-4">
+        <Station n={3} title="Open the spout">
           <p className={LINE}>
             The score picks one of five rungs. The lowest still buys — half the base
             amount, never nothing.
           </p>
+          {/* Each rung is filled to what it buys — a third of the row at 0.5x,
+              all of it at 1.5x — so the five read as a spout opening rather
+              than as five rows that happen to be sorted. It is a fill behind
+              the row and not another column: `water-soft` is the tint a point
+              *earned* already wears in `scoring.tsx`, and it is the one that
+              survives the night, where the row's own bed is nearly the page. */}
           <ul className="mt-3 flex flex-col gap-1">
             {LADDER.map((rung) => (
               <li
                 key={rung.multiplier}
-                className="flex items-center gap-3 rounded-lg bg-sand-soft/60 px-2.5 py-1.5"
+                className="relative overflow-hidden rounded-lg bg-sand-soft/60"
               >
-                <span className="w-[5.25rem] shrink-0 text-xs text-ink-soft">
-                  {rung.band}
-                </span>
-                <ScoreDrops multiplier={rung.multiplier} size="text-[0.7rem]" />
-                <span className="ml-auto font-display text-sm font-semibold text-ink">
-                  &times;{fmtRung(rung.multiplier)}
-                </span>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-y-0 left-0 bg-water-soft"
+                  style={{ width: `${(rung.multiplier / TOP_RUNG) * 100}%` }}
+                />
+                <div className="relative flex items-center gap-3 px-2.5 py-2">
+                  <span className="w-[5.25rem] shrink-0 text-xs text-ink-soft">
+                    {rung.band}
+                  </span>
+                  <ScoreDrops multiplier={rung.multiplier} size="text-[0.7rem]" />
+                  <span className="ml-auto font-display text-sm font-semibold text-ink">
+                    &times;{fmtRung(rung.multiplier)}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>
@@ -155,6 +245,37 @@ export default function Method() {
         a paused Drip lands nothing. Whether the scoring is worth anything is a
         different question, tested further down in Research.
       </p>
+    </div>
+  );
+}
+
+/**
+ * A span from dear to cheap, with the point where it turns marked on it.
+ *
+ * `sum` is the one the three add up to: thicker, at full strength, and the only
+ * one carrying figures. The three above it are the same picture held back, so
+ * the eye reads them as parts of the row under the line rather than as four
+ * scales competing to be the answer. The notch sits outside the faded layer —
+ * it is the alignment the whole graphic rests on and may not fade with it.
+ */
+function Rail({ zeroPct, sum = false }: { zeroPct: number; sum?: boolean }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`relative mt-1 rounded-full ${sum ? "h-2.5" : "h-1.5"}`}
+    >
+      <span
+        className={`absolute inset-0 rounded-full ${sum ? "" : "opacity-70"}`}
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, var(--color-rose), var(--color-sand) " +
+            `${zeroPct}%, var(--color-teal))`,
+        }}
+      />
+      <span
+        className={`absolute top-1/2 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-shell ${sum ? "h-4" : "h-3"}`}
+        style={{ left: `${zeroPct}%` }}
+      />
     </div>
   );
 }
@@ -193,20 +314,22 @@ function Tick({
  * between the columns on a desk (a segment in each grid gap, so it never strikes
  * through a title) and turns into the content's own left-hand spine on a phone,
  * where the three steps stack.
+ *
+ * It carries no width of its own: the three stations are equal thirds of the
+ * band, and the connector's `w-6` is hand-matched to the grid's `lg:gap-6`, so
+ * changing that gap breaks the rail.
  */
 function Station({
   n,
   title,
-  className = "",
   children,
 }: {
   n: number;
   title: string;
-  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className={`relative ${className}`}>
+    <div className="relative">
       {n > 1 && (
         <span
           aria-hidden="true"

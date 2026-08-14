@@ -12,9 +12,8 @@ opt-in.
 
 *Example history, not a real account. Night theme; there is a day one too.*
 
-- **It opens by saying what it does** before a buy: the three things it reads, what each
-  one is worth, and the five rungs they add up to. Those rules used to be in this file
-  and nowhere else.
+- **It opens by saying what it does** before a buy, in three equal steps: what it reads,
+  the three spans adding up to one score, and the five rungs drawn as a spout opening.
 - **Your stack is a tank of water** that fizzes at the strength of the week's signal,
   with four instruments floating on it. Scroll past it and the total follows you into
   the top bar.
