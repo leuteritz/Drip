@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import VaultIcon from "~icons/ph/vault";
-import type { BotSettings, Custody } from "../../api/client";
+import type { BotSettings, Custody, SettingsUpdate } from "../../api/client";
 import { fmtEur, formatDayMonthYear } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { Card, CardHeader, Failed, Loading, Note, Stat, StatFacts, StatRow } from "../ui";
@@ -36,7 +36,7 @@ export default function CustodyCard({
   error?: string | null;
   onRetry?: () => void;
   settings: BotSettings | null;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
 }) {
   const stackAmount = useStackAmount();
 
@@ -243,7 +243,7 @@ function ThresholdRow({
   onSaveSettings,
 }: {
   settings: BotSettings | null;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
 }) {
   const stored = settings?.custody_threshold_eur ?? 0;
   const [draft, setDraft] = useState(String(stored));

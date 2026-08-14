@@ -1,7 +1,7 @@
 import LockIcon from "~icons/ph/lock-simple";
 import type { ScoringVariant, ScoringVariants } from "../../api/client";
 import { fmtEur, fmtPp, WEEKDAYS } from "../../lib/format";
-import { Card, CardHeader, Loading, Note, RangePills } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, RangePills } from "../ui";
 
 /**
  * What the bot would have done under a different scoring, put through the same
@@ -22,8 +22,13 @@ export default function ScoringVariants({
   data,
   windowDays,
   onWindowDays,
+  error,
+  onRetry,
 }: {
   data: ScoringVariants | null;
+  /** This card's own failure, so a dead endpoint cannot leave it spinning. */
+  error?: string | null;
+  onRetry?: () => void;
   windowDays: number;
   onWindowDays: (v: number) => void;
 }) {
@@ -69,7 +74,11 @@ export default function ScoringVariants({
 
       {!data ? (
         <div className="flex h-48 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact what="Replaying the alternative scorings" />
+          {error ? (
+            <Failed compact what="Could not replay the alternatives" why={error} onRetry={onRetry} />
+          ) : (
+            <Loading compact what="Replaying the alternative scorings" />
+          )}
         </div>
       ) : (
         <>

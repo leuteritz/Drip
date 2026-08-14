@@ -23,11 +23,13 @@ Three rules hold it together:
   row. No keys, a refused request, an unexpected response — every one of them
   comes back as a runway that is simply not known, which is a thing the caller
   can say out loud.
-- **`LOW_BUYS` is the same number the well read-out uses** (`WELL_LOW_BUYS` in
-  `components/header/Readouts.tsx`), and so is the arithmetic: whole buys, the
-  remainder dropped. The chip on the water turning rose and Discord calling the
-  well low are one statement made in two places, and they would be worth nothing
-  if they disagreed about when it is true.
+- **`LOW_BUYS` is defined here and nowhere else.** The header's well chip used
+  to carry its own copy, kept in step by a comment; it now reads the number off
+  `/api/account/balance`, which carries it on every answer. The arithmetic is
+  still whole buys with the remainder dropped on both sides, because that is the
+  other half of the agreement. The chip on the water turning rose and Discord
+  calling the well low are one statement, and they would be worth nothing if
+  they disagreed about when it is true.
 - **It reports, it never acts.** Nothing here skips, resizes or defers a buy;
   the exchange is still what decides whether an order can be paid for. This only
   makes sure the answer arrives before the order does.
@@ -39,8 +41,8 @@ from . import credentials
 
 logger = logging.getLogger(__name__)
 
-# How many buys' worth of euros still counts as running dry. Kept in step with
-# WELL_LOW_BUYS in components/header/Readouts.tsx — see the module docstring.
+# How many buys' worth of euros still counts as running dry. The one definition:
+# `routers/account.py` serves it to the header's chip. See the module docstring.
 LOW_BUYS = 2
 
 

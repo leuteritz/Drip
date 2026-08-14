@@ -378,14 +378,6 @@ export function BtcReadout({
 /** Full when the well covers this many base buys. */
 const WELL_FULL_AT_BUYS = 10;
 /**
- * At or below this many remaining buys the well reads as running dry — the same
- * number, and the same whole-buys arithmetic, as `LOW_BUYS` in `backend/app/
- * well.py`, which is what makes Discord call the well low on the week this chip
- * turns rose. Change one and change the other.
- */
-const WELL_LOW_BUYS = 2;
-
-/**
  * Fills the well: Coinbase's deposit page, in a tab of its own.
  *
  * **It becomes its destination while you point at it.** Drip's own glass turns
@@ -453,7 +445,12 @@ export function WellReadout({
     eur != null && nextAmount != null && nextAmount > 0
       ? Math.floor(eur / nextAmount)
       : null;
-  const runningDry = buysLeft != null && buysLeft <= WELL_LOW_BUYS;
+  // The threshold comes down with the balance rather than being written here a
+  // second time: this chip turning rose and Discord calling the well low are one
+  // statement, and `backend/app/well.py` owns the number. The arithmetic above
+  // is still whole buys with the remainder dropped, which is the other half of
+  // the agreement.
+  const runningDry = buysLeft != null && buysLeft <= balance.low_buys;
 
   return (
     <Gauge label="Coinbase well" icon={CoinsIcon}>

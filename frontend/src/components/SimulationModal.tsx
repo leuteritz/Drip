@@ -3,7 +3,8 @@ import XIcon from "~icons/ph/x";
 import TrendUpIcon from "~icons/ph/trend-up";
 import TrendDownIcon from "~icons/ph/trend-down";
 import { api, type BotSettings, type SimulationResult } from "../api/client";
-import { fmtEur, fmtPct, WEEKDAYS } from "../lib/format";
+import { scheduleSentence } from "../lib/cadence";
+import { fmtEur, fmtPct } from "../lib/format";
 import ComparisonChart from "./ComparisonChart";
 import { Loading, Modal, toneText, type Tone } from "./ui";
 
@@ -15,6 +16,20 @@ const PERIODS = [
   { label: "2y", days: 730 },
 ];
 
+/**
+ * The strategy replayed over prices that already happened.
+ *
+ * It buys on the days *this install* buys on — `cadence.py` picks them, and the
+ * sentence under the heading says which rhythm that was. It used to run a hard
+ * week whatever the setting said and admit as much in the same breath ("weekly
+ * whatever your own cadence is"), which is an honest label on the wrong answer:
+ * a monthly saver was shown a strategy nobody here runs. What stays true is the
+ * half of that sentence which was always right — this measures the *scoring*,
+ * and every buy day is scored the way the live bot scores it.
+ *
+ * Read-only in the strongest sense: `simulation.py` never writes a row, so a
+ * backtest cannot reach the history it is compared against.
+ */
 export default function SimulationModal({
   settings,
   onClose,
@@ -59,10 +74,10 @@ export default function SimulationModal({
             <p className="mt-1 text-sm text-ink-soft">
               Replays the scoring -{" "}
               <b className="text-ink">
-                every {WEEKDAYS[settings.schedule_weekday]}, {fmtEur(settings.base_amount_eur)} base
+                {scheduleSentence(settings)}, {fmtEur(settings.base_amount_eur)} base
               </b>{" "}
-              - against real historical prices. Weekly whatever your own cadence
-              is: this measures the strategy, not the schedule.
+              - against real historical prices, on the days your own drip lands
+              on. Nothing is written to your history.
             </p>
           </div>
           <button
@@ -99,7 +114,7 @@ export default function SimulationModal({
         {loading && (
           <Loading
             what={`Backtesting the last ${days} days`}
-            why={`Scoring every ${WEEKDAYS[settings.schedule_weekday]} in the window and buying it again at that day's price. Nothing is written to your history.`}
+            why={`Scoring every buy day in the window — ${scheduleSentence(settings)} — and buying it again at that day's price. Nothing is written to your history.`}
             slow="Still going — the Fear & Greed readings for those weeks are fetched once, then cached for six hours."
           />
         )}

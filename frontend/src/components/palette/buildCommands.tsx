@@ -13,8 +13,10 @@ import NewspaperIcon from "~icons/ph/newspaper";
 import PauseIcon from "~icons/ph/pause";
 import PlayIcon from "~icons/ph/play-fill";
 import QuestionIcon from "~icons/ph/question";
+import LockIcon from "~icons/ph/lock-simple";
 import ShieldCheckIcon from "~icons/ph/shield-check";
 import SlidersIcon from "~icons/ph/sliders-horizontal";
+import SquaresFourIcon from "~icons/ph/squares-four";
 import SunIcon from "~icons/ph/sun";
 import type { BotStatus, Indicators } from "../../api/client";
 import {
@@ -47,6 +49,10 @@ export interface CommandContext {
   editAmount: () => void;
   editSchedule: () => void;
   onSimulate: () => void;
+  onOpenCards: () => void;
+  /** Whether there is a password to sign out of. */
+  locked: boolean;
+  onSignOut: () => void;
   onTestBuy: () => void;
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
@@ -142,6 +148,14 @@ export function buildCommands(ctx: CommandContext): Command[] {
       run: ctx.onSimulate,
     },
     {
+      id: "open-cards",
+      label: "Choose what this page shows",
+      hint: "Hide the cards you never look at",
+      group: "Open",
+      Icon: SquaresFourIcon,
+      run: ctx.onOpenCards,
+    },
+    {
       id: "open-tank",
       label: "Wall display",
       hint: "The reservoir, the price and the next buy, big enough to read across a room",
@@ -209,6 +223,22 @@ export function buildCommands(ctx: CommandContext): Command[] {
           run: () => void ctx.onPause(PAUSE_DAYS),
         },
   );
+
+  // Only ever offered when there is a lock to sign out of. It is the safe
+  // direction, the same category as "back to dry run" below: it opens nothing
+  // and spends nothing, and "I am on a shared laptop" is a real reason to reach
+  // for the palette. Setting the password is not a command — that lives on the
+  // System tab, where what it guards is read.
+  if (ctx.locked) {
+    commands.push({
+      id: "do-sign-out",
+      label: "Sign out",
+      hint: "Lock this browser out again",
+      group: "Do",
+      Icon: LockIcon,
+      run: ctx.onSignOut,
+    });
+  }
 
   // Only the safe direction. Going live stays in the mode toggle, behind its
   // own confirmation.

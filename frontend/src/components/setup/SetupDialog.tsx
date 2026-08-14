@@ -13,10 +13,12 @@ import ShieldIcon from "~icons/ph/shield-check";
 import WarningIcon from "~icons/ph/warning-circle";
 import {
   api,
+  type AuthState,
   type BotSettings,
   type CoinbaseTest,
   type CredentialsUpdate,
   type SetupInfo,
+  type SettingsUpdate,
 } from "../../api/client";
 import { COINBASE_DEPOSIT_URL, COINBASE_KEYS_URL, HOST } from "../../lib/coinbase";
 import type { IconComponent } from "../../lib/commands";
@@ -24,6 +26,7 @@ import { fmtEur } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import { Loading, Modal, Note, OutLink, Toggle } from "../ui";
 import CredentialRow from "./CredentialRow";
+import LockPanel from "./Lock";
 import Maintenance from "./Maintenance";
 import SystemPanel from "./SystemPanel";
 
@@ -57,15 +60,21 @@ export default function SetupDialog({
   onTestWebhook,
   onCredentialsChanged,
   onHistoryChanged,
+  auth,
+  onAuthChanged,
   onOpenDigest,
   onClose,
 }: {
   settings: BotSettings | null;
   initialTab?: SetupTab;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
   onCredentialsChanged: () => void;
   onHistoryChanged: () => void;
+  /** The lock's state, owned by `App` — the header has nothing to say about it,
+   *  but the whole page reloads through it when it is set or removed. */
+  auth: AuthState | null;
+  onAuthChanged: (state: AuthState) => void;
   onOpenDigest: () => void;
   onClose: () => void;
 }) {
@@ -183,6 +192,9 @@ export default function SetupDialog({
             onRefresh={load}
             refreshing={refreshing}
           />
+          {/* Between the facts and the irreversible actions: what this
+              password most guards is the two rows below it. */}
+          <LockPanel auth={auth} onChanged={onAuthChanged} />
           <Maintenance
             purchaseCount={setup.system.purchase_count}
             onChanged={() => {
@@ -357,7 +369,7 @@ function DiscordTab({
   rows: SetupInfo["credentials"];
   settings: BotSettings | null;
   onSave: (update: CredentialsUpdate) => Promise<void>;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
   onOpenDigest: () => void;
 }) {

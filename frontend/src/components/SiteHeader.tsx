@@ -8,8 +8,10 @@ import {
 } from "react";
 import DropFillIcon from "~icons/ph/drop-fill";
 import DropSlashIcon from "~icons/ph/drop-slash";
+import { api } from "../api/client";
 import type {
   AccountBalance,
+  AuthState,
   BotSettings,
   BotStatus,
   DigestSettings,
@@ -19,6 +21,7 @@ import type {
   Preflight,
   Purchase,
   RunResult,
+  SettingsUpdate,
 } from "../api/client";
 import { isPaletteShortcut } from "../lib/commands";
 import { fmtEur, fmtPct, formatDayMonth } from "../lib/format";
@@ -82,6 +85,9 @@ export default function SiteHeader({
   onToggleUnit,
   onToggleDryRun,
   onSimulate,
+  onOpenCards,
+  auth,
+  onAuthChanged,
   onTestBuy,
   onBuyNow,
   onSetDryRun,
@@ -119,10 +125,15 @@ export default function SiteHeader({
   onToggleUnit: () => void;
   onToggleDryRun: (v: boolean) => void;
   onSimulate: () => void;
+  /** The Overview's card list. Lives in `App` — see there. */
+  onOpenCards: () => void;
+  /** The optional lock, for the setup dialog's System tab. */
+  auth: AuthState | null;
+  onAuthChanged: (state: AuthState) => void;
   onTestBuy: () => void;
   onBuyNow: (amountEur: number) => Promise<void>;
   onSetDryRun: (dry: boolean) => void;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
   onTestWebhook: () => Promise<boolean>;
@@ -184,6 +195,14 @@ export default function SiteHeader({
     [jumpTo, onSearchHistory],
   );
 
+  // Signing out reloads for the same reason signing in does: every piece of
+  // server state `App` holds is about to become unreachable, and the lock screen
+  // is what should be standing there when it is.
+  const signOut = useCallback(async () => {
+    await api.logout().catch(() => undefined);
+    window.location.reload();
+  }, []);
+
   // Ctrl/Cmd-K from anywhere in the scroll. Registered here rather than in the
   // palette because the palette only exists once it is open.
   useEffect(() => {
@@ -214,6 +233,9 @@ export default function SiteHeader({
         editAmount: () => editSpout("amount"),
         editSchedule: () => editSpout("when"),
         onSimulate,
+        onOpenCards,
+        locked: auth?.required === true,
+        onSignOut: signOut,
         onTestBuy,
         onPause,
         onResume,
@@ -227,7 +249,10 @@ export default function SiteHeader({
       includeDryRun,
       indicators,
       jumpTo,
+      auth?.required,
+      onOpenCards,
       onPause,
+      signOut,
       onResume,
       onSetDryRun,
       onSetTheme,
@@ -433,6 +458,8 @@ export default function SiteHeader({
           onTestWebhook={onTestWebhook}
           onCredentialsChanged={onCredentialsChanged}
           onHistoryChanged={onHistoryChanged}
+          auth={auth}
+          onAuthChanged={onAuthChanged}
           onOpenDigest={() => {
             setSetupTab(null);
             setDigestOpen(true);

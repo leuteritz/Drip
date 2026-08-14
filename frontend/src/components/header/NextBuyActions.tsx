@@ -7,7 +7,7 @@ import PauseIcon from "~icons/ph/pause";
 import PencilIcon from "~icons/ph/pencil-simple";
 import PlayIcon from "~icons/ph/play-fill";
 import QuestionIcon from "~icons/ph/question";
-import type { BotSettings, BotStatus, Indicators } from "../../api/client";
+import type { BotSettings, BotStatus, Indicators, SettingsUpdate } from "../../api/client";
 import { CADENCES, cadenceOf, periodMs, scheduleChip } from "../../lib/cadence";
 import { fmtEur, formatDayMonth, formatWeekdayTime, WEEKDAYS } from "../../lib/format";
 import { ScoreDrops } from "../drops";
@@ -130,7 +130,7 @@ export default function NextBuyActions({
   status: BotStatus | null;
   editing: SpoutEdit | null;
   onEdit: (target: SpoutEdit | null) => void;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
   onPause: (days: number) => Promise<void>;
   onResume: () => Promise<void>;
   onTestBuy: () => void;
@@ -197,7 +197,7 @@ export default function NextBuyActions({
   const amountMain = dot >= 0 ? amount.slice(0, dot) : amount;
   const amountCents = dot >= 0 ? amount.slice(dot) : "";
 
-  const save = async (update: Partial<BotSettings>) => {
+  const save = async (update: SettingsUpdate) => {
     await onSaveSettings(update);
     setSaved(true);
     window.setTimeout(() => setSaved(false), SAVED_FLASH_MS);

@@ -23,7 +23,7 @@ import {
 } from "../../lib/chart";
 import { fmtEur, formatDayMonth } from "../../lib/format";
 import { ChartTooltipCard } from "../charts/PurchaseDrop";
-import { Card, CardHeader, Loading, Note, RangePills } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, RangePills } from "../ui";
 
 /**
  * The score read daily instead of weekly, against the price it was read from.
@@ -39,9 +39,14 @@ export default function ScoreHistory({
   events,
   days,
   onDays,
+  error,
+  onRetry,
 }: {
   data: ScorePoint[] | null;
   events: ChartEvent[] | null;
+  /** This card's own failure, so a dead endpoint cannot leave it spinning. */
+  error?: string | null;
+  onRetry?: () => void;
   days: number;
   onDays: (v: number) => void;
 }) {
@@ -83,7 +88,11 @@ export default function ScoreHistory({
 
       {!data ? (
         <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact what="Re-scoring every day in the window" />
+          {error ? (
+            <Failed compact what="Could not re-score the window" why={error} onRetry={onRetry} />
+          ) : (
+            <Loading compact what="Re-scoring every day in the window" />
+          )}
         </div>
       ) : (
         <>

@@ -194,7 +194,7 @@ def apply(staged: Path) -> dict:
     works — drop the pool, move the old file aside, move the new one in, migrate
     it, then invalidate everything that was an answer about the old one.
     """
-    from . import credentials, indicators, research, scheduler, trading
+    from . import auth, credentials, indicators, research, scheduler, trading
     from .database import (
         engine,
         init_db,
@@ -217,6 +217,13 @@ def apply(staged: Path) -> dict:
     init_db()
 
     # Everything cached in this process was an answer about a file that is gone.
+    # The lock goes with them, and it is the one worth naming: the replaced
+    # database's opinion about who may come in may not outlive it. A backup from
+    # before there was a password restores an install with no password, and one
+    # taken under a different password takes that password's sessions down with
+    # it — both correct, and both a consequence of `auth.Lock.signing_key`
+    # rather than anything coded here.
+    auth.invalidate()
     credentials.invalidate()
     trading.invalidate_balance_cache()
     research.clear_cache()

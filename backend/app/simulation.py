@@ -2,9 +2,16 @@
 
 Uses the same scoring as the live bot (`strategy.score_indicators`) with the
 real historical Fear & Greed values, so the result is an honest what-if for the
-user's current schedule/base-amount settings. Purchases happen weekly on the
-configured weekday. Nothing is written to the database - this is a read-only
-computation, so it never pollutes the real purchase history.
+user's current settings. Nothing is written to the database - this is a
+read-only computation, so it never pollutes the real purchase history.
+
+Buys land on the days *this install actually buys on*, `cadence.py` deciding
+which those are. It used to step a hard seven days whatever the setting said,
+which was defended as "the backtest measures the scoring, not the calendar" —
+and that is exactly half right. It justifies why a buy day is scored the same
+way here as anywhere; it never justified showing a monthly saver a weekly
+simulation and calling it their strategy. Both hold at once: the same scoring,
+on the days the drip drips.
 
 DCA baseline: the same base amount is invested at every purchase date (as if
 the multiplier were always 1.0), matching the convention in `analytics.py`.
@@ -15,7 +22,7 @@ from datetime import date, timedelta
 
 from sqlmodel import Session
 
-from . import indicators, strategy
+from . import cadence, indicators, strategy
 from .market_data import ensure_candles
 from .models import BotSettings
 from .portfolio import InvestmentEvent, build_series, side_summary
@@ -23,14 +30,24 @@ from .portfolio import InvestmentEvent, build_series, side_summary
 NEUTRAL_FNG = 50  # used for dates the Fear & Greed history doesn't cover
 
 
-def _purchase_days(start: date, end: date, weekday: int) -> list[date]:
-    """Every `weekday` within [start, end] - the simulated buy schedule."""
-    first = start + timedelta(days=(weekday - start.weekday()) % 7)
+def _purchase_days(start: date, end: date, key: str, weekday: int) -> list[date]:
+    """Every day inside [start, end] the drip would have landed on.
+
+    Walked a period at a time through `cadence`, never by adding a fixed number
+    of days: a month is not 30 of them, and the module that knows what a period
+    is is the only one allowed to say. The first period is skipped when its own
+    slot falls before the window - a buy that would have happened last month is
+    not one this window gets to count.
+    """
     days: list[date] = []
-    day = first
-    while day <= end:
-        days.append(day)
-        day += timedelta(days=7)
+    period = cadence.period_start(start, key)
+    while True:
+        slot = cadence.slot_day(period, key, weekday)
+        if slot > end:
+            break
+        if slot >= start:
+            days.append(slot)
+        period = cadence.advance(period, key)
     return days
 
 
@@ -79,8 +96,9 @@ def backtest(session: Session, days: int, settings: BotSettings) -> dict:
     day_list = [c.day for c in candles]
     closes = [c.close for c in candles]
 
+    drip = cadence.get(settings.cadence)
     events = _simulate_events(
-        _purchase_days(start, end, settings.schedule_weekday),
+        _purchase_days(start, end, drip.key, settings.schedule_weekday),
         day_list,
         closes,
         settings.base_amount_eur,
@@ -100,6 +118,11 @@ def backtest(session: Session, days: int, settings: BotSettings) -> dict:
             "start_date": start.isoformat(),
             "end_date": end.isoformat(),
             "weekday": settings.schedule_weekday,
+            # The rhythm that was replayed. It travels with the summary because
+            # the dialog says which one out loud - a backtest that quietly ran a
+            # different schedule than the install does is the one thing this
+            # card must not do.
+            "cadence": drip.key,
             "base_amount_eur": settings.base_amount_eur,
             "bot": side_summary(
                 sum(e.bot_eur for e in events),

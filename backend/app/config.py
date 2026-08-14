@@ -12,6 +12,11 @@ class AppConfig(BaseSettings):
     coinbase_api_key: str = ""
     coinbase_api_secret: str = ""
     discord_webhook_url: str = ""
+    # The optional lock's bootstrap, and the way back in after locking yourself
+    # out: set it here, restart the backend, and the dashboard is reachable
+    # again. Empty means no lock, which is what Drip has always been. Hashed at
+    # resolve time, never stored - see `auth.py`.
+    drip_password: str = ""
 
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",

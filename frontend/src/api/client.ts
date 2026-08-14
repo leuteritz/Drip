@@ -4,6 +4,7 @@
 import type {
   AccountBalance,
   Attribution,
+  AuthState,
   BotSettings,
   BotStatus,
   Candle,
@@ -28,6 +29,7 @@ import type {
   Purchase,
   Receipt,
   RollingWindows,
+  SettingsUpdate,
   RunResult,
   ScorePoint,
   ScoringVariants,
@@ -53,20 +55,52 @@ function describeError(status: number, body: string): string {
   return body ? `API error ${status}: ${body}` : `API error ${status}`;
 }
 
+/**
+ * What to do when the backend says "sign in".
+ *
+ * This is the only place in the app that can see a 401 at all — it is the only
+ * place that talks to the backend — so a session that dies mid-visit (thirty
+ * days on, or because the password was changed on another device) puts the lock
+ * screen back up instead of firing `ErrorToast` nine times. `App` registers it.
+ */
+let onUnauthorized: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: () => void) {
+  onUnauthorized = handler;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  // `credentials` defaults to "same-origin", which is exactly what the session
+  // cookie needs — stated here so nobody "fixes" it by adding an option.
   const resp = await fetch(path, {
     headers: { "Content-Type": "application/json" },
     ...init,
   });
   if (!resp.ok) {
+    if (resp.status === 401) onUnauthorized?.();
     throw new Error(describeError(resp.status, await resp.text()));
   }
   return resp.json() as Promise<T>;
 }
 
 export const api = {
+  /** Whether there is a lock, and whether this browser is past it. Open. */
+  getAuth: () => request<AuthState>("/api/auth"),
+  login: (password: string, stay: boolean) =>
+    request<AuthState>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ password, stay }),
+    }),
+  logout: () => request<AuthState>("/api/auth/logout", { method: "POST" }),
+  /** An empty `next` removes the lock — asked twice before it is sent. */
+  setPassword: (current: string, next: string) =>
+    request<AuthState>("/api/auth/password", {
+      method: "PUT",
+      body: JSON.stringify({ current, new: next }),
+    }),
+
   getSettings: () => request<BotSettings>("/api/settings"),
-  updateSettings: (update: Partial<BotSettings>) =>
+  updateSettings: (update: SettingsUpdate) =>
     request<BotSettings>("/api/settings", {
       method: "PUT",
       body: JSON.stringify(update),
@@ -162,6 +196,9 @@ export const api = {
   deleteAllPurchases: () =>
     request<{ deleted: number }>("/api/purchases", { method: "DELETE" }),
   exportUrl: "/api/purchases/export",
+  /** One calendar year's acquisitions, for a tax return. Real buys only, and
+   *  it computes no tax — see `backend/app/tax.py`. */
+  taxUrl: (year: number) => `/api/purchases/tax.csv?year=${year}`,
   importPurchases: async (file: File, includeErrors: boolean): Promise<ImportResult> => {
     const fd = new FormData();
     fd.append("file", file);

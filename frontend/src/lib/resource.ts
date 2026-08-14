@@ -20,6 +20,13 @@ import { useCallback, useEffect, useState, type DependencyList } from "react";
  * either — but `LoadKey`/`LOAD_LABELS` are for the loads `App` owns and the
  * sticky bar names. The dashboard's are section-owned, the same split
  * `Research.tsx` has always had. The omission is a decision, not an oversight.
+ *
+ * `enabled` is the other half of the card-visibility setting: **a load nobody is
+ * going to read is a request a Pi should not make.** Hiding the waterline stops
+ * the backend walking the whole comparison series for it; hiding custody stops
+ * the dashboard asking Coinbase at all. A disabled resource is not an error and
+ * not a wait — it is `{data: null, error: null}`, which the card never sees,
+ * because it is not rendered.
  */
 export interface Resource<T> {
   data: T | null;
@@ -32,6 +39,7 @@ export interface Resource<T> {
 export function useResource<T>(
   load: () => Promise<T>,
   deps: DependencyList,
+  enabled: boolean = true,
 ): Resource<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +52,7 @@ export function useResource<T>(
   }, []);
 
   useEffect(() => {
+    if (!enabled) return;
     // A response that lands after its dependencies moved on is a different
     // question's answer — most visibly when the dry-run filter is toggled twice
     // in a row and the slower first request settles last.
@@ -65,7 +74,7 @@ export function useResource<T>(
     // `load` is a fresh closure every render, so it is deliberately not a
     // dependency — the caller's `deps` say when the question actually changed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps, attempt]);
+  }, [...deps, attempt, enabled]);
 
   return { data, error, retry };
 }

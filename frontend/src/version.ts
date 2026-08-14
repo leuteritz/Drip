@@ -17,6 +17,18 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "3.0",
+    date: "2026-08-14",
+    changes: [
+      "Drip can be locked. Set a password under Setup and anyone on your network needs it before they can reach your keys, your history or the buy button — leave it empty and nothing changes at all",
+      "A wall display signs in once and stays signed in, because a monitor nobody sits at cannot type a password",
+      "You choose what the page shows. Seven cards, ticked on and off like the weekly report's sections — the ones you hide are not even fetched",
+      "The backtest now buys on the days you actually buy on. A monthly saver was being shown a weekly strategy nobody here runs",
+      "Every year can be downloaded for your tax return: what you bought, when, and which buys are past the one-year rule. It works out no tax — that stays with the person who files it",
+      "A card that cannot be drawn now says so instead of taking the page down with it",
+    ],
+  },
+  {
     version: "2.48",
     date: "2026-08-14",
     changes: [

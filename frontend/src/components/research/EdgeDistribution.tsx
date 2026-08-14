@@ -24,6 +24,7 @@ import { ChartTooltipCard } from "../charts/PurchaseDrop";
 import {
   Card,
   CardHeader,
+  Failed,
   Loading,
   Note,
   RangePills,
@@ -57,8 +58,13 @@ export default function EdgeDistribution({
   data,
   windowDays,
   onWindowDays,
+  error,
+  onRetry,
 }: {
   data: RollingWindows | null;
+  /** This card's own failure, so a dead endpoint cannot leave it spinning. */
+  error?: string | null;
+  onRetry?: () => void;
   windowDays: number;
   onWindowDays: (v: number) => void;
 }) {
@@ -105,7 +111,11 @@ export default function EdgeDistribution({
 
       {!data ? (
         <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact what="Rolling the test window across the years" />
+          {error ? (
+            <Failed compact what="Could not run the rolling test" why={error} onRetry={onRetry} />
+          ) : (
+            <Loading compact what="Rolling the test window across the years" />
+          )}
         </div>
       ) : windows.length === 0 ? (
         <p className="py-10 text-center text-sm text-ink-soft">

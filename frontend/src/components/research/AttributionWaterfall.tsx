@@ -1,6 +1,6 @@
 import type { Attribution } from "../../api/client";
 import { fmtEur, fmtEurSigned, fmtPp, WEEKDAYS } from "../../lib/format";
-import { Card, CardHeader, Loading, Note, RangePills, Stat, StatRow, toneText } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, RangePills, Stat, StatRow, toneText } from "../ui";
 
 /**
  * Where the edge over plain DCA comes from, as a waterfall.
@@ -17,8 +17,13 @@ export default function AttributionWaterfall({
   data,
   days,
   onDays,
+  error,
+  onRetry,
 }: {
   data: Attribution | null;
+  /** This card's own failure, so a dead endpoint cannot leave it spinning. */
+  error?: string | null;
+  onRetry?: () => void;
   days: number;
   onDays: (v: number) => void;
 }) {
@@ -84,7 +89,18 @@ export default function AttributionWaterfall({
       </CardHeader>
 
       {!data ? (
-        <Skeleton rows={4} />
+        error ? (
+          <div className="flex h-48 items-center justify-center rounded-xl bg-sand-soft/40">
+            <Failed
+              compact
+              what="Could not split the edge"
+              why={error}
+              onRetry={onRetry}
+            />
+          </div>
+        ) : (
+          <Skeleton rows={4} />
+        )
       ) : (
         <>
           <StatRow className="mb-4">

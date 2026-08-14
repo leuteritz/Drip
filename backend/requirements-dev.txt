@@ -1,0 +1,9 @@
+# Test-only, and deliberately not in requirements.txt: the ARM64 image stays as
+# light as it is, and nothing here is imported by the app. Run them against the
+# built image rather than installing on the Pi:
+#
+#   docker compose build backend
+#   docker run --rm drip-backend sh -c "pip install -q -r requirements-dev.txt && python -m pytest -q"
+#
+-r requirements.txt
+pytest>=8.0

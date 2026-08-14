@@ -3,7 +3,9 @@ import WarningIcon from "~icons/ph/warning-fill";
 import XIcon from "~icons/ph/x";
 import {
   api,
+  setUnauthorizedHandler,
   type AccountBalance,
+  type AuthState,
   type BotSettings,
   type BotStatus,
   type DigestSettings,
@@ -13,6 +15,7 @@ import {
   type Preflight,
   type Purchase,
   type RunResult,
+  type SettingsUpdate,
 } from "./api/client";
 import { hexFromSignalColor, paintFavicon } from "./lib/favicon";
 import { useLoadTracker } from "./lib/loading";
@@ -21,6 +24,10 @@ import { useTheme } from "./lib/theme";
 import { UnitProvider, useUnitChoice } from "./lib/units";
 import SiteHeader from "./components/SiteHeader";
 import SimulationModal from "./components/SimulationModal";
+import ErrorBoundary from "./components/ErrorBoundary";
+import CardsDialog from "./components/stack/CardsDialog";
+import { merged } from "./lib/cards";
+import Lock from "./pages/Lock";
 import Overview from "./pages/Dashboard";
 import HistorySection from "./pages/History";
 import Research from "./pages/Research";
@@ -32,6 +39,11 @@ const TANK_REFRESH_MS = 5 * 60 * 1000;
 
 export default function App() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // The optional lock. Asked *before* everything else, because with a password
+  // set every other request 401s — so this is the one fetch that cannot be part
+  // of the parallel opening batch. `null` means the question is still out, and
+  // the app renders nothing until it is answered.
+  const [auth, setAuth] = useState<AuthState | null>(null);
   const [settings, setSettings] = useState<BotSettings | null>(null);
   const [status, setStatus] = useState<BotStatus | null>(null);
   const [digest, setDigest] = useState<DigestSettings | null>(null);
@@ -59,6 +71,10 @@ export default function App() {
   const [buying, setBuying] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showSim, setShowSim] = useState(false);
+  // Which cards the Overview shows. Held here rather than in `SiteHeader` for
+  // the reason `showSim` is: it is opened from two places that are nowhere near
+  // each other — the palette at the top and the foot of the section itself.
+  const [cardsOpen, setCardsOpen] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   // Day or night. Server state this is not, but it belongs with everything else
   // the header needs handed to it.
@@ -152,11 +168,22 @@ export default function App() {
   // and next-buy readouts update immediately. Schedule edits reschedule on the
   // backend (routers/settings.py).
   const saveSettings = useCallback(
-    async (update: Partial<BotSettings>) => {
+    async (update: SettingsUpdate) => {
       setSettings(await api.updateSettings(update));
       reloadStatus();
     },
     [reloadStatus],
+  );
+
+  // One card flipped. The whole resolved selection goes up rather than the one
+  // change, so the column holds what is actually on screen — see `lib/cards.ts`.
+  // It goes through `saveSettings`, so the page re-renders the moment it lands
+  // and the dialog needs no preview of its own: the page behind it is one.
+  const toggleCard = useCallback(
+    (key: string, on: boolean) => {
+      saveSettings({ cards: merged(settings?.cards, key, on) }).catch(report);
+    },
+    [report, saveSettings, settings?.cards],
   );
 
   const pause = useCallback(
@@ -241,8 +268,27 @@ export default function App() {
     return () => window.clearInterval(id);
   }, [includeDryRun, isTank, loadPerformance, reloadIndicators, reloadStatus]);
 
+  // A session that dies mid-visit — thirty days on, or because the password was
+  // changed on another device — puts the lock screen back rather than firing the
+  // error toast once per card. `client.ts` is the only thing that can see a 401.
+  useEffect(() => {
+    setUnauthorizedHandler(() =>
+      setAuth((current) =>
+        current?.authenticated === false
+          ? current
+          : { required: true, authenticated: false, source: current?.source ?? "dashboard" },
+      ),
+    );
+  }, []);
+
   useEffect(() => {
     (async () => {
+      // Before the batch, never inside it: with a lock on, the other four would
+      // 401 first and the toast would beat the lock screen to the page.
+      const state = await api.getAuth().catch(() => null);
+      setAuth(state ?? { required: false, authenticated: true, source: "none" });
+      if (state?.required && !state.authenticated) return;
+
       const [st, set, purch, dig] = await Promise.all([
         track("status", api.getStatus()).catch(report),
         track("settings", api.getSettings()).catch(report),
@@ -264,15 +310,30 @@ export default function App() {
     })();
   }, [loadPerformance, reloadBalance, reloadIndicators, reloadPreflight, report, track]);
 
+  // Nothing renders until the lock has answered — a flash of the dashboard in
+  // front of a locked install would be a worse first frame than a blank one.
+  if (!auth) return <div className="h-full bg-shell" />;
+  if (auth.required && !auth.authenticated) {
+    // A reload rather than choreographed state, exactly as the restore flow
+    // does it: settings, history, keys and schedule are all about to exist for
+    // the first time. It keeps `#tank` in the hash, so a kiosk lands on the wall.
+    return <Lock onIn={() => window.location.reload()} />;
+  }
+
   if (isTank) {
     return (
       <UnitProvider value={unit}>
-        <Tank
-          performance={performance}
-          indicators={indicators}
-          settings={settings}
-          status={status}
-        />
+        {/* The one screen nobody is sitting in front of, so it is the one that
+            most needs this: a throw here used to leave a white monitor on a
+            wall until somebody walked past it. */}
+        <ErrorBoundary what="The wall display stopped" on="water">
+          <Tank
+            performance={performance}
+            indicators={indicators}
+            settings={settings}
+            status={status}
+          />
+        </ErrorBoundary>
       </UnitProvider>
     );
   }
@@ -303,6 +364,9 @@ export default function App() {
             onToggleUnit={toggleUnit}
             onToggleDryRun={onToggleDryRun}
             onSimulate={() => setShowSim(true)}
+            onOpenCards={() => setCardsOpen(true)}
+            auth={auth}
+            onAuthChanged={setAuth}
             onTestBuy={testBuy}
             onBuyNow={buyNow}
             buying={buying}
@@ -320,25 +384,37 @@ export default function App() {
             runResult={runResult}
           />
 
+          {/* One boundary per section rather than one for the page: a throw in
+              the research charts must not take the history with it, and the
+              sections are the largest thing a reader still recognises as "the
+              part that is missing". A card that fails to *load* still answers
+              for itself — this is only for one that fails to render. */}
           <main className="flex flex-col">
-            <Overview
-              purchases={purchases}
-              purchasesLoaded={purchasesLoaded}
-              settings={settings}
-              includeDryRun={includeDryRun}
-              running={running}
-              onTestBuy={testBuy}
-              onToggleDryRun={onToggleDryRun}
-              onSaveSettings={saveSettings}
-            />
-            <Research scrollRef={scrollRef} />
-            <HistorySection
-              purchases={purchases}
-              query={historyQuery}
-              onQuery={setHistoryQuery}
-              loading={!purchasesLoaded}
-              onChanged={reloadPurchases}
-            />
+            <ErrorBoundary what="Could not draw your overview">
+              <Overview
+                purchases={purchases}
+                purchasesLoaded={purchasesLoaded}
+                settings={settings}
+                includeDryRun={includeDryRun}
+                running={running}
+                onTestBuy={testBuy}
+                onToggleDryRun={onToggleDryRun}
+                onSaveSettings={saveSettings}
+                onOpenCards={() => setCardsOpen(true)}
+              />
+            </ErrorBoundary>
+            <ErrorBoundary what="Could not draw the strategy tests">
+              <Research scrollRef={scrollRef} />
+            </ErrorBoundary>
+            <ErrorBoundary what="Could not draw your buy history">
+              <HistorySection
+                purchases={purchases}
+                query={historyQuery}
+                onQuery={setHistoryQuery}
+                loading={!purchasesLoaded}
+                onChanged={reloadPurchases}
+              />
+            </ErrorBoundary>
           </main>
         </div>
 
@@ -350,6 +426,16 @@ export default function App() {
           <SimulationModal
             settings={settings}
             onClose={() => setShowSim(false)}
+          />
+        )}
+
+        {/* No preview of its own: the page behind it is the preview, which is
+            why it is narrow and closes on the backdrop. */}
+        {cardsOpen && (
+          <CardsDialog
+            cards={settings?.cards}
+            onToggle={toggleCard}
+            onClose={() => setCardsOpen(false)}
           />
         )}
       </div>

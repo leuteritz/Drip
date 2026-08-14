@@ -3,15 +3,14 @@ from sqlmodel import Session
 
 from .. import strategy
 from ..database import get_session
-from ..market_data import ensure_candles, get_current_price
+from ..market_data import ensure_candles
 from ..schemas import CandleResponse, IndicatorsResponse
 
+# There was a `GET /price` here, and it went because nothing ever called it: the
+# header reads the price off `/indicators`, which has to score the market anyway
+# and carries `current_price` with the rest. A spot price on its own is available
+# to any caller through `market_data.get_current_price`.
 router = APIRouter(prefix="/api/market", tags=["market"])
-
-
-@router.get("/price")
-def price() -> dict:
-    return {"price": get_current_price()}
 
 
 @router.get("/candles", response_model=list[CandleResponse])

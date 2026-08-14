@@ -1,6 +1,6 @@
 import type { CandidateSignals, SignalScreenRow } from "../../api/client";
 import { tintFor } from "../../lib/chart";
-import { Card, CardHeader, Loading, Note, RangePills } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, RangePills } from "../ui";
 
 /**
  * Every signal, the three that are live and three that are not, put through
@@ -22,8 +22,13 @@ export default function SignalScreen({
   data,
   days,
   onDays,
+  error,
+  onRetry,
 }: {
   data: CandidateSignals | null;
+  /** This card's own failure, so a dead endpoint cannot leave it spinning. */
+  error?: string | null;
+  onRetry?: () => void;
   days: number;
   onDays: (v: number) => void;
 }) {
@@ -77,7 +82,11 @@ export default function SignalScreen({
 
       {!data ? (
         <div className="flex h-64 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact what="Screening the signals that are not in the score" />
+          {error ? (
+            <Failed compact what="Could not screen the signals" why={error} onRetry={onRetry} />
+          ) : (
+            <Loading compact what="Screening the signals that are not in the score" />
+          )}
         </div>
       ) : (
         <>

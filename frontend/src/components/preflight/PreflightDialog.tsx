@@ -3,7 +3,7 @@ import CheckIcon from "~icons/ph/check-circle-fill";
 import QuestionIcon from "~icons/ph/question";
 import WarningIcon from "~icons/ph/warning-fill";
 import XCircleIcon from "~icons/ph/x-circle-fill";
-import type { BotSettings, Preflight, PreflightStatus } from "../../api/client";
+import type { BotSettings, Preflight, PreflightStatus, SettingsUpdate } from "../../api/client";
 import { fmtEur, formatDayMonth, formatWeekdayTime } from "../../lib/format";
 import { Loading, Modal, Note, Toggle } from "../ui";
 
@@ -75,7 +75,7 @@ export default function PreflightDialog({
   report: Preflight | null;
   refreshing: boolean;
   settings: BotSettings | null;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
   onRefresh: () => void;
   onClose: () => void;
 }) {

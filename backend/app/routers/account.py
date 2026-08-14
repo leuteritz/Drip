@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter
 
-from .. import credentials
+from .. import credentials, well
 from ..schemas import BalanceResponse
 from ..trading import CoinbaseError, get_balances_cached
 
@@ -20,12 +20,19 @@ def balance():
 
     Always returns 200 so the dashboard degrades gracefully: without
     credentials `configured` is false, on API failure `error` is set.
+
+    `low_buys` rides along on every answer, including the two that carry no
+    balance at all. It is `well.LOW_BUYS` - the threshold the header's well chip
+    turns rose at, which used to be written down a second time in `Readouts.tsx`
+    and kept in step by a comment. The chip turning rose and Discord calling the
+    well low are one statement, so there is one number and the backend owns it.
     """
+    threshold = {"low_buys": well.LOW_BUYS}
     if not credentials.current().has_coinbase:
-        return {"configured": False, **_UNAVAILABLE, "error": None}
+        return {"configured": False, **_UNAVAILABLE, **threshold, "error": None}
     try:
         balances = get_balances_cached()
     except CoinbaseError as exc:
         logger.warning("Balance fetch failed: %s", exc)
-        return {"configured": True, **_UNAVAILABLE, "error": str(exc)}
-    return {"configured": True, **balances, "error": None}
+        return {"configured": True, **_UNAVAILABLE, **threshold, "error": str(exc)}
+    return {"configured": True, **balances, **threshold, "error": None}

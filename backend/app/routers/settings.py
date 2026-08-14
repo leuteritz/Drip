@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from .. import cadence, pauses, scheduler
+from .. import cadence, cards, pauses, scheduler
 from ..database import get_session, load_settings
 from ..models import BotSettings
 from ..schemas import PauseRequest, SettingsUpdate
@@ -36,6 +36,22 @@ def update_settings(update: SettingsUpdate, session: Session = Depends(get_sessi
             status_code=400,
             detail=f"Unknown cadence - one of {', '.join(cadence.KEYS)}",
         )
+    # Merged rather than replaced, so the dialog can send one card at a time —
+    # `routers/digest.py`'s shape. The refusal is about the blob's *form* alone:
+    # `cards.py` deliberately owns no list of card names, so an unrecognised one
+    # is kept rather than dropped. See that module on why the two differ.
+    #
+    # Popped whichever it was, because the loop below deliberately has no
+    # `is not None` guard — `paused_until: null` is how a resume is asked for —
+    # and letting a null through here would empty the column instead of the
+    # frontend's own no-op.
+    if "cards" in data:
+        update_cards = data.pop("cards")
+        if update_cards is not None:
+            try:
+                settings.cards = cards.merge(settings.cards, update_cards)
+            except cards.CardsError as exc:
+                raise HTTPException(status_code=400, detail=str(exc))
     for key, value in data.items():
         setattr(settings, key, value)
     # Pausing is pausing however it was asked for: the dashboard uses the two

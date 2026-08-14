@@ -26,6 +26,37 @@ export interface BotSettings {
   /** What the stack on the exchange may be worth before Drip mentions that it
    *  is still there. 0 keeps the figures and drops the nudge. */
   custody_threshold_eur: number;
+  /** Which Overview cards to show, as a JSON object of {card key: bool}. Only
+   *  `lib/cards.ts` parses it — a missing key means that card's own default, so
+   *  a card added in a later version arrives switched on. */
+  cards: string;
+}
+
+/**
+ * A partial edit of the bot's settings.
+ *
+ * Everything is `BotSettings`' own type except `cards`, which is asymmetric on
+ * the wire the way `DigestUpdate.blocks` is: an object of toggles goes up and is
+ * merged into the stored selection, and the stored *string* comes back down. So
+ * a single card can be flipped without the client having to rebuild the blob —
+ * which is also why this cannot simply be `Partial<BotSettings>`.
+ */
+export type SettingsUpdate = Partial<Omit<BotSettings, "cards">> & {
+  cards?: Record<string, boolean>;
+};
+
+/**
+ * Whether there is a password in front of the API, and whether we are past it.
+ *
+ * `required: false` is the ordinary case and means Drip is exactly what it has
+ * always been — no lock, nothing to sign into, and the lock screen never shown.
+ * `source` says where the password came from, which the setup panel needs: one
+ * set in `backend/.env` cannot be cleared from the dashboard.
+ */
+export interface AuthState {
+  required: boolean;
+  authenticated: boolean;
+  source: "dashboard" | "env" | "none";
 }
 
 export interface BotStatus {
@@ -422,6 +453,9 @@ export interface AccountBalance {
   configured: boolean;
   eur_available: number | null;
   btc_available: number | null;
+  /** At or below this many remaining buys the well reads as running dry. The
+   *  backend's `well.LOW_BUYS`, carried here so there is only one of it. */
+  low_buys: number;
   error: string | null;
 }
 
@@ -440,6 +474,8 @@ export interface SimulationSummary {
   start_date: string;
   end_date: string;
   weekday: number;
+  /** The rhythm that was replayed — the install's own, not a fixed week. */
+  cadence: CadenceKey;
   base_amount_eur: number;
   bot: PerformanceSide;
   dca: PerformanceSide;

@@ -28,12 +28,16 @@ opt-in.
 - **It reads the history a year at a time** - what each year cost, what it stacked and
   what it is worth now. Everything else is all-time, which is how a first year disappears.
 - **It says where the stack is kept**, and how much has moved out of reach.
-- **It admits what it cannot answer**: a card that fails to load says so and offers to
-  try again.
+- **It admits what it cannot answer**: a card that cannot be loaded, or drawn, says so
+  and offers to try again rather than taking the page with it.
+- **You choose what it shows** - seven cards, ticked on and off. The ones you hide are
+  not even fetched.
 - **Underneath**: the strategy audited against itself - opening with how often it
   actually beat a flat weekly buy - what you paid against the market, and the weeks the
-  drip landed in; one the Pi slept through is bought when it wakes.
+  drip landed in; one the Pi slept through is bought when it wakes. The backtest replays
+  *your* rhythm, not a fixed week.
 - **Every buy opens** - what those euros are worth today, and the readings behind it.
+  Every year comes down as a file for your tax return, with the one-year rule marked.
 - **The drip is set where it is read** - click the amount, or the schedule chip.
 - **`Ctrl+K` reaches all of it**, keys included, and searches the buys themselves -
   `august`, `30d`, `price>60000` - answered with how much you put in and what it bought.
@@ -70,10 +74,17 @@ Drip moves to another Pi by carrying it over. To update:
 
 `http://<pi-address>:8080/#tank` is the whole thing on one screen, sized to read across
 the room. Point a spare monitor at it and leave it - it refreshes itself and cannot
-spend money.
+spend money. Tick **stay signed in** when you sign it in, because a monitor nobody sits
+at cannot type a password.
 
-The API has **no authentication** - keep it inside your home network and do not
-forward the port to the internet.
+## Locking it
+
+Optional, and off until you ask. Set a password under **Setup → System** and anyone on
+your network needs it before they can reach your keys, your history or the buy button;
+leave it empty and Drip is exactly what it was. Either way the bot keeps buying - the
+lock is on the dashboard, not on the drip.
+
+Still keep it off the open internet: one password is not a reason to forward a port.
 
 ## Strategy
 
@@ -111,6 +122,7 @@ wins. Without Coinbase keys everything still works in dry-run mode.
 | `COINBASE_API_KEY` | for live trading | Key name from your CDP key file, e.g. `organizations/xxx/apiKeys/yyy`. Create one at https://portal.cdp.coinbase.com/access/api with the Trade permission. |
 | `COINBASE_API_SECRET` | for live trading | The EC private key from the same file, on one line with line breaks written as `\n`. |
 | `DISCORD_WEBHOOK_URL` | optional | Webhook for buy notifications and the weekly report. |
+| `DRIP_PASSWORD` | optional | Sets the lock, and the way back in if you lock yourself out: put it here and restart the backend. Empty means no password. |
 | `TZ` | optional | Timezone the scheduler runs in, set in `docker-compose.yml`. |
 | `DRIP_PORT` | optional | Host port for the dashboard, default 8080. Lives in the **root** `.env`. |
 

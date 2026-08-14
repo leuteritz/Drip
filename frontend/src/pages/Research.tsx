@@ -1,17 +1,8 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useRef, useState, type RefObject } from "react";
 import DownloadSimpleIcon from "~icons/ph/download-simple";
 import FlaskIcon from "~icons/ph/flask";
-import {
-  api,
-  type Attribution,
-  type ChartEvent,
-  type CandidateSignals,
-  type ForwardReturns,
-  type RollingWindows,
-  type ScorePoint,
-  type ScoringVariants as ScoringVariantsData,
-  type StrategyGrid,
-} from "../api/client";
+import { api } from "../api/client";
+import { useResource } from "../lib/resource";
 import AttributionWaterfall from "../components/research/AttributionWaterfall";
 import EdgeDistribution from "../components/research/EdgeDistribution";
 import ForwardReturnsTable from "../components/research/ForwardReturnsTable";
@@ -20,7 +11,7 @@ import ScoreHistory from "../components/research/ScoreHistory";
 import ScoringVariants from "../components/research/ScoringVariants";
 import SignalScreen from "../components/research/SignalScreen";
 import WeekdayGrid from "../components/research/WeekdayGrid";
-import { Card, Failed, Loading, SectionHeading } from "../components/ui";
+import { Loading, SectionHeading } from "../components/ui";
 
 /**
  * The Research body: read-only analyses that audit the strategy instead of
@@ -41,6 +32,16 @@ import { Card, Failed, Loading, SectionHeading } from "../components/ui";
  * identical weight, each with its own range control, so the verdict was
  * something you had to already know how to find. There is exactly one `lead`
  * here, as everywhere.
+ *
+ * **A load is answered where it is read**, which is why these go through
+ * `useResource` like the dashboard's do. They used to share one `error` string
+ * and one alert card at the top — the very arrangement `lib/resource.ts` was
+ * written to remove — and it had the same consequence here: one dead endpoint
+ * put an alert above seven cards that then sat in their `Loading` branch for
+ * ever, clocks climbing, because their `data` never arrived. Each card now says
+ * what it could not build and offers to ask again. Retrying one is cheap even
+ * when all seven failed: the scoring table is cached on the backend for an hour,
+ * so the first card back warms it for the rest.
  */
 export default function Research({
   scrollRef,
@@ -58,63 +59,44 @@ export default function Research({
   const [variantDays, setVariantDays] = useState(365);
   const [windowDays, setWindowDays] = useState(365);
 
-  const [attribution, setAttribution] = useState<Attribution | null>(null);
-  const [forward, setForward] = useState<ForwardReturns | null>(null);
-  const [rolling, setRolling] = useState<RollingWindows | null>(null);
-  const [grid, setGrid] = useState<StrategyGrid | null>(null);
-  const [scores, setScores] = useState<ScorePoint[] | null>(null);
-  const [events, setEvents] = useState<ChartEvent[] | null>(null);
-  const [candidates, setCandidates] = useState<CandidateSignals | null>(null);
-  const [variants, setVariants] = useState<ScoringVariantsData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  // Bumped by the one retry, and a dependency of all seven effects.
-  const [attempt, setAttempt] = useState(0);
-
-  const fail = (e: unknown) =>
-    setError(e instanceof Error ? e.message : String(e));
+  // Nothing is asked for until the section is nearly in view — `wanted` is the
+  // `enabled` gate, so a reader who never scrolls this far never pays for a
+  // three-year candle fetch.
+  const attribution = useResource(
+    () => api.getAttribution(attributionDays), [attributionDays], wanted,
+  );
+  const forward = useResource(
+    () => api.getForwardReturns(forwardDays), [forwardDays], wanted,
+  );
+  const rolling = useResource(
+    () => api.getRollingWindows(windowDays), [windowDays], wanted,
+  );
+  const grid = useResource(
+    () => api.getStrategyGrid(gridDays), [gridDays], wanted,
+  );
+  const scores = useResource(
+    () => api.getScoreHistory(scoreDays), [scoreDays], wanted,
+  );
+  // Rides with the score history: the events are the halvings and the window's
+  // extremes drawn onto that one chart, never a card of their own. It is
+  // therefore not counted in the progress line, and a failure here leaves the
+  // chart standing without its reference lines rather than taking it down.
+  const events = useResource(
+    () => api.getChartEvents(scoreDays), [scoreDays], wanted,
+  );
+  const candidates = useResource(
+    () => api.getCandidateSignals(candidateDays), [candidateDays], wanted,
+  );
+  const variants = useResource(
+    () => api.getScoringVariants(variantDays), [variantDays], wanted,
+  );
 
   // The seven analyses, for the progress line below the heading. This section
   // is where waiting actually happens — a cold scoring table is three years of
   // candles — so it says how far along it is instead of showing seven silent
-  // skeletons. `events` rides with the score history and is not counted.
+  // skeletons. One that failed is no longer pending: it has said so itself.
   const analyses = [attribution, rolling, scores, forward, candidates, variants, grid];
-  const ready = analyses.filter((a) => a != null).length;
-
-  useEffect(() => {
-    if (!wanted) return;
-    api.getAttribution(attributionDays).then(setAttribution).catch(fail);
-  }, [wanted, attributionDays, attempt]);
-
-  useEffect(() => {
-    if (!wanted) return;
-    api.getForwardReturns(forwardDays).then(setForward).catch(fail);
-  }, [wanted, forwardDays, attempt]);
-
-  useEffect(() => {
-    if (!wanted) return;
-    api.getRollingWindows(windowDays).then(setRolling).catch(fail);
-  }, [wanted, windowDays, attempt]);
-
-  useEffect(() => {
-    if (!wanted) return;
-    api.getStrategyGrid(gridDays).then(setGrid).catch(fail);
-  }, [wanted, gridDays, attempt]);
-
-  useEffect(() => {
-    if (!wanted) return;
-    api.getScoreHistory(scoreDays).then(setScores).catch(fail);
-    api.getChartEvents(scoreDays).then(setEvents).catch(fail);
-  }, [wanted, scoreDays, attempt]);
-
-  useEffect(() => {
-    if (!wanted) return;
-    api.getCandidateSignals(candidateDays).then(setCandidates).catch(fail);
-  }, [wanted, candidateDays, attempt]);
-
-  useEffect(() => {
-    if (!wanted) return;
-    api.getScoringVariants(variantDays).then(setVariants).catch(fail);
-  }, [wanted, variantDays, attempt]);
+  const ready = analyses.filter((a) => a.data != null || a.error != null).length;
 
   return (
     <section
@@ -137,7 +119,10 @@ export default function Research({
         }
       />
 
-      {wanted && !error && ready < analyses.length && (
+      {/* Only while something is genuinely still out. A card that failed says
+          so itself, in its own words, where it is read — there is no section-
+          wide alert any more, because one dead endpoint is not seven. */}
+      {wanted && ready < analyses.length && (
         <div className="rounded-card border-2 border-water/50 bg-water-soft/30 px-4 py-3">
           <Loading
             compact
@@ -149,61 +134,60 @@ export default function Research({
         </div>
       )}
 
-      {error && (
-        <Card tone="alert">
-          <Failed
-            what="Could not build the strategy tests"
-            why={error}
-            /* One retry for the section rather than one per card: all seven are
-               cut from the same scoring table, so they fail and recover
-               together. `attempt` is in every effect's deps. */
-            onRetry={() => {
-              setError(null);
-              setAttempt((n) => n + 1);
-            }}
-          />
-          <p className="mt-2 text-center text-sm text-ink-soft">
-            These may need to fetch three years of prices on their first run.
-          </p>
-        </Card>
-      )}
-
       {/* The section's one `lead`, and it comes first because it is the answer
           to the question the heading asks: how often the multiplier actually
           beat a flat weekly buy. Everything under it is a narrower question
           about *why*, and they all keep the plain tile row. */}
       <EdgeDistribution
-        data={rolling}
+        data={rolling.data}
+        error={rolling.error}
+        onRetry={rolling.retry}
         windowDays={windowDays}
         onWindowDays={setWindowDays}
       />
       <AttributionWaterfall
-        data={attribution}
+        data={attribution.data}
+        error={attribution.error}
+        onRetry={attribution.retry}
         days={attributionDays}
         onDays={setAttributionDays}
       />
       <ScoreHistory
-        data={scores}
-        events={events}
+        data={scores.data}
+        events={events.data}
+        error={scores.error}
+        onRetry={scores.retry}
         days={scoreDays}
         onDays={setScoreDays}
       />
       <ForwardReturnsTable
-        data={forward}
+        data={forward.data}
+        error={forward.error}
+        onRetry={forward.retry}
         days={forwardDays}
         onDays={setForwardDays}
       />
       <SignalScreen
-        data={candidates}
+        data={candidates.data}
+        error={candidates.error}
+        onRetry={candidates.retry}
         days={candidateDays}
         onDays={setCandidateDays}
       />
       <ScoringVariants
-        data={variants}
+        data={variants.data}
+        error={variants.error}
+        onRetry={variants.retry}
         windowDays={variantDays}
         onWindowDays={setVariantDays}
       />
-      <WeekdayGrid data={grid} days={gridDays} onDays={setGridDays} />
+      <WeekdayGrid
+        data={grid.data}
+        error={grid.error}
+        onRetry={grid.retry}
+        days={gridDays}
+        onDays={setGridDays}
+      />
     </section>
   );
 }

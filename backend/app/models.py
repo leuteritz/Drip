@@ -83,6 +83,17 @@ class BotSettings(SQLModel, table=True):
     # only ever reports, it can never spend. See `watch.py`; it reaches an
     # existing install through `_migrate_columns`.
     watch: bool = True
+    # Which cards the Overview shows: a JSON object of {card key: bool}. "{}"
+    # resolved against the frontend's registry means every card on, which is the
+    # page every install had before this column existed — so `_migrate_columns`
+    # writing the default in is the whole of the upgrade, the way `cadence` was.
+    # A key that is missing falls back to that card's own default, so a card
+    # added in a later version arrives switched on rather than silently off —
+    # the rule `DigestSettings.blocks` states. Unlike that one, the vocabulary
+    # is *not* on this side: `cards.py` stores and shape-checks the blob and
+    # deliberately holds no list, because the cards are rendered by React. See
+    # `cards.py` and `frontend/src/lib/cards.ts`.
+    cards: str = "{}"
 
 
 class PauseWindow(SQLModel, table=True):
@@ -179,6 +190,14 @@ class Credentials(SQLModel, table=True):
     coinbase_api_key: str = ""
     coinbase_api_secret: str = ""
     discord_webhook_url: str = ""
+    # The optional lock in front of the API, as a scrypt hash. Empty is the
+    # whole of the guarantee: it means there is no password, which is what every
+    # install had before this column existed and what `_migrate_columns` writes
+    # in. It sits here rather than in `credentials.FIELDS` because those are the
+    # secrets Drip hands to somebody else and this is the one that guards Drip
+    # itself — a different shelf. Never read it directly; `auth.py` resolves it
+    # against `.env` the way `credentials.py` resolves the three above.
+    password_hash: str = ""
 
 
 class Candle(SQLModel, table=True):

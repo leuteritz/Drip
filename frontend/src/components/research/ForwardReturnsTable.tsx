@@ -1,5 +1,5 @@
 import type { ForwardReturns, ForwardStats } from "../../api/client";
-import { Card, CardHeader, Loading, Note, RangePills, toneText } from "../ui";
+import { Card, CardHeader, Failed, Loading, Note, RangePills, toneText } from "../ui";
 
 /**
  * Does a high score actually mark a cheap entry?
@@ -17,8 +17,13 @@ export default function ForwardReturnsTable({
   data,
   days,
   onDays,
+  error,
+  onRetry,
 }: {
   data: ForwardReturns | null;
+  /** This card's own failure, so a dead endpoint cannot leave it spinning. */
+  error?: string | null;
+  onRetry?: () => void;
   days: number;
   onDays: (v: number) => void;
 }) {
@@ -73,7 +78,11 @@ export default function ForwardReturnsTable({
 
       {!data ? (
         <div className="flex h-48 items-center justify-center rounded-xl bg-sand-soft/40">
-          <Loading compact what="Measuring what came after each score" />
+          {error ? (
+            <Failed compact what="Could not measure what came after" why={error} onRetry={onRetry} />
+          ) : (
+            <Loading compact what="Measuring what came after each score" />
+          )}
         </div>
       ) : (
         <>

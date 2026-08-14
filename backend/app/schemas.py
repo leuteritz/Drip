@@ -5,7 +5,7 @@ are wired into the routers via `response_model=`, so a field renamed here fails
 loudly (and shows up in /docs) instead of silently breaking the dashboard.
 """
 from datetime import date, datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -27,6 +27,18 @@ class SettingsUpdate(BaseModel):
     watch: Optional[bool] = None
     # 0 switches the custody nudge off; the figures stay either way.
     custody_threshold_eur: Optional[float] = Field(default=None, ge=0, le=10_000_000)
+    # Which Overview cards to show, merged into the stored selection so the
+    # dialog can send a single toggle — `DigestUpdate.blocks`' shape, and the
+    # same asymmetry: an object goes up, the stored string comes back down.
+    #
+    # Deliberately untyped, unlike `DigestUpdate.blocks`, and it has to be:
+    # `dict[str, bool]` lets pydantic *coerce* on the way in, so `{"years":
+    # "yes"}` arrived at the router as a perfectly good `True` and switched the
+    # card back on. A value nobody meant, accepted silently, is worse than a
+    # refusal — so the shape is checked exactly once, by `cards.merge`, which is
+    # also where the sentence explaining it lives. Every refusal is then a 400
+    # the dialog can print, never a 422 nobody wrote.
+    cards: Optional[Any] = None
 
 
 class DigestUpdate(BaseModel):
@@ -37,6 +49,34 @@ class DigestUpdate(BaseModel):
     weekday: Optional[int] = Field(default=None, ge=0, le=6)
     send_time: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
     blocks: Optional[dict[str, bool]] = None
+
+
+class AuthState(BaseModel):
+    """Whether there is a lock, and whether this browser is past it.
+
+    `source` says where the password came from - "dashboard", "env" or "none" -
+    which the setup panel needs so it can say that an install bootstrapped from
+    `backend/.env` is not unlocked by clearing the field here.
+    """
+
+    required: bool
+    authenticated: bool
+    source: str
+
+
+class LoginRequest(BaseModel):
+    password: str
+    # A wall display cannot type a password, so its session is issued for years
+    # rather than a month. Deliberately the same token with a longer life - see
+    # `auth.py` on why there is no kiosk exemption instead.
+    stay: bool = False
+
+
+class PasswordUpdate(BaseModel):
+    """An empty `new` removes the lock; `current` is ignored when there is none."""
+
+    current: str = ""
+    new: str = ""
 
 
 class CredentialsUpdate(BaseModel):
@@ -140,6 +180,9 @@ class SimulationSummary(BaseModel):
     start_date: str
     end_date: str
     weekday: int
+    # The rhythm that was replayed - one of `cadence.KEYS`. The dialog says it
+    # out loud, so a monthly install cannot be shown a weekly what-if.
+    cadence: str
     base_amount_eur: float
     bot: PerformanceSide
     dca: PerformanceSide
@@ -742,6 +785,10 @@ class BalanceResponse(BaseModel):
     configured: bool
     eur_available: Optional[float]
     btc_available: Optional[float]
+    # At or below this many buys' worth the well reads as running dry. Carried
+    # here so the header's chip does not keep a second copy of `well.LOW_BUYS` -
+    # the chip turning rose and Discord calling the well low are one statement.
+    low_buys: int
     error: Optional[str]
 
 

@@ -85,7 +85,7 @@ export default function Maintenance({
         <Download
           icon={<DownloadIcon />}
           title="Download a backup"
-          description="The whole SQLite database in one file — settings, history and the keys stored here. Treat it like the keys themselves."
+          description="The whole SQLite database in one file — settings, history and the keys stored here, plus the password, so a restored Drip locks the way this one does. Treat it like the keys themselves."
           label="Backup"
           href={api.backupUrl}
         />

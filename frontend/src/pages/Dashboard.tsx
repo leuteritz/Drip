@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
+import SlidersIcon from "~icons/ph/sliders-horizontal";
 import TrendDownIcon from "~icons/ph/trend-down";
 import TrendUpIcon from "~icons/ph/trend-up";
-import { api, type BotSettings, type ComparisonPoint, type Purchase } from "../api/client";
+import { api, type BotSettings, type ComparisonPoint, type Purchase, type SettingsUpdate } from "../api/client";
+import { CARDS, visible } from "../lib/cards";
 import { fmtEur, fmtPct } from "../lib/format";
 import { useResource } from "../lib/resource";
 import ComparisonChart from "../components/ComparisonChart";
@@ -57,6 +59,14 @@ const RANGES = [
  * stats and the strategy series), and is surfaced here next to the chart it
  * affects. It reaches the cost basis too — but never the holding periods, which
  * count real buys only.
+ *
+ * Which of them are here at all is `settings.cards`, resolved through
+ * `lib/cards.ts` — the registry, which is on this side because this is the side
+ * that renders. Two are deliberately not in it and always show: the chart,
+ * because it is the section's one `lead`, and `PulseCard`, because it is the
+ * only thing on the page that reports a fault. That module says why. A hidden
+ * card does not fetch either (`useResource`'s `enabled`), which on this
+ * hardware is the better half of the feature.
  */
 export default function Overview({
   purchases,
@@ -67,6 +77,7 @@ export default function Overview({
   onTestBuy,
   onToggleDryRun,
   onSaveSettings,
+  onOpenCards,
 }: {
   purchases: Purchase[];
   /** The first fetch is still out — an empty history is not yet "no buys". */
@@ -76,9 +87,17 @@ export default function Overview({
   running: boolean;
   onTestBuy: () => void;
   onToggleDryRun: (v: boolean) => void;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
+  /** The dialog lives in `App` beside `SimulationModal`, and for its reason. */
+  onOpenCards: () => void;
 }) {
   const [rangeDays, setRangeDays] = useState(90);
+
+  // Settings arrive a moment after the first paint, and `visible(undefined)`
+  // resolves to every card's default — which is every card on. So the page
+  // never flickers a card away and then back.
+  const shown = useMemo(() => visible(settings?.cards), [settings?.cards]);
+  const show = (key: string) => shown.has(key);
 
   // Seven independent loads, each answered where it is read. They used to share
   // one `error` string and one alert card at the top of the section, which meant
@@ -90,19 +109,25 @@ export default function Overview({
     () => api.getComparison(includeDryRun),
     [includeDryRun, purchases],
   );
+  // One load, two cards — so it runs while *either* is on. The only place the
+  // card gates are not one-to-one with the fetches, and the one that would be a
+  // bug if it were left implicit.
   const holdings = useResource(
     () => api.getHoldings(includeDryRun),
     [includeDryRun, purchases],
+    show("basis") || show("ages"),
   );
   const outlook = useResource(
     () => api.getOutlook(includeDryRun),
     [includeDryRun, purchases],
+    show("outlook"),
   );
   // Cut from the same series the chart above plots, so it follows the same
   // filter — a card showing days the chart does not would be worse than none.
   const waterline = useResource(
     () => api.getWaterline(includeDryRun),
     [includeDryRun, purchases],
+    show("waterline"),
   );
   // Neither the record of which periods got a buy nor where the stack is kept
   // takes a dry-run filter — one counts every run the bot made, the other only
@@ -112,10 +137,12 @@ export default function Overview({
   const custody = useResource(
     () => api.getCustody(),
     [purchases, settings?.custody_threshold_eur],
+    show("custody"),
   );
   const years = useResource(
     () => api.getYears(includeDryRun),
     [includeDryRun, purchases],
+    show("years"),
   );
   // Candles only back the price-only fallback shown before there are enough
   // buys to chart the strategy.
@@ -157,8 +184,13 @@ export default function Overview({
         {/* What the page is about, before the answer to it: the comparison used
             to open the section, which is the answer to a question the app never
             asked out loud. `Method` is the question — and it is deliberately not
-            a card, so the chart below keeps being the one `lead`. */}
-        <Method />
+            a card, so the chart below keeps being the one `lead`.
+
+            The one hideable thing that is not a card, and the one most people
+            will turn off: it carries no live figure by design, and a block that
+            never changes is a block you have read. The `FirstRun` branch above
+            ignores the setting, because a fresh install is who it is for. */}
+        {show("method") && <Method />}
 
         {/* The section's one `lead`: the comparison is the thesis of the whole
             app, and it used to sit in the same box as the five cards that
@@ -270,62 +302,111 @@ export default function Overview({
             page scales with, so these steps do not move with the type. The card
             widths inside them do — which is why everything within a card is a
             container query instead. Re-measure with `tools/pair.js` before
-            moving either span. */}
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-12">
-          <div className="*:h-full lg:col-span-7">
-            <CostBasisCard
-              holdings={holdings.data}
-              error={holdings.error}
-              onRetry={holdings.retry}
-              purchases={purchases}
-              includeDryRun={includeDryRun}
-            />
+            moving either span.
+
+            **A pair is a pair.** Hide one half and the other takes the whole
+            row; nothing is re-paired across the gap. Pairing whatever happens to
+            be visible would give a 7/5 nobody measured *and* rearrange the
+            page's own argument for tidiness — the order here is a claim, not a
+            packing problem. That leaves exactly four new widths to measure
+            (each of these four alone at 12) instead of every combination. Both
+            spans are written out whole so Tailwind's source scan sees them. */}
+        {(show("basis") || show("ages")) && (
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-12">
+            {show("basis") && (
+              <div
+                className={`*:h-full ${show("ages") ? "lg:col-span-7" : "lg:col-span-12"}`}
+              >
+                <CostBasisCard
+                  holdings={holdings.data}
+                  error={holdings.error}
+                  onRetry={holdings.retry}
+                  purchases={purchases}
+                  includeDryRun={includeDryRun}
+                />
+              </div>
+            )}
+            {show("ages") && (
+              <div
+                className={`*:h-full ${show("basis") ? "lg:col-span-5" : "lg:col-span-12"}`}
+              >
+                <HoldingPeriods
+                  data={holdings.data}
+                  error={holdings.error}
+                  onRetry={holdings.retry}
+                />
+              </div>
+            )}
           </div>
-          <div className="*:h-full lg:col-span-5">
-            <HoldingPeriods
-              data={holdings.data}
-              error={holdings.error}
-              onRetry={holdings.retry}
-            />
-          </div>
-        </div>
+        )}
 
         {/* What holding it has actually felt like. Every card above is an
             average over the buys that landed, and an average is exactly what
             hides the stretches that make people stop. */}
-        <WaterlineCard
-          data={waterline.data}
-          error={waterline.error}
-          onRetry={waterline.retry}
-        />
+        {show("waterline") && (
+          <WaterlineCard
+            data={waterline.data}
+            error={waterline.error}
+            onRetry={waterline.retry}
+          />
+        )}
 
         {/* The same history read a year at a time. It sits here rather than at
             the end because it looks *back*, and `Outlook` closes the section on
             the one card that faces forwards. Full width like the waterline: a
             row per year is a wide object, and it joins no measured pair. */}
-        <YearsCard data={years.data} error={years.error} onRetry={years.retry} />
+        {show("years") && (
+          <YearsCard data={years.data} error={years.error} onRetry={years.retry} />
+        )}
 
         {/* Where the result of all that is sitting, and where it is going if
             nothing changes — the one that looks back at custody beside the one
-            that faces forwards. */}
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-12">
-          <div className="*:h-full lg:col-span-6">
-            <CustodyCard
-              data={custody.data}
-              error={custody.error}
-              onRetry={custody.retry}
-              settings={settings}
-              onSaveSettings={onSaveSettings}
-            />
+            that faces forwards. The same pair rule as above. */}
+        {(show("custody") || show("outlook")) && (
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-12">
+            {show("custody") && (
+              <div
+                className={`*:h-full ${show("outlook") ? "lg:col-span-6" : "lg:col-span-12"}`}
+              >
+                <CustodyCard
+                  data={custody.data}
+                  error={custody.error}
+                  onRetry={custody.retry}
+                  settings={settings}
+                  onSaveSettings={onSaveSettings}
+                />
+              </div>
+            )}
+            {show("outlook") && (
+              <div
+                className={`*:h-full ${show("custody") ? "lg:col-span-6" : "lg:col-span-12"}`}
+              >
+                <OutlookCard
+                  data={outlook.data}
+                  error={outlook.error}
+                  onRetry={outlook.retry}
+                />
+              </div>
+            )}
           </div>
-          <div className="*:h-full lg:col-span-6">
-            <OutlookCard
-              data={outlook.data}
-              error={outlook.error}
-              onRetry={outlook.retry}
-            />
-          </div>
-        </div>
+        )}
+
+        {/* Below the last card is where you are standing when you have finished
+            reading the page and formed the opinion "I never look at that one".
+            On the page ground rather than in a card, and quiet — it is a door,
+            not a control. It also means the page can never silently forget
+            something: a hidden card leaves its count behind. */}
+        <p className="mt-1 text-center text-xs text-ink-soft">
+          Showing {shown.size} of {CARDS.length}
+          <span aria-hidden="true"> · </span>
+          <button
+            type="button"
+            onClick={onOpenCards}
+            className="inline-flex items-center gap-1 font-bold text-teal transition hover:opacity-70"
+          >
+            <SlidersIcon /> Choose what this page shows
+          </button>
+        </p>
       </div>
     </section>
   );

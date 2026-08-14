@@ -1,5 +1,5 @@
 import WarningIcon from "~icons/ph/warning";
-import type { BotSettings, Pulse, PulsePeriod } from "../../api/client";
+import type { BotSettings, Pulse, PulsePeriod, SettingsUpdate } from "../../api/client";
 import { cadenceOf, countPeriods } from "../../lib/cadence";
 import { fmtEur, formatDayMonthYear, SATS_PER_BTC } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
@@ -74,7 +74,7 @@ export default function PulseCard({
   error?: string | null;
   onRetry?: () => void;
   settings: BotSettings | null;
-  onSaveSettings: (update: Partial<BotSettings>) => Promise<void>;
+  onSaveSettings: (update: SettingsUpdate) => Promise<void>;
 }) {
   const stackAmount = useStackAmount();
 

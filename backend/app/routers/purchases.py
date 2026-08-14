@@ -1,11 +1,13 @@
 import csv
 import io
+from datetime import date
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import Response
 from sqlmodel import Session, select
 
 from .. import csv_import, receipt
+from .. import tax as tax_service
 from ..database import get_session
 from ..models import Purchase
 from ..schemas import (
@@ -59,6 +61,28 @@ def export_purchases(session: Session = Depends(get_session)):
         content=buffer.getvalue(),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=drip_purchases.csv"},
+    )
+
+
+@router.get("/tax.csv")
+def export_tax_year(year: int, session: Session = Depends(get_session)):
+    """One calendar year's acquisitions, for a tax return. See `tax.py`.
+
+    Deliberately not part of `/export`: that file is the whole history and
+    re-imports, this one is a year and is meant to be read by a person or handed
+    to somebody who files it. Real buys only, and it computes no tax.
+    """
+    if not 2009 <= year <= date.today().year:
+        raise HTTPException(
+            status_code=400,
+            detail="Pick a year between 2009 and this one - bitcoin has no rows before that.",
+        )
+    return Response(
+        content=tax_service.to_csv(session, year),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=drip_acquisitions_{year}.csv"
+        },
     )
 
 

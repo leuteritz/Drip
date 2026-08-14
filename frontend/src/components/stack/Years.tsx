@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import type { YearCohort, Years } from "../../api/client";
+import DownloadSimpleIcon from "~icons/ph/download-simple";
+import { api, type YearCohort, type Years } from "../../api/client";
 import { fmtEur, fmtPct } from "../../lib/format";
 import { useStackAmount } from "../../lib/units";
 import {
@@ -30,6 +31,12 @@ import {
  *
  * The lead figure is the *selected* year's profit, so the card answers about one
  * year at a time rather than showing a wall of five equal ones.
+ *
+ * That selection is also why the tax export sits here rather than in Setup's
+ * maintenance drawer: it needs a year, and this is the one place in the app
+ * where a year is chosen. A setting — or an action — belongs where the figure it
+ * acts on is read. What comes down is acquisitions only and computes no tax; see
+ * `backend/app/tax.py` for why it stops there.
  */
 export default function YearsCard({
   data,
@@ -116,7 +123,18 @@ export default function YearsCard({
 
   return (
     <Card className="flex flex-col">
-      <CardHeader title="Year by year" info={info} />
+      <CardHeader title="Year by year" info={info}>
+        {/* The year being read is the year that comes down — no second picker,
+            and nothing to get out of step with the rows below. */}
+        <a
+          href={api.taxUrl(current.year)}
+          download
+          title={`Every real buy made in ${current.year}, with the one-year rule marked. No tax is calculated.`}
+          className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-sand-soft px-3 text-xs font-bold text-teal transition hover:bg-water-soft"
+        >
+          <DownloadSimpleIcon /> {current.year} for tax
+        </a>
+      </CardHeader>
 
       <StatRow>
         <Stat
